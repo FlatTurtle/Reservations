@@ -1,0 +1,3 @@
+[submodule "zf-apigility-skeleton"]
+	path = zf-apigility-skeleton
+	url = https://github.com/zfcampus/zf-apigility-skeleton.git
