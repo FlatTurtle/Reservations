@@ -1,0 +1,121 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Room",
+    "description": "A room that can be reserved by customers",
+    "type": "object",
+    "properties": {
+        "name": {
+            "description": "Name of the product",
+            "type": "string"
+        },
+        "type": {
+            "description" : "Type is inherited from entity. Describe the entity",
+            "type" : "string"
+        },
+        "opening_hours" : {
+            "description" : "Opening hours schema from http://schema.org/OpeningHoursSpecification",
+            "type" : "object",
+            "oneOf":  [{ "$ref": "#/definitions/OpeningHoursSpecification" }]
+        },
+        "price" : {
+            "description" : "Pricing policy. Need a schema",
+            "type" : "object"
+        },
+        "description" : {
+            "description" : "Description of the room",
+            "type" : "string"
+        },
+        "location" : {
+            "description" : "Describe the location in a building with the floor number and a png map",
+            "type" : "object",
+            "oneOf":  [{ "$ref": "#/definitions/Location" }]
+        },
+        "contact" : {
+            "description" : "A vCARD url",
+            "type" : "string",
+            "pattern" : ""
+        },
+        "support" : {
+            "description" : "A vCARD url",
+            "type" : "string",
+            "pattern" : ""
+        },
+        "amenities" : {
+            "description" : "An array of amenity that the room has to propose",
+            "type" : "array",
+            "items": {
+                "type": "object",
+                "oneOf":  [{ "$ref": "#/definitions/Amenity" }]
+            }
+        }
+    },
+    "definitions": {
+        "OpeningHoursSpecification": {
+            "properties" : {
+                "opens" : {
+                    "description" : "The opening hour of the place or service on the given day(s) of the week.",
+                    "type" : "time"
+                },
+                "closes" : {
+                    "description" : "The closing hour of the place or service on the given day(s) of the week.",
+                    "type" : "time"
+                },
+                "dayOfWeek" : {
+                    "description" : "The day of the week for which these opening hours are valid.",
+                    "type" : "string"
+                },
+                "validFrom" : {
+                    "description" : "The beginning of the validity of offer, price specification, or opening hours data.",
+                    "type" : "timestamp"
+                },
+                "validThrough" : {
+                    "description" : "The end of the validity of offer, price specification, or opening hours data.",
+                    "type" : "timestamp"
+                }
+            },
+            "required": [ "opens", "closes", "dayOfWeek", "validFrom", "validThrough"],
+            "additionalProperties": false
+
+        },
+        "Amenity" : {
+            "properties" : {
+                "name" : {
+                    "description" : "The amenity's name",
+                    "body" : "A JSON string describing the amenity as an entity"
+                }   
+            }
+            
+        },
+        "Location" : {
+            "properties" : {
+                "map" : {
+                    "description" : "A map object",
+                    "type" : "object",
+                    "oneOf":  [{ "$ref": "#/definitions/Map" }]
+                },
+                "floor" : {
+                    "description" : "Floor number",
+                    "type" : "int"
+                },
+                "building_name" : {
+                    "description" : "The room's building name",
+                    "type" : "string"
+                }
+            }
+        },
+        "Map" : {
+            "properties" : {
+                "img" : {
+                    "description" : "A URL to an image map of the building",
+                    "type" : "string",
+                    "pattern" : ""
+                },
+                "reference" : {
+                    "description" : "A simple string reference",
+                    "type" : "string"
+                }
+            }
+        }
+    }
+    "required": ["name", "type", "price", "opening_hours", "description", "location", "contact", "support"]
+}
