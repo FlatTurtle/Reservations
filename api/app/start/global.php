@@ -81,3 +81,9 @@ App::down(function()
 */
 
 require app_path().'/filters.php';
+
+Route::filter('auth.basic', function()
+{
+    Config::set('auth.model', 'Customer');
+    return Auth::basic('username');
+});

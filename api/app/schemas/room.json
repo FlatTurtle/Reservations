@@ -19,7 +19,8 @@
         },
         "price" : {
             "description" : "Pricing policy. Need a schema",
-            "type" : "object"
+            "type" : "object",
+            "oneOf":  [{ "$ref": "#/definitions/Price" }]
         },
         "description" : {
             "description" : "Description of the room",
@@ -113,6 +114,22 @@
                 "reference" : {
                     "description" : "A simple string reference",
                     "type" : "string"
+                }
+            }
+        },
+        "Price" : {
+            "properties" : {
+                "currency" : {
+                    "description" : "Currency",
+                    "type" : "string"
+                },
+                "grouping" : {
+                    "description" : "grouping",
+                    "type" : "string"
+                },
+                "amount" : {
+                    "description" : "amount",
+                    "type" : "int"
                 }
             }
         }

@@ -26,7 +26,7 @@ return array(
 	|
 	*/
 
-	'url' => 'http://localhost/freelance/irail/reservations/api',
+	'url' => 'http://localhost',
 
 	/*
 	|--------------------------------------------------------------------------
