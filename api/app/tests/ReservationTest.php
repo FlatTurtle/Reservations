@@ -125,9 +125,11 @@ class ReservationTest extends TestCase {
 		$this->assertEquals($this->client->getResponse()->getStatusCode(), 404);
 	}
 
-	/*public function testCreateMalformedAmenity() {
+	public function testCreateMalformedAmenity() {
 		$payload = array();
 		$crawler = $this->call('PUT', '/test/amenity/test_amenity', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
+	
+
 	}
 
 	public function testCreateAmenityMissingParameters() {
@@ -208,7 +210,7 @@ class ReservationTest extends TestCase {
 		$payload['body']['type'] = 'room';
 		$payload['body']['opening_hours'] = array();
 
-		for($i=0; $i < 5; $i++){
+		for($i=1; $i < 5; $i++){
 			$opening_hours = array();
 			$opening_hours['opens'] = array('09:00', '13:00');
 			$opening_hours['closes'] = array('12:00', '17:00');
@@ -222,7 +224,7 @@ class ReservationTest extends TestCase {
 		$payload['body']['price']['currency'] = 'euro';
 		$payload['body']['price']['grouping'] = 'hourly';
 		$payload['body']['price']['amount'] = 5;
-		$payload['body']['description'] = '';
+		$payload['body']['description'] = 'description';
 		$payload['body']['location'] = array();
 		$payload['body']['location']['map'] = array();
 		$payload['body']['location']['map']['img'] = 'http://foo.bar/map.png';
@@ -248,12 +250,46 @@ class ReservationTest extends TestCase {
 	/*public function testCreateMalformedEntity() {
 		$payload = array();
 		$crawler = $this->call('PUT', '/test/new_entity', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-	}
+	}*/
 
 	public function testCreateEntityMissingParameters() {
+
+		$this->setExpectedException('Symfony\Component\HttpKernel\Exception\HttpException');
+
 		$payload = array();
+		$payload['name'] = '';
+		$payload['type'] = 'room';
+		$payload['body'] = array();
+		$payload['body']['name'] = 'Deep Blue';
+		$payload['body']['type'] = 'room';
+		$payload['body']['opening_hours'] = array();
+
+		for($i=0; $i < 5; $i++){
+			$opening_hours = array();
+			$opening_hours['opens'] = array('09:00', '13:00');
+			$opening_hours['closes'] = array('12:00', '17:00');
+			$opening_hours['dayOfWeek'] = $i;
+			$opening_hours['validFrom'] = mktime(0,0,0);
+			$opening_hours['validThrough'] = mktime(0,0,0) + (365*24*60*60);
+			array_push($payload['body']['opening_hours'], $opening_hours);
+		}
+
+		$payload['body']['price'] = array();
+		$payload['body']['price']['currency'] = 'euro';
+		$payload['body']['price']['grouping'] = 'hourly';
+		$payload['body']['price']['amount'] = 5;
+		$payload['body']['description'] = '';
+		$payload['body']['location'] = array();
+		$payload['body']['location']['map'] = array();
+		$payload['body']['location']['map']['img'] = 'http://foo.bar/map.png';
+		$payload['body']['location']['map']['reference'] = 'DB';
+		$payload['body']['location']['floor'] = 1;
+		$payload['body']['location']['building_name'] = 'main';
+		$payload['body']['contact'] = 'http://foo.bar/contact.vcf';
+		$payload['body']['support'] = 'http://foo.bar/support.vcf';
+		$payload['body']['amenities'] = array();
 		$crawler = $this->call('PUT', '/test/new_entity', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-	}*/
+	}
 
 
 	/*public function testCreateReservation() {

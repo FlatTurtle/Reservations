@@ -42,10 +42,45 @@ class ReservationController extends Controller {
     		
     		if(!strcmp($customer_name, $username)){
     		
+    			Validator::extend('type', function($attribute, $value, $parameters)
+                {
+                    // simply test if we support this type
+                	if(!isset($value))
+                		return false;
+                	$types = array('room', 'amenity');
+                	//TODO : php function like the 'in' in python
+                    return true;
+                });
+
+                Validator::extend('time', function($attribute, $value, $parameters)
+                {
+                    if(!isset($value['from']))
+                    	return false;
+                    if(!isset($value['to']))
+                    	return false;
+                    if(int($value['from']) < mktime())
+                    	return false;
+                    if(int($value['to']) < mktime())
+                    	return false;
+                    //TODO : do we define a minimum reservation time between from and to ?
+                    if(int($value['to']) < int($value['from']))
+                    	return false;
+                });
+
+            
     			$reservation_validator = ReservationValidator::make(
+    				Input::all(),
     				array(
-                    );
+    					'entity' => 'required',
+    					'type' => 'required|type',
+    					'time' => 'required|time',
+    					'comment' => 'required',
+    					'subject' => 'required',
+    					'announce' => 'required'
+                    )
     			);
+
+
 				$reservation_json = Input::all();
 
 				// Get the schema and data as objects
@@ -77,12 +112,6 @@ class ReservationController extends Controller {
 							)
 						);
 					}
-				}else {
-				    $s = "JSON does not validate. Violations:\n";
-				    foreach ($validator->getErrors() as $error) {
-				        $s .= sprintf("[%s] %s\n", $error['property'], $error['message']);
-				    }
-				    App::abort(400, $s);
 				}
 			}else{
 				App::abort(400, "You are not allowed to make reservations for another customer");

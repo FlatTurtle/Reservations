@@ -6,6 +6,9 @@ class EntityValidator extends Illuminate\Validation\Validator {
 
 	public function validateBody($attribute, $value, $parameters)
     {
+        print_r($attribute);
+        print_r($value);
+        print_r($parameters);
 
     	return true;
     }

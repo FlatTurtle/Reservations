@@ -1,5 +1,4 @@
 <?php
-use JustinRainbow\JsonSchema\Validator;
 
 class EntityController extends Controller {
 
@@ -119,60 +118,130 @@ class EntityController extends Controller {
 
             if(!strcmp($customer_name, $username)){
 
+                
+                //TODO : custom error messages
+                Validator::extend('body', function($attribute, $value, $parameters)
+                {
+                    if(!isset($value['name']) || count($value['name']) < 1)
+                        return false;
+                    //do we manage a supported types list ??
+                    if(!isset($value['type']) || count($value['type']) < 1)
+                        return false;
+
+                    // opening hours validation
+
+                    if(!isset($value['opening_hours']))
+                        return false;
+
+                    foreach($value['opening_hours'] as $opening_hour){
+
+                        //TODO : test against current time value (after, before)
+                        if(!isset($opening_hour['opens']))
+                            return false;
+                        if(!isset($opening_hour['closes']))
+                            return false;
+                        if(!isset($opening_hour['validFrom']))
+                            return false;
+                        if(!isset($opening_hour['validThrough']))
+                            return false;
+                        if(!isset($opening_hour['dayOfWeek']))
+                            return false;
+                        if($opening_hour['dayOfWeek'] < 1 || $opening_hour['dayOfWeek'] > 7)
+                            return false;
+                    }
+
+                    //price validation
+
+                    //TODO : lib to manage different currencies ? 
+                    $currencies = array('dollar', 'euro', 'sterling', 'yen');
+                    $groupings = array('hourly', 'daily', 'weekly', 'monthly', 'yearly');
+
+                    if(!isset($value['price']))
+                        return false;
+                    if(!isset($value['price']['currency']))
+                        return false;
+                    if(!isset($value['price']['amount']))
+                        return false;
+                    if(!isset($value['price']['grouping']))
+                        return false;
+
+                    if($value['price']['amount'] < 0)
+                        return false;
+                    //TODO : test against groupings and currencies
+
+
+                    if(!isset($value['description']) || count($value['description']) < 1)
+                        return false;
+                    
+
+                    //location validation
+
+                    if(!isset($value['location']))
+                        return false;
+                    if(!isset($value['location']['map']))
+                        return false;
+                    if(!isset($value['location']['floor']))
+                        return false;
+                    if(!isset($value['location']['building_name']) 
+                        || count($value['location']['building_name']) < 1)
+                        return false;
+
+                    //location map validation
+
+                    if(!isset($value['location']['map']['img'])
+                        || count($value['location']['map']['img']) < 1)
+                        return false;
+                    if(!isset($value['location']['map']['reference'])
+                        || count($value['location']['map']['reference']) < 1)
+                        return false;
+
+
+                    //TODO : test values with url regex
+                    if(!isset($value['contact']) || count($value['contact']) < 1)
+                        return false;
+                    if(!isset($value['support']) || count($value['support']) < 1)
+                        return false;
+                    //TODO : typeof against amenities array ?
+
+                    return true;
+                });
 
                 //TODO : create a validator object depending on type parameter
-                $room_validator = EntityValidator::make(
+                $room_validator = Validator::make(
+                    Input::all(),
                     array(
                         'name' => 'required',
-                        'type' => 'required|room',
-                        'body' => 'required'
-                    );
+                        'type' => 'required|alpha_dash',
+                        'body' => 'required|body'
+                    )
                 );
 
 
-                $entity_json = Input::json();
-
-                //TODO check if type exists in json
-                $type = $entity_json->get('type');
-                $body = $entity_json->all();
-                // Get the schema and data as objects
-                /*$retriever = new JsonSchema\Uri\UriRetriever();
-
-                //TODO : check if schema exists
-                $schema = $retriever->retrieve('file://' . realpath('schemas/'.$type.'.json'));
-                
-
-                // If you use $ref or if you are unsure, resolve those references here
-                // This modifies the $schema object
-                $refResolver = new JsonSchema\RefResolver($retriever);
-                $refResolver->resolve($schema, 'file://' . __DIR__);
-
-                // Validate
-                $validator = new JsonSchema\Validator();
-                $validator->check($body, $schema);
-
-                if ($validator->isValid()) {*/
+                if (!$room_validator->fails()) {
 
                     //TODO : check if amenities in $data['amenities'] exists in DB
                     DB::table('entity')->insert(
                         array(
-                            'name' => $name,
-                            'type' => $type,
+                            'name' => Input::get('name'),
+                            'type' => Input::get('type'),
                             'updated_at' => microtime(),
                             'created_at' => microtime(),
-                            'body' => json_encode($body),
+                            'body' => json_encode(Input::get('body')),
                             'customer_id' => $customer->id
                         )
                     );
 
                     
-                /*} else {
+                } else {
+                    $messages = $room_validator->messages();
+                    
                     $s = "JSON does not validate. Violations:\n";
-                    foreach ($validator->getErrors() as $error) {
-                        $s .= sprintf("[%s] %s\n", $error['property'], $error['message']);
+                    foreach ($messages->all() as $message)
+                    {
+                        $s .= "$message\n";
                     }
                     App::abort(400, $s);
-                } */
+                } 
             }else{
                 App::abort(400, "You can't modify entities from another customer");
             }
@@ -194,12 +263,20 @@ class EntityController extends Controller {
             $username = Request::header('php-auth-user');
             if(!strcmp($customer_name, $username)){
 
-                $amenity_validator = AmenityValidator::make(
+                //TODO : custom error messages
+                Validator::extend('amenity', function($attribute, $value, $parameters)
+                {
+                    // $value is a json schema, we need to validate it
+
+                    return true;
+                });
+                $amenity_validator = Validator::make(
+                    Input::all(),
                     array(
                         'name' => 'required',
-                        'type' => 'required|room',
-                        'body' => 'required'
-                    );
+                        'type' => 'required|same:amenity',
+                        'schema' => 'amenity'
+                    )
                 );
 
                 $entity_json = Input::all();
