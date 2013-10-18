@@ -3,6 +3,8 @@
 
 class ReservationController extends Controller {
 
+
+
 	public function getReservations($customer_name) {
     	
     	$customer = DB::table('customer')
@@ -40,6 +42,10 @@ class ReservationController extends Controller {
     		
     		if(!strcmp($customer_name, $username)){
     		
+    			$reservation_validator = ReservationValidator::make(
+    				array(
+                    );
+    			);
 				$reservation_json = Input::all();
 
 				// Get the schema and data as objects

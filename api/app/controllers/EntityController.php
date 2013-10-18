@@ -119,6 +119,17 @@ class EntityController extends Controller {
 
             if(!strcmp($customer_name, $username)){
 
+
+                //TODO : create a validator object depending on type parameter
+                $room_validator = EntityValidator::make(
+                    array(
+                        'name' => 'required',
+                        'type' => 'required|room',
+                        'body' => 'required'
+                    );
+                );
+
+
                 $entity_json = Input::json();
 
                 //TODO check if type exists in json
@@ -182,6 +193,14 @@ class EntityController extends Controller {
             this username with the url {customer_name}*/
             $username = Request::header('php-auth-user');
             if(!strcmp($customer_name, $username)){
+
+                $amenity_validator = AmenityValidator::make(
+                    array(
+                        'name' => 'required',
+                        'type' => 'required|room',
+                        'body' => 'required'
+                    );
+                );
 
                 $entity_json = Input::all();
 
