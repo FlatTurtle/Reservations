@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>FlatTurtle reservation API</title>
     <style>
+        /* TODO : nice documentation UI about the API with bootstrap or foundation ; */
         @import url(//fonts.googleapis.com/css?family=Lato:300,400,700);
 
         body {

@@ -152,7 +152,8 @@ class EntityController extends Controller {
 
                     //price validation
 
-                    //TODO : lib to manage different currencies ? 
+                    //we can base our currencies array on https://gist.github.com/91media/1354456
+                    //
                     $currencies = array('dollar', 'euro', 'sterling', 'yen');
                     $groupings = array('hourly', 'daily', 'weekly', 'monthly', 'yearly');
 
@@ -160,15 +161,17 @@ class EntityController extends Controller {
                         return false;
                     if(!isset($value['price']['currency']))
                         return false;
+                    if(!in_array($value['price']['currency'], $currencies))
+                        return false;
                     if(!isset($value['price']['amount']))
+                        return false;
+                    if($value['price']['amount'] < 0)
                         return false;
                     if(!isset($value['price']['grouping']))
                         return false;
-
-                    if($value['price']['amount'] < 0)
+                    if(!in_array($value['price']['grouping'], $groupings))
                         return false;
-                    //TODO : test against groupings and currencies
-
+                    
 
                     if(!isset($value['description']) || count($value['description']) < 1)
                         return false;
@@ -182,6 +185,8 @@ class EntityController extends Controller {
                         return false;
                     if(!isset($value['location']['floor']))
                         return false;
+                    if(!is_int($value['location']['floor']))
+                        return false;
                     if(!isset($value['location']['building_name']) 
                         || count($value['location']['building_name']) < 1)
                         return false;
@@ -191,17 +196,34 @@ class EntityController extends Controller {
                     if(!isset($value['location']['map']['img'])
                         || count($value['location']['map']['img']) < 1)
                         return false;
+                    if(!filter_var($value['location']['map']['img'], FILTER_VALIDATE_URL))
+                        return false;
+                    //TODO : check if reference exists in DB ?
                     if(!isset($value['location']['map']['reference'])
                         || count($value['location']['map']['reference']) < 1)
                         return false;
 
-
-                    //TODO : test values with url regex
                     if(!isset($value['contact']) || count($value['contact']) < 1)
+                        return false;
+                    if(!filter_var($value['contact'], FILTER_VALIDATE_URL))
                         return false;
                     if(!isset($value['support']) || count($value['support']) < 1)
                         return false;
-                    //TODO : typeof against amenities array ?
+                    if(!filter_var($value['support'], FILTER_VALIDATE_URL))
+                        return false;
+
+                    if(count($value['amenities'])){
+                        //we check if amenities provided as input exists in database
+                        $amenities = DB::table('entity')->where('type', '=', 'amenity')->lists('name');
+                        print_r($amenities);
+                        $present = false;
+                        foreach($value['amenities'] as $amenity){
+                            $present = in_array($amenity, $amenities);
+                        }
+                        if(!$present)
+                            return false;
+                    }
+                    
 
                     return true;
                 });
