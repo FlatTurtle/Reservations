@@ -3,6 +3,16 @@
 class EntityController extends Controller {
 
 
+    public function sendErrorMessage($validator){
+        $messages = $validator->messages();
+        $s = "JSON does not validate. Violations:\n";
+        foreach ($messages->all() as $message)
+        {
+            $s .= "$message\n";
+        }
+        App::abort(400, $s);
+    }
+
     public function getEntities($customer_name) {
     		
         $customer = DB::table('customer')
@@ -119,112 +129,119 @@ class EntityController extends Controller {
             if(!strcmp($customer_name, $username)){
 
                 
-                //TODO : custom error messages
-                Validator::extend('body', function($attribute, $value, $parameters)
+                Validator::extend('opening_hours', function($attribute, $value, $parameters)
                 {
-                    if(!isset($value['name']) || count($value['name']) < 1)
-                        return false;
-                    //do we manage a supported types list ??
-                    if(!isset($value['type']) || count($value['type']) < 1)
-                        return false;
-
-                    // opening hours validation
-
-                    if(!isset($value['opening_hours']))
-                        return false;
-
-                    foreach($value['opening_hours'] as $opening_hour){
-
-                        //TODO : test against current time value (after, before)
-                        if(!isset($opening_hour['opens']))
-                            return false;
-                        if(!isset($opening_hour['closes']))
-                            return false;
-                        if(!isset($opening_hour['validFrom']))
-                            return false;
-                        if(!isset($opening_hour['validThrough']))
-                            return false;
-                        if(!isset($opening_hour['dayOfWeek']))
-                            return false;
-                        if($opening_hour['dayOfWeek'] < 1 || $opening_hour['dayOfWeek'] > 7)
-                            return false;
+                    $now = date("Y-m-d h:m:s", time());
+                    foreach($value as $opening_hour){
+                        $opening_hour_validator = Validator::make(
+                            $opening_hour,
+                            array(
+                                'opens' => 'required',
+                                'closes' => 'required',
+                                'validFrom' => 'required|after:'.$now,
+                                'validThrough' => 'required|after:'.$now,
+                                'dayOfWeek' => 'required|numeric|between:0,7'
+                            )
+                        );
+                        if($opening_hour_validator->fails())
+                            $this->sendErrorMessage($hours_validator);
                     }
+                    return true;
+                });
 
-                    //price validation
-
-                    //we can base our currencies array on https://gist.github.com/91media/1354456
-                    //
-                    $currencies = array('dollar', 'euro', 'sterling', 'yen');
-                    $groupings = array('hourly', 'daily', 'weekly', 'monthly', 'yearly');
-
-                    if(!isset($value['price']))
+                Validator::extend('currency', function($attribute, $value, $parameters)
+                {
+                    include_once 'app/utils/currencies.php';
+                    if(!in_array($value, $currencies))
                         return false;
-                    if(!isset($value['price']['currency']))
+                    return true;
+                });
+                Validator::extend('grouping', function($attribute, $value, $parameters)
+                {
+                    if(!in_array($value, array('hourly', 'daily', 'weekly', 'monthly', 'yearly')))
                         return false;
-                    if(!in_array($value['price']['currency'], $currencies))
-                        return false;
-                    if(!isset($value['price']['amount']))
-                        return false;
-                    if($value['price']['amount'] < 0)
-                        return false;
-                    if(!isset($value['price']['grouping']))
-                        return false;
-                    if(!in_array($value['price']['grouping'], $groupings))
-                        return false;
+                    return true;
+                });
+                Validator::extend('price', function($attribute, $value, $parameters)
+                {
                     
+                    $price_validator = Validator::make(
+                        $value,
+                        array(
+                            'currency' => 'required|currency',
+                            'amount' => 'required|numeric|min:0',
+                            'grouping' => 'required|grouping'
+                        )
+                    );
+                    if($price_validator->fails())
+                        $this->sendErrorMessage($price_validator);
+                    return true;
+                });
 
-                    if(!isset($value['description']) || count($value['description']) < 1)
-                        return false;
-                    
+                Validator::extend('map', function($attribute, $value, $parameters)
+                {
+                    $map_validator = Validator::make(
+                        $value,
+                        array(
+                            'img' => 'required|url',
+                            'reference' => 'required'
+                        )
+                    );
+                    if($map_validator->fails())
+                        $this->sendErrorMessage($map_validator);
+                    return true;
+                });
+                Validator::extend('location', function($attribute, $value, $parameters)
+                {
+                    $location_validator = Validator::make(
+                        $value,
+                        array(
+                            'map' => 'required|map',
+                            'floor' => 'required|numeric',
+                            'building_name' => 'required'
+                        )
+                    );
+                    if($location_validator->fails())
+                        $this->sendErrorMessage($location_validator);
+                    return true;
+                });
 
-                    //location validation
-
-                    if(!isset($value['location']))
-                        return false;
-                    if(!isset($value['location']['map']))
-                        return false;
-                    if(!isset($value['location']['floor']))
-                        return false;
-                    if(!is_int($value['location']['floor']))
-                        return false;
-                    if(!isset($value['location']['building_name']) 
-                        || count($value['location']['building_name']) < 1)
-                        return false;
-
-                    //location map validation
-
-                    if(!isset($value['location']['map']['img'])
-                        || count($value['location']['map']['img']) < 1)
-                        return false;
-                    if(!filter_var($value['location']['map']['img'], FILTER_VALIDATE_URL))
-                        return false;
-                    //TODO : check if reference exists in DB ?
-                    if(!isset($value['location']['map']['reference'])
-                        || count($value['location']['map']['reference']) < 1)
-                        return false;
-
-                    if(!isset($value['contact']) || count($value['contact']) < 1)
-                        return false;
-                    if(!filter_var($value['contact'], FILTER_VALIDATE_URL))
-                        return false;
-                    if(!isset($value['support']) || count($value['support']) < 1)
-                        return false;
-                    if(!filter_var($value['support'], FILTER_VALIDATE_URL))
-                        return false;
-
-                    if(count($value['amenities'])){
+                Validator::extend('amenities', function($attribute, $value, $parameters)
+                {
+                    if(count($value)){
                         //we check if amenities provided as input exists in database
                         $amenities = DB::table('entity')->where('type', '=', 'amenity')->lists('name');
                         print_r($amenities);
                         $present = false;
-                        foreach($value['amenities'] as $amenity){
+                        foreach($value as $amenity){
                             $present = in_array($amenity, $amenities);
                         }
                         if(!$present)
                             return false;
                     }
-                    
+                    return true;
+                });
 
+                //TODO : custom error messages
+                Validator::extend('body', function($attribute, $value, $parameters)
+                {
+                    $body_validator = Validator::make(
+                        $value,
+                        array(
+                            'name' => 'required',
+                            'type' => 'required',
+                            'description' => 'required',
+                            'location' => 'required|location',
+                            'price' => 'required|price',
+                            'amenities' => 'amenities',
+                            'contact' => 'required|url',
+                            'support' => 'required|url',
+                            'opening_hours' => 'opening_hours'
+                        )
+                    );
+
+                    if($body_validator->fails())
+                        $this->sendErrorMessage($body_validator);
                     return true;
                 });
 
@@ -252,17 +269,8 @@ class EntityController extends Controller {
                             'customer_id' => $customer->id
                         )
                     );
-
-                    
                 } else {
-                    $messages = $room_validator->messages();
-                    
-                    $s = "JSON does not validate. Violations:\n";
-                    foreach ($messages->all() as $message)
-                    {
-                        $s .= "$message\n";
-                    }
-                    App::abort(400, $s);
+                    $this->sendErrorMessage($room_validator);
                 } 
             }else{
                 App::abort(400, "You can't modify entities from another customer");

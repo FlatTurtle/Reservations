@@ -215,13 +215,13 @@ class ReservationTest extends TestCase {
 			$opening_hours['opens'] = array('09:00', '13:00');
 			$opening_hours['closes'] = array('12:00', '17:00');
 			$opening_hours['dayOfWeek'] = $i;
-			$opening_hours['validFrom'] = mktime(0,0,0);
-			$opening_hours['validThrough'] = mktime(0,0,0) + (365*24*60*60);
+			$opening_hours['validFrom'] = date("Y-m-d h:m:s", time()+60*60*24);
+			$opening_hours['validThrough'] =  date("Y-m-d h:m:s", time()+(365*24*60*60));
 			array_push($payload['body']['opening_hours'], $opening_hours);
 		}
 
 		$payload['body']['price'] = array();
-		$payload['body']['price']['currency'] = 'euro';
+		$payload['body']['price']['currency'] = 'EUR';
 		$payload['body']['price']['grouping'] = 'hourly';
 		$payload['body']['price']['amount'] = 5;
 		$payload['body']['description'] = 'description';
