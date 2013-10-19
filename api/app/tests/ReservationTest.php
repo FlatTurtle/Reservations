@@ -131,14 +131,36 @@ class ReservationTest extends TestCase {
 
 	}
 
-	/*public function testCreateAmenityWrongCustomer() {
-		$this->setExpectedException('Symfony\Component\HttpKernel\Exception\NotFoundHttpException');
-		$crawler = $this->call('PUT', '/test/amenity/test_amenity', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-		$this->assertTrue($this->client->getResponse()->isOk());
-		$this->assertEquals($this->client->getResponse()->getStatusCode(), 404);
+	public function testCreateAmenityInexistentCustomer() {
+
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::put(Config::get('app.url'). '/unknown/amenity/test_amenity', $headers, 
+			$this->amenity_payload, $options);
+		$this->assertEquals($request->status_code, 404);
 	}
 
-	public function testCreateMalformedAmenity() {
+	public function testCreateAmenityWrongCustomer() {
+
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::put(Config::get('app.url'). '/test2/amenity/test_amenity', $headers, 
+			$this->amenity_payload, $options);
+		$this->assertEquals($request->status_code, 403);
+	}
+
+	public function testCreateAmenityWrongCredentials() {
+
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'wrong password'));
+		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
+			$this->amenity_payload, $options);
+		$this->assertEquals($request->status_code, 401);
+	}
+
+
+
+	/*public function testCreateMalformedAmenity() {
 		$payload = array();
 		$crawler = $this->call('PUT', '/test/amenity/test_amenity', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
 	

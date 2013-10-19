@@ -114,7 +114,7 @@ class ReservationController extends Controller {
 					}
 				}
 			}else{
-				App::abort(400, "You are not allowed to make reservations for another customer");
+				App::abort(403, "You are not allowed to make reservations for another customer");
 			}
     	}else{
     		App::abort(404, 'Customer not found');

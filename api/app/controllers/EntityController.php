@@ -265,7 +265,7 @@ class EntityController extends Controller {
                     $this->sendErrorMessage($room_validator);
                 } 
             }else{
-               App::abort(400, "You can't modify entities from another customer");
+               App::abort(403, "You can't modify entities from another customer");
             }
         }else{
             App::abort(404, 'Customer not found');
@@ -316,7 +316,7 @@ class EntityController extends Controller {
                 }
                 
             }else{
-                App::abort(400, "You are not allowed to modify amenities from another customer");
+                App::abort(403, "You are not allowed to modify amenities from another customer");
             }
             
         }else{
@@ -343,7 +343,7 @@ class EntityController extends Controller {
                 ->where('name', '=', $name)
                 ->delete();
             }else{
-                App::abort(400, "You're not allowed to delete amenities from another customer");
+                App::abort(403, "You're not allowed to delete amenities from another customer");
             }
             
         }else{

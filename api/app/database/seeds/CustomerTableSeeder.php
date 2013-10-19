@@ -11,6 +11,11 @@ class CustomerTableSeeder extends Seeder {
             'username' => 'test',
             'password' => Hash::make('test')
         ));
+
+        DB::table('customer')->insert(array(
+            'username' => 'test2',
+            'password' => Hash::make('test2')
+        ));
     }
 }
 
