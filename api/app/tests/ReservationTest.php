@@ -44,6 +44,30 @@ class ReservationTest extends TestCase {
 		$this->payload['body']['contact'] = 'http://foo.bar/contact.vcf';
 		$this->payload['body']['support'] = 'http://foo.bar/support.vcf';
 		$this->payload['body']['amenities'] = array();
+
+
+		$this->amenity_payload = array();
+		$this->amenity_payload['name'] = 'wifi';
+		$this->amenity_payload['description'] = 'Broadband wireless connection in every meeting room.';
+		$this->amenity_payload['schema'] = array();
+		$this->amenity_payload['schema']['$schema'] = "http://json-schema.org/draft-04/schema#";
+		$this->amenity_payload['schema']['title'] = 'wifi';
+		$this->amenity_payload['schema']['description'] = 'Broadband wireless connection in every meeting room.';
+		$this->amenity_payload['schema']['type'] = 'object';
+		$this->amenity_payload['schema']['properties'] = array();
+		$this->amenity_payload['schema']['properties']['essid'] = array();
+		$this->amenity_payload['schema']['properties']['essid']['description'] = 'Service set identifier.';
+		$this->amenity_payload['schema']['properties']['essid']['type'] = 'string';
+		$this->amenity_payload['schema']['properties']['label'] = array();
+		$this->amenity_payload['schema']['properties']['label']['description'] = 'Simple label.';
+		$this->amenity_payload['schema']['properties']['label']['type'] = 'string';
+		$this->amenity_payload['schema']['properties']['code'] = array();
+		$this->amenity_payload['schema']['properties']['code']['description'] = 'Authentication code.';
+		$this->amenity_payload['schema']['properties']['code']['type'] = 'string';
+		$this->amenity_payload['schema']['properties']['encryption'] = array();
+		$this->amenity_payload['schema']['properties']['encryption']['description'] = 'Encryption system (e.g. WEP, WPA, WPA2).';
+		$this->amenity_payload['schema']['properties']['encryption']['type'] = 'string';
+		$this->amenity_payload['schema']['required'] = array('essid', 'code');
 		 
 	}
 
@@ -56,11 +80,10 @@ class ReservationTest extends TestCase {
 	 */
 	public function testGetEntities()
 	{
-		
-		$crawler = $this->call('GET', '/test', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));	
-		$this->assertTrue($this->client->getResponse()->isOk());
-		$this->assertEquals($this->client->getResponse()->getStatusCode(), 200);		
-		
+		$headers = array('Accept' => 'application/json');
+		$request = Requests::get(Config::get('app.url'). '/test', $headers);
+		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
 	}
 
 	/**
@@ -70,85 +93,42 @@ class ReservationTest extends TestCase {
 	 */
 	public function testGetReservations()
 	{
-		
-		$crawler = $this->call('GET', '/test/reservation', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-		$this->assertTrue($this->client->getResponse()->isOk());
-		$this->assertEquals($this->client->getResponse()->getStatusCode(), 200);
-				
+		$headers = array('Accept' => 'application/json');
+		$request = Requests::get(Config::get('app.url'). '/test/reservation', $headers);
+		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
 	}
 
 	public function testGetReservationWrongCustomer() {
-		$this->setExpectedException('Symfony\Component\HttpKernel\Exception\NotFoundHttpException');
-		$crawler = $this->call('GET', '/wrong/reservation', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-		$this->assertTrue($this->client->getResponse()->isOk());
-		$this->assertEquals($this->client->getResponse()->getStatusCode(), 404);
+		
+		$headers = array('Accept' => 'application/json');
+		$request = Requests::get(Config::get('app.url'). '/wrong/reservation', $headers);
+		$this->assertEquals($request->status_code, 404);
 	}
 
 
 
 	public function testGetAmenities() {
-		$crawler = $this->call('GET', '/test/amenity', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-		$this->assertTrue($this->client->getResponse()->isOk());
-		$this->assertEquals($this->client->getResponse()->getStatusCode(), 200);
+		$headers = array('Accept' => 'application/json');
+		$request = Requests::get(Config::get('app.url'). '/test/amenity', $headers);
+		$this->assertEquals($request->status_code, 200);
 	}
 
 	public function testGetAmenitiesWrongCustomer() {
-		$this->setExpectedException('Symfony\Component\HttpKernel\Exception\NotFoundHttpException');
-		$crawler = $this->call('GET', '/wrong/amenity', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-		$this->assertTrue($this->client->getResponse()->isOk());
-		$this->assertEquals($this->client->getResponse()->getStatusCode(), 404);
-
+		$headers = array('Accept' => 'application/json');
+		$request = Requests::get(Config::get('app.url'). '/wrong/amenity', $headers);
+		$this->assertEquals($request->status_code, 404);
 	}
 
 
 	public function testCreateAmenity() {
-		$payload = array();
-		$payload['name'] = 'wifi';
-		$payload['description'] = 'Broadband wireless connection in every meeting room.';
-		$payload['schema'] = array();
-		$payload['schema']['$schema'] = "http://json-schema.org/draft-04/schema#";
-		$payload['schema']['title'] = 'wifi';
-		$payload['schema']['description'] = 'Broadband wireless connection in every meeting room.';
-		$payload['schema']['type'] = 'object';
-		$payload['schema']['properties'] = array();
-		$payload['schema']['properties']['essid'] = array();
-		$payload['schema']['properties']['essid']['description'] = 'Service set identifier.';
-		$payload['schema']['properties']['essid']['type'] = 'string';
-		$payload['schema']['properties']['label'] = array();
-		$payload['schema']['properties']['label']['description'] = 'Simple label.';
-		$payload['schema']['properties']['label']['type'] = 'string';
-		$payload['schema']['properties']['code'] = array();
-		$payload['schema']['properties']['code']['description'] = 'Authentication code.';
-		$payload['schema']['properties']['code']['type'] = 'string';
-		$payload['schema']['properties']['encryption'] = array();
-		$payload['schema']['properties']['encryption']['description'] = 'Encryption system (e.g. WEP, WPA, WPA2).';
-		$payload['schema']['properties']['encryption']['type'] = 'string';
-		$payload['schema']['required'] = array('essid', 'code');
-
-		/*$payload = array();
-		$payload['name'] = 'phone';
-		$payload['description'] = 'Internal phone system.';
-		$payload['schema'] = array();
-		$payload['schema']['$schema'] = "http://json-schema.org/draft-04/schema#";
-		$payload['schema']['title'] = 'phone';
-		$payload['schema']['description'] = 'Internal phone system.';
-		$payload['schema']['type'] = 'object';
-		$payload['schema']['properties'] = array();
-		$payload['schema']['properties']['number'] = array();
-		$payload['schema']['properties']['number']['description'] = 'Telephone number';
-		$payload['schema']['properties']['number']['type'] = 'string';
-		$payload['schema']['properties']['number'] = array();
-		$payload['schema']['properties']['number']['extension'] = 'International phone extension';
-		$payload['schema']['properties']['number']['type'] = 'string';
-		$payload['schema']['properties']['label'] = array();
-		$payload['schema']['properties']['label']['description'] = 'Simple label';
-		$payload['schema']['properties']['label']['type'] = 'string';
-		$payload['schema']['required'] = array('number');*/
-
 		
-		$crawler = $this->call('PUT', '/test/amenity/test_amenity', array(), array(), 
-			array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test', 'CONTENT_TYPE' => 'application/json', 'HTTP_X-Requested-With' => 'XMLHttpRequest'),
-			json_encode($payload));
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
+			$this->amenity_payload, $options);
+		$this->assertEquals($request->status_code, 200);
+
 	}
 
 	/*public function testCreateAmenityWrongCustomer() {

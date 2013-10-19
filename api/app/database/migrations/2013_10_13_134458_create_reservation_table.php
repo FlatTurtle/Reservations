@@ -35,6 +35,7 @@ class CreateReservationTable extends Migration {
 	 */
 	public function down()
 	{
+		DB::table('reservation')->delete();
 		Schema::drop('reservation');
 	}
 

@@ -28,7 +28,10 @@ class CreateCustomerTable extends Migration {
 	 */
 	public function down()
 	{
+
+		DB::table('customer')->delete();
 		Schema::drop('customer');
+
 	}
 
 }

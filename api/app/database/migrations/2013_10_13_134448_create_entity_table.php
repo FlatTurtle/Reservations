@@ -33,6 +33,7 @@ class CreateEntityTable extends Migration {
 	 */
 	public function down()
 	{
+		DB::table('entity')->delete();
 		Schema::drop('entity');
 	}
 

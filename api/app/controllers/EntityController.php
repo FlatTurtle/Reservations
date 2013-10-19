@@ -286,33 +286,35 @@ class EntityController extends Controller {
             if(!strcmp($customer_name, $username)){
 
                 //TODO : custom error messages
-                Validator::extend('amenity', function($attribute, $value, $parameters)
+                Validator::extend('schema', function($attribute, $value, $parameters)
                 {
-                    // $value is a json schema, we need to validate it
-
-                    return true;
+                    return json_encode($value) != null;
                 });
+
                 $amenity_validator = Validator::make(
                     Input::all(),
                     array(
-                        'name' => 'required',
-                        'type' => 'required|same:amenity',
-                        'schema' => 'amenity'
+                        'name' => 'required|unique:entity,name',
+                        'description' => 'required',
+                        'schema' => 'required|schema'
                     )
                 );
 
-                $entity_json = Input::all();
-
-                DB::table('entity')->insert(
-                    array(
-                        'name' => $name,
-                        'type' => 'amenity',
-                        'updated_at' => 0,
-                        'created_at' => 0,
-                        'body' => '',
-                        'customer_id' => $customer->id
-                    )
-                );
+                if(!$amenity_validator->fails()){
+                    DB::table('entity')->insert(
+                        array(
+                            'name' => Input::get('name'),
+                            'type' => 'amenity',
+                            'updated_at' => time(),
+                            'created_at' => time(),
+                            'body' => json_encode(Input::get('schema')),
+                            'customer_id' => $customer->id
+                        )
+                    );
+                }else{
+                    $this->sendErrorMessage($amenity_validator);
+                }
+                
             }else{
                 App::abort(400, "You are not allowed to modify amenities from another customer");
             }
