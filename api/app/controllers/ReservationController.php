@@ -22,11 +22,17 @@ class ReservationController extends Controller {
 
     	if(isset($customer)){
     		
-			$reservations = DB::table('reservation')
-			->where('customer_id', '=', $customer->id)
-			->where('from', '>', mktime(0,0,0))
-			->get();
-		
+    		if(Input::get('day')!=null){
+    			$reservations = DB::table('reservation')
+				->where('customer_id', '=', $customer->id)
+				->where('from', '>=', strtotime(Input::get('day')))
+				->where('from', '<=', strtotime(Input::get('day')))
+				->get();
+    		}else{
+    			$reservations = DB::table('reservation')
+				->where('customer_id', '=', $customer->id)
+				->get();
+    		}
 			return json_encode($reservations);
 			
     	}else{
