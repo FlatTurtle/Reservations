@@ -276,8 +276,32 @@ class EntityController extends Controller {
         }   
     }
 
+
+    
+
+
     public function createAmenity($customer_name, $name) {
 
+        Validator::extend('schema_type', function($attribute, $value, $parameters)
+        {
+            $supported_types = array('array', 'boolean', 'integer', 'number', 
+                        'null', 'object', 'string');
+            return in_array($value, $supported_types);
+        });
+
+        function validateProperty($property) {
+
+            $property_validator = Validator::make($property,
+                array(
+                    'description' => 'required',
+                    'type' => 'required|schema_type'
+                )
+            );
+            if($property_validator->fails())
+                $this->sendErrorMessage($property_validator);
+            if(isset($property['properties']))
+                validateProperty($property['properties']);
+        }
 
         $customer = DB::table('customer')
             ->where('username', '=', $customer_name)
@@ -292,7 +316,37 @@ class EntityController extends Controller {
                 //TODO : custom error messages
                 Validator::extend('schema', function($attribute, $value, $parameters)
                 {
-                    return json_encode($value) != null;
+                    $json = json_encode($value);
+                    if($json != null){
+                        
+                        $schema_validator = Validator::make($value,
+                            array(
+                                '$schema' => 'required|url',
+                                'title' => 'required',
+                                'description' => 'required',
+                                'type' => 'required|schema_type',
+                                'properties' => 'required',
+                                'required' => 'required'
+                            )
+                        );
+                        if(!$schema_validator->fails()){
+                            
+                            foreach($value['required'] as $required){
+                                if(!isset($value['properties'][$required]))
+                                    return false;
+                            }
+                            foreach($value['properties'] as $property){
+                                validateProperty($property);
+                            }
+
+
+                        }else{
+                            $this->sendErrorMessage($schema_validator);
+                        }
+                    }else{
+                        return false;
+                    }
+                    return true;
                 });
 
                 $exist = DB::table('entity')->where('name', '=', $name)->get();

@@ -712,7 +712,7 @@ class ReservationTest extends TestCase {
 		$this->assertEquals($request->status_code, 200);
 		$this->assertNotNull(json_decode($request->body));
 
-		$data = array('day' => date('Y-m-d', time()));
+		$data = array('day' => date('Y-m-d', time()));	
 		$request = Requests::get(Config::get('app.url'). '/test/reservation', $headers, $data);
 		$this->assertEquals($request->status_code, 200);
 		$this->assertNotNull(json_decode($request->body));
