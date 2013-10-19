@@ -11,6 +11,13 @@
 |
 */
 
+App::error(function(\Symfony\Component\HttpKernel\Exception\HttpException $e)
+{
+    return Response::json(array(
+        'error' => $e->getMessage(),
+    ), $e-> getStatusCode());
+ });
+
 Route::get('/', array('uses' => 'HomeController@showWelcome'));
 
 

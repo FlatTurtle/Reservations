@@ -2,7 +2,7 @@
 
 class EntityController extends Controller {
 
-
+   
     public function sendErrorMessage($validator){
         $messages = $validator->messages();
         $s = "JSON does not validate. Violations:\n";
@@ -128,7 +128,7 @@ class EntityController extends Controller {
 
             if(!strcmp($customer_name, $username)){
 
-                
+                // Validation building ...
                 Validator::extend('opening_hours', function($attribute, $value, $parameters)
                 {
                     $now = date("Y-m-d h:m:s", time());
@@ -151,16 +151,12 @@ class EntityController extends Controller {
 
                 Validator::extend('currency', function($attribute, $value, $parameters)
                 {
-                    include_once 'app/utils/currencies.php';
-                    if(!in_array($value, $currencies))
-                        return false;
-                    return true;
+                    $currencies = array('EUR', 'USD', 'YEN');
+                    return in_array($value, $currencies);
                 });
                 Validator::extend('grouping', function($attribute, $value, $parameters)
                 {
-                    if(!in_array($value, array('hourly', 'daily', 'weekly', 'monthly', 'yearly')))
-                        return false;
-                    return true;
+                    return in_array($value, array('hourly', 'daily', 'weekly', 'monthly', 'yearly'));
                 });
                 Validator::extend('price', function($attribute, $value, $parameters)
                 {
@@ -208,18 +204,15 @@ class EntityController extends Controller {
 
                 Validator::extend('amenities', function($attribute, $value, $parameters)
                 {
+                    $present = true;
                     if(count($value)){
                         //we check if amenities provided as input exists in database
                         $amenities = DB::table('entity')->where('type', '=', 'amenity')->lists('name');
-                        print_r($amenities);
-                        $present = false;
                         foreach($value as $amenity){
                             $present = in_array($amenity, $amenities);
                         }
-                        if(!$present)
-                            return false;
                     }
-                    return true;
+                    return $present;
                 });
 
                 //TODO : custom error messages
@@ -236,7 +229,7 @@ class EntityController extends Controller {
                             'amenities' => 'amenities',
                             'contact' => 'required|url',
                             'support' => 'required|url',
-                            'opening_hours' => 'opening_hours'
+                            'opening_hours' => 'required|opening_hours'
                         )
                     );
 
@@ -245,7 +238,6 @@ class EntityController extends Controller {
                     return true;
                 });
 
-                //TODO : create a validator object depending on type parameter
                 $room_validator = Validator::make(
                     Input::all(),
                     array(
@@ -256,9 +248,9 @@ class EntityController extends Controller {
                 );
 
 
+                // Validator testing
                 if (!$room_validator->fails()) {
 
-                    //TODO : check if amenities in $data['amenities'] exists in DB
                     DB::table('entity')->insert(
                         array(
                             'name' => Input::get('name'),
@@ -273,7 +265,7 @@ class EntityController extends Controller {
                     $this->sendErrorMessage($room_validator);
                 } 
             }else{
-                App::abort(400, "You can't modify entities from another customer");
+               App::abort(400, "You can't modify entities from another customer");
             }
         }else{
             App::abort(404, 'Customer not found');
