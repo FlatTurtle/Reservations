@@ -47,7 +47,6 @@ class ReservationTest extends TestCase {
 
 
 		$this->amenity_payload = array();
-		$this->amenity_payload['name'] = 'wifi';
 		$this->amenity_payload['description'] = 'Broadband wireless connection in every meeting room.';
 		$this->amenity_payload['schema'] = array();
 		$this->amenity_payload['schema']['$schema'] = "http://json-schema.org/draft-04/schema#";
@@ -69,6 +68,16 @@ class ReservationTest extends TestCase {
 		$this->amenity_payload['schema']['properties']['encryption']['type'] = 'string';
 		$this->amenity_payload['schema']['required'] = array('essid', 'code');
 		 
+		$this->reservation_payload = array();
+		$this->reservation_payload['entity'] = null;
+		$this->reservation_payload['type'] = null;
+		$this->reservation_payload['time'] = array();
+		$this->reservation_payload['time']['from'] = time();
+		$this->reservation_payload['time']['to'] = time() + (60*60*2);
+		$this->reservation_payload['subject'] = 'subject';
+		$this->reservation_payload['comment'] = 'comment';
+		$this->reservation_payload['announce'] = array('yeri', 'pieter', 'nik', 'quentin');
+
 	}
 
 	//TODO : build json values to test test test !!!
@@ -78,48 +87,7 @@ class ReservationTest extends TestCase {
 	 *
 	 * @return void
 	 */
-	public function testGetEntities()
-	{
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/test', $headers);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-	}
-
-	/**
-	 * A basic functional test example.
-	 *
-	 * @return void
-	 */
-	public function testGetReservations()
-	{
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/test/reservation', $headers);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-	}
-
-	public function testGetReservationWrongCustomer() {
-		
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/wrong/reservation', $headers);
-		$this->assertEquals($request->status_code, 404);
-	}
-
-
-
-	public function testGetAmenities() {
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/test/amenity', $headers);
-		$this->assertEquals($request->status_code, 200);
-	}
-
-	public function testGetAmenitiesWrongCustomer() {
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/wrong/amenity', $headers);
-		$this->assertEquals($request->status_code, 404);
-	}
-
+	
 
 	public function testCreateAmenity() {
 		
@@ -159,120 +127,141 @@ class ReservationTest extends TestCase {
 	}
 
 
+	public function testCreateMalformedAmenity() {
 
-	/*public function testCreateMalformedAmenity() {
-		$payload = array();
-		$crawler = $this->call('PUT', '/test/amenity/test_amenity', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-	
+
+		$amenity_payload = $this->amenity_payload;
+		$amenity_payload['description'] = '';
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
+			$amenity_payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$amenity_payload = $this->amenity_payload;
+		$amenity_payload['description'] = null;
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
+			$amenity_payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$amenity_payload = $this->amenity_payload;
+		$amenity_payload['schema'] = null;
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
+			$amenity_payload, $options);
+		$this->assertEquals($request->status_code, 400);
+	}
+
+
+	public function testGetAmenities() {
+		$headers = array('Accept' => 'application/json');
+		$request = Requests::get(Config::get('app.url'). '/test/amenity', $headers);
+		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
+	}
+
+	public function testGetAmenitiesWrongCustomer() {
+		$headers = array('Accept' => 'application/json');
+		$request = Requests::get(Config::get('app.url'). '/wrong/amenity', $headers);
+		$this->assertEquals($request->status_code, 404);
+	}
+
+	public function testGetAmenity() {
+		
+		$amenity_payload = $this->amenity_payload;
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::put(Config::get('app.url'). '/test/amenity/get_amenity', $headers, 
+			$amenity_payload, $options);
+		$this->assertEquals($request->status_code, 200);
+
+		$request = Requests::get(Config::get('app.url'). '/test/amenity/get_amenity', $headers, $options);
+		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
+
 
 	}
 
-	public function testCreateAmenityMissingParameters() {
-		$payload = array();
-		$crawler = $this->call('PUT', '/test/amenity/test_amenity', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-	}*/
-
-
-
-	/*public function testGetAmenity() {
-
-	}*/
-
-	public function testGetAmenityWrongCustomer() {
+	public function testGetAmenitiesNonExistentCustomer() {
 		
 		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::get(Config::get('app.url'). '/wrong/amenity/wrong', $headers, $options);
+		$request = Requests::get(Config::get('app.url'). '/unkown/amenity', $headers);
 		$this->assertEquals($request->status_code, 404);
-	
 	}
 
 	public function testGetNonExistentAmenity() {
 		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::get(Config::get('app.url'). '/test/amenity/unknown', $headers, $options);
+		$request = Requests::get(Config::get('app.url'). '/test/amenity/unknown', $headers);
 		$this->assertEquals($request->status_code, 404);
 	}
 
 
-	/*public function testDeleteAmenity() {
-		$payload = array();
-		$crawler = $this->call('DELETE', '/test/amenity/test_amenity', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-	}*/
+	public function testDeleteAmenity() {
 
-	/*public function testDeleteAmenityWrongCustomer() {
-		$this->setExpectedException('Symfony\Component\HttpKernel\Exception\NotFoundHttpException');
-		$crawler = $this->call('DELETE', '/test/amenity/test_amenity', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-		$this->assertTrue($this->client->getResponse()->isOk());
-		$this->assertEquals($this->client->getResponse()->getStatusCode(), 404);
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::put(Config::get('app.url'). '/test/amenity/to_delete', $headers, 
+			$this->amenity_payload, $options);
+		$this->assertEquals($request->status_code, 200);
+
+		$request = Requests::delete(Config::get('app.url'). '/test/amenity/to_delete', $headers, $options);
+		$this->assertEquals($request->status_code, 200);
+
+	}
+
+	public function testDeleteAmenityWrongCustomer() {
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::delete(Config::get('app.url'). '/test2/amenity/test_amenity', $headers, $options);
+		$this->assertEquals($request->status_code, 403);
 	}
 
 	public function testDeleteNonExistentAmenity() {
-		$this->setExpectedException('Symfony\Component\HttpKernel\Exception\NotFoundHttpException');
-		$crawler = $this->call('DELETE', '/test/amenity/nonexistent', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-		$this->assertTrue($this->client->getResponse()->isOk());
-		$this->assertEquals($this->client->getResponse()->getStatusCode(), 404);
-	}*/
-
-
-	/*public function testGetEntity() {
-
-	}*/
-
-	public function testGetEntityWrongCustomer() {
-		
 		$headers = array('Accept' => 'application/json');
 		$options = array('auth' => array('test', 'test'));
-		$request = Requests::get(Config::get('app.url'). '/wrong/entity/wrong', $headers, $options);
+		$request = Requests::delete(Config::get('app.url'). '/test/amenity/to_delete', $headers, $options);
 		$this->assertEquals($request->status_code, 404);
-	}
-
-	public function testGetNonExistentEntity() {
-
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::get(Config::get('app.url'). '/test/entity/unknown', $headers, $options);
-		$this->assertEquals($request->status_code, 404);
-
 	}
 
 
 	public function testCreateEntity() {
 
-		$crawler = $this->call('PUT', '/test/new_entity', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test',
-			'CONTENT_TYPE' => 'application/json', 'HTTP_X-Requested-With' => 'XMLHttpRequest'),
-			json_encode($this->payload));
+		$payload = $this->payload;
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::put(Config::get('app.url'). '/test/create_entity', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 200);
 	}
 
 
-	/*public function testCreateEntityWrongCustomer() {
-		$this->setExpectedException('Symfony\Component\HttpKernel\Exception\NotFoundHttpException');
-		$crawler = $this->call('PUT', '/test/new_entity', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-		$this->assertTrue($this->client->getResponse()->isOk());
-		$this->assertEquals($this->client->getResponse()->getStatusCode(), 404);
-	}*/
-
-	/*public function testCreateMalformedEntity() {
-		$payload = array();
-		$crawler = $this->call('PUT', '/test/new_entity', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-	}*/
-
-	public function testCreateEntityMissingParameters() {
-
-	
+	public function testCreateEntityWrongCustomer() {
 		$payload = $this->payload;
-		$payload['name'] = '';
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::put(Config::get('app.url'). '/test2/new_entity', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 403);
+	}
+
+	public function testCreateExistingEntity() {
+		$payload = $this->payload;
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::put(Config::get('app.url'). '/test/existing_entity', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 200);
 
 		$headers = array('Accept' => 'application/json');
 		$options = array('auth' => array('test', 'test'));
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
+		$request = Requests::put(Config::get('app.url'). '/test/existing_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+	}
 
-		$payload = $this->payload;
-		$payload['name'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
+	public function testCreateEntityMissingParameters() {
 
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
 		$payload = $this->payload;
 		$payload['type'] = '';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
@@ -290,16 +279,6 @@ class ReservationTest extends TestCase {
 
 		$payload = $this->payload;
 		$payload['body'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-
-		$payload = $this->payload;
-		$payload['body']['name'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-
-		$payload = $this->payload;
-		$payload['body']['name'] = '';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
 
@@ -491,50 +470,255 @@ class ReservationTest extends TestCase {
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
 		
-
 	}
 
+	public function testGetEntities()
+	{
+		$headers = array('Accept' => 'application/json');
+		$request = Requests::get(Config::get('app.url'). '/test', $headers);
+		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
+	}
 
-	/*public function testCreateReservation() {
-		$payload = array();
-		$crawler = $this->call('POST', '/test/reservation', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-	}*/
-
-	public function testCreateReservationWrongCustomer() {
-
+	public function testGetEntity() {
 		$headers = array('Accept' => 'application/json');
 		$options = array('auth' => array('test', 'test'));
-		$request = Requests::get(Config::get('app.url'). '/wrong/reservation', $headers, $options);
+		$request = Requests::put(Config::get('app.url'). '/test/get_entity', $headers, $this->payload, $options);
+		$this->assertEquals($request->status_code, 200);
+
+		$request = Requests::get(Config::get('app.url'). '/test/get_entity', $headers);
+		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
+	}
+
+	public function testGetEntityWrongCustomer() {
+		
+		$headers = array('Accept' => 'application/json');
+		$request = Requests::get(Config::get('app.url'). '/wrong/entity/wrong', $headers);
 		$this->assertEquals($request->status_code, 404);
 	}
 
-	/*public function testCreateReservationMissingParameters() {
-		$payload = array();
-		$crawler = $this->call('POST', '/test/reservation', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-	}*/
+	public function testGetNonExistentEntity() {
 
-	/*public function testCreateMalformedReservation() {
-		$payload = array();
-		$crawler = $this->call('POST', '/test/reservation', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-	}*/
+		$headers = array('Accept' => 'application/json');
+		$request = Requests::get(Config::get('app.url'). '/test/entity/unknown', $headers);
+		$this->assertEquals($request->status_code, 404);
 
-	/*public function testCreateOldReservation() {
-		$payload = array();
-		$crawler = $this->call('POST', '/test/reservation', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
-	}*/
+	}
 
+
+
+
+
+	public function testCreateReservation() {
+
+		$payload = $this->payload;
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::put(Config::get('app.url'). '/test/reservation_entity', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 200);
+
+		$payload = $this->reservation_payload;
+		$payload['entity'] = 'reservation_entity';
+		$payload['type'] = 'room';
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::get(Config::get('app.url'). '/test2/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
+	}
+
+	public function testCreateReservationWrongCustomer() {
+
+		$payload = $this->reservation_payload;
+		$payload['time']['from'] = time();
+		$payload['time']['to'] = time() + (60*60*2);
+		$payload['announce'] = array('yeri', 'pieter', 'nik', 'quentin');
+		$payload['entity'] = 'reservation_entity';
+		$payload['type'] = 'room';
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::post(Config::get('app.url'). '/test2/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 403);
+	}
+
+	public function testCreateReservationMissingParameters() {
+
+		$this->reservation_payload['entity'] = 'reservation_entity';
+		$this->reservation_payload['type'] = 'room';
+		
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+
+		$payload = $this->reservation_payload;
+		$payload['entity'] = '';
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['entity'] = null;
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['type'] = '';
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['type'] = null;
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['time'] = null;
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['time']['from'] = null;
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['time']['from'] = -1;
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['time']['from'] = time()-1;
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['time']['to'] = null;
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['time']['to'] = -1;
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['time']['to'] = time()-1;
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['time']['to'] = time();
+		$payload['time']['from'] = $payload['time']['to'] - 1;
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['comment'] = '';
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['comment'] = null;
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['subject'] = '';
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['subject'] = null;
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['announce'] = null;
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+		$payload = $this->reservation_payload;
+		$payload['announce'] = '';
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+
+
+
+
+	}
+
+	
+	//TODO : work on times to check validation
 	/*public function testCreateAlreadyBookedReservation() {
-		$payload = array();
-		$crawler = $this->call('POST', '/test/reservation', array(), array(), array('PHP_AUTH_USER' => 'test', 'PHP_AUTH_PW' => 'test'));
+		$payload = $this->payload;
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+
+		$request = Requests::put(Config::get('app.url'). '/test/already_booked_entity', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 200);
+
+		$payload = $this->reservation_payload;
+		$payload['entity'] = 'already_booked_entity';
+		$payload['type'] = 'room';
+		$payload['time']['from'] = time()+(60*60);
+		$payload['time']['to'] = $payload['time']['from'] + (60*60*2);
+
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 200);
+
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 400);
+
+
+
+	}
+
+	public function testCreateReservationOnUnavailableEntity() {
+
 	}*/
 
+	public function testDeleteReservation(){
+		$payload = $this->payload;
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+
+		$request = Requests::put(Config::get('app.url'). '/test/reservation_entity', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 200);
+
+		$payload = $this->reservation_payload;
+		$payload['entity'] = 'reservation_entity';
+		$payload['type'] = 'room';
+
+		$request = Requests::get(Config::get('app.url'). '/test2/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
+
+		$request = Requests::delete(Config::get('app.url'). '/test2/reservation/reservation_entity', $headers,
+		$payload, $options);
+		$this->assertEquals($request->status_code, 200);
 
 
-	
+	}
 
+	/**
+	 * A basic functional test example.
+	 *
+	 * @return void
+	 */
+	public function testGetReservations()
+	{
+		$headers = array('Accept' => 'application/json');
+		$request = Requests::get(Config::get('app.url'). '/test/reservation', $headers);
+		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
+	}
 
-
-	
+	public function testGetReservationWrongCustomer() {
+		
+		$headers = array('Accept' => 'application/json');
+		$request = Requests::get(Config::get('app.url'). '/wrong/reservation', $headers);
+		$this->assertEquals($request->status_code, 404);
+	}
 
 }
 
