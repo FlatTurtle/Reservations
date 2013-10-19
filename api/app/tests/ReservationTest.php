@@ -72,22 +72,13 @@ class ReservationTest extends TestCase {
 		$this->reservation_payload['entity'] = null;
 		$this->reservation_payload['type'] = null;
 		$this->reservation_payload['time'] = array();
-		$this->reservation_payload['time']['from'] = time();
-		$this->reservation_payload['time']['to'] = time() + (60*60*2);
+		$this->reservation_payload['time']['from'] = date('c', time());
+		$this->reservation_payload['time']['to'] = date('c', time() + (60*60*2));
 		$this->reservation_payload['subject'] = 'subject';
 		$this->reservation_payload['comment'] = 'comment';
 		$this->reservation_payload['announce'] = array('yeri', 'pieter', 'nik', 'quentin');
 
 	}
-
-	//TODO : build json values to test test test !!!
-
-	/**
-	 * A basic functional test example.
-	 *
-	 * @return void
-	 */
-	
 
 	public function testCreateAmenity() {
 		
@@ -677,34 +668,6 @@ class ReservationTest extends TestCase {
 
 	}*/
 
-	public function testDeleteReservation(){
-		$payload = $this->payload;
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-
-		$request = Requests::put(Config::get('app.url'). '/test/reservation_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 200);
-
-		$payload = $this->reservation_payload;
-		$payload['entity'] = 'reservation_entity';
-		$payload['type'] = 'room';
-
-		$request = Requests::get(Config::get('app.url'). '/test2/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-
-		$request = Requests::delete(Config::get('app.url'). '/test2/reservation/reservation_entity', $headers,
-		$payload, $options);
-		$this->assertEquals($request->status_code, 200);
-
-
-	}
-
-	/**
-	 * A basic functional test example.
-	 *
-	 * @return void
-	 */
 	public function testGetReservations()
 	{
 		$headers = array('Accept' => 'application/json');

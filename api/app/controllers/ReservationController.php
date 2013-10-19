@@ -99,16 +99,12 @@ class ReservationController extends Controller {
                     	return false;
                     if(!isset($value['to']))
                     	return false;
-                    if(!is_int($value['from']))
+                    if(strtotime($value['from']) < time())
                     	return false;
-                    if(!is_int($value['to']))
-                    	return false;
-                    if($value['from'] < time())
-                    	return false;
-                    if($value['to'] < time())
+                    if(strtotime($value['to']) < time())
                     	return false;
                     //TODO : do we define a minimum reservation time between from and to ?
-                    if($value['to'] < $value['from'])
+                    if(strtotime($value['to']) < strtotime($value['from']))
                     	return false;
                 });
 
