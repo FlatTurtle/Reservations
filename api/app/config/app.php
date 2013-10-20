@@ -67,6 +67,21 @@ return array(
 
 	'key' => 'ADPSfWns0Lui1t0yINCVzyAzVPf9CGNz',
 
+
+	/*
+	|--------------------------------------------------------------------------
+	| Minimum Reservation Time Span
+	|--------------------------------------------------------------------------
+	|
+	| When creating or updating a reservation, we check against this value to
+	| verify that the reservation last at least this time span.
+	| This value is expressed in seconds.
+	|
+	*/
+
+	'reservation_time_span' => 600,
+
+
 	/*
 	|--------------------------------------------------------------------------
 	| Autoloaded Service Providers
