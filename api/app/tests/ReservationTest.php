@@ -485,6 +485,18 @@ class ReservationTest extends TestCase {
 	public function testCreateReservation() {
 
 		$payload = $this->payload;
+		$payload['body']['opening_hours'] = array();
+
+		for($i=1; $i <= 7; $i++){
+			$opening_hours = array();
+			$opening_hours['opens'] = array('00:00');
+			$opening_hours['closes'] = array('23:59');
+			$opening_hours['dayOfWeek'] = $i;
+			$opening_hours['validFrom'] = date("Y-m-d H:m:s", time()-365*24*60*60);
+			$opening_hours['validThrough'] =  date("Y-m-d H:m:s", time()+(365*24*60*60));
+			array_push($payload['body']['opening_hours'], $opening_hours);
+		}
+
 		$headers = array('Accept' => 'application/json');
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::put(Config::get('app.url'). '/test/reservation_entity', $headers, $payload, $options);
@@ -493,11 +505,12 @@ class ReservationTest extends TestCase {
 		$payload = $this->reservation_payload;
 		$payload['entity'] = 'reservation_entity';
 		$payload['type'] = 'room';
+		$payload['time']['from'] = date('c', mktime(date('H', time())+3));
+		$payload['time']['to'] = date('c', strtotime($opening_hours['closes'][0]));
 		$headers = array('Accept' => 'application/json');
 		$options = array('auth' => array('test', 'test'));
-		$request = Requests::get(Config::get('app.url'). '/test2/reservation', $headers, $payload, $options);
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
 	}
 
 	public function testCreateReservationWrongCustomer() {

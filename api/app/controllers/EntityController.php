@@ -142,13 +142,13 @@ class EntityController extends Controller {
                                 array(
                                     'opens' => 'required',
                                     'closes' => 'required',
-                                    'validFrom' => 'required|after:'.$now,
+                                    'validFrom' => 'required',
                                     'validThrough' => 'required|after:'.$now,
                                     'dayOfWeek' => 'required|numeric|between:0,7'
                                 )
                             );
                             if($opening_hour_validator->fails())
-                                $this->sendErrorMessage($hours_validator);
+                                $this->sendErrorMessage($opening_hour_validator);
                         }
                         return true;
                     });
