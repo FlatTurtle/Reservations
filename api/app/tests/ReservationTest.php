@@ -32,8 +32,8 @@ class ReservationTest extends TestCase {
 
 		$this->payload['body']['price'] = array();
 		$this->payload['body']['price']['currency'] = 'EUR';
-		$this->payload['body']['price']['grouping'] = 'hourly';
-		$this->payload['body']['price']['amount'] = 5;
+		$this->payload['body']['price']['hourly'] = 5;
+		$this->payload['body']['price']['daily'] = 40;
 		$this->payload['body']['description'] = 'description';
 		$this->payload['body']['location'] = array();
 		$this->payload['body']['location']['map'] = array();
@@ -329,17 +329,13 @@ class ReservationTest extends TestCase {
 		$this->assertEquals($request->status_code, 400);
 
 		$payload = $this->payload;
-		$payload['body']['price']['amount'] = null;
+		unset($payload['body']['price']['daily']);
+		unset($payload['body']['price']['hourly']);
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
 
 		$payload = $this->payload;
-		$payload['body']['price']['amount'] = '';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-
-		$payload = $this->payload;
-		$payload['body']['price']['amount'] = -1;
+		$payload['body']['price']['daily'] = -1;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
 
@@ -355,21 +351,6 @@ class ReservationTest extends TestCase {
 
 		$payload = $this->payload;
 		$payload['body']['price']['currency'] = 'pokethunes';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-
-		$payload = $this->payload;
-		$payload['body']['price']['grouping'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-
-		$payload = $this->payload;
-		$payload['body']['price']['grouping'] = '';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-
-		$payload = $this->payload;
-		$payload['body']['price']['grouping'] = 'not a good one';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
 

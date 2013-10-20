@@ -153,29 +153,18 @@ class EntityController extends Controller {
                         return true;
                     });
 
-                    Validator::extend('currency', function($attribute, $value, $parameters)
-                    {
-                        $currencies = array('EUR', 'USD', 'YEN');
-                        return in_array($value, $currencies);
-                    });
-                    Validator::extend('grouping', function($attribute, $value, $parameters)
-                    {
-                        return in_array($value, array('hourly', 'daily', 'weekly', 'monthly', 'yearly'));
-                    });
+
                     Validator::extend('price', function($attribute, $value, $parameters)
                     {
-                        
-                        $price_validator = Validator::make(
-                            $value,
-                            array(
-                                'currency' => 'required|currency',
-                                'amount' => 'required|numeric|min:0',
-                                'grouping' => 'required|grouping'
-                            )
-                        );
-                        if($price_validator->fails())
-                            $this->sendErrorMessage($price_validator);
-                        return true;
+                        $timings = array('hourly', 'daily', 'weekly', 'monthly', 'yearly');
+                        $currencies = array('EUR', 'USD', 'YEN');
+                        $intersect = array_intersect($timings, array_keys($value));
+                        foreach($intersect as $index){
+                            if($value[$index] < 0)
+                                return false;
+                        }
+                        return (isset($value['currency']) && in_array($value['currency'], $currencies) && 
+                            !empty($intersect));
                     });
 
                     Validator::extend('map', function($attribute, $value, $parameters)
