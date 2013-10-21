@@ -87,3 +87,17 @@ Route::filter('auth.basic', function()
     Config::set('auth.model', 'Customer');
     return Auth::basic('username');
 });
+
+
+/*
+ * Custom Auth provider used for legacy hash function in use at https://github.com/FlatTurtle/ControlBay
+ * This use the phpasslib with 8 rounds, the FlatTurtleUserProvider is in app/providers directory.
+ */
+Auth::extend('flatturtle_phpass', function()
+{
+	$hasher = new PasswordHash(8,false);
+    return new Guard(
+        new FlatTurtleUserProvider($hasher, 'Customer'),
+        App::make('session')
+    );
+});

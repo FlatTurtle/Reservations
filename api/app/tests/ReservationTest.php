@@ -510,6 +510,7 @@ class ReservationTest extends TestCase {
 		$headers = array('Accept' => 'application/json');
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		print_r($request);
 		$this->assertEquals($request->status_code, 200);
 	}
 
