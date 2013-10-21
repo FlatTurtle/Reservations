@@ -14,6 +14,7 @@
 ClassLoader::addDirectories(array(
 
 	app_path().'/commands',
+	app_path().'/providers',
 	app_path().'/controllers',
 	app_path().'/models',
 	app_path().'/database/seeds',
@@ -93,6 +94,7 @@ Route::filter('auth.basic', function()
  * Custom Auth provider used for legacy hash function in use at https://github.com/FlatTurtle/ControlBay
  * This use the phpasslib with 8 rounds, the FlatTurtleUserProvider is in app/providers directory.
  */
+use Hautelook\Phpass\PasswordHash;
 Auth::extend('flatturtle_phpass', function()
 {
 	$hasher = new PasswordHash(8,false);

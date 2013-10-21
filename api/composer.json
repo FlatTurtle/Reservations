@@ -5,7 +5,8 @@
 	"license": "MIT",
 	"require": {
 		"laravel/framework": "4.0.*",	
-        "rmccue/requests": ">=1.0"
+        "rmccue/requests": ">=1.0",
+         "hautelook/phpass": "dev-master"
     },
 	"autoload": {
 		"classmap": [
