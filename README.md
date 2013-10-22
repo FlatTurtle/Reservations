@@ -22,3 +22,10 @@ cd api
 phpunit
 
 ! You have to change values in config/testing/database.php to test the app
+
+Copyright and license
+=====================
+
+2013 - FlatTurtle
+
+Code is licensed under AGPLv3
