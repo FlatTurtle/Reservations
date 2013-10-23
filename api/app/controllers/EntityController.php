@@ -3,6 +3,11 @@
 class EntityController extends Controller {
 
    
+    /**
+     * This function throw an error 400 and provide error messages
+     * from validator $validator in JSON.
+     * @param $validator : a Laravel validator
+     */
     private function sendErrorMessage($validator){
         $messages = $validator->messages();
         $s = "JSON does not validate. Violations:\n";
@@ -13,20 +18,21 @@ class EntityController extends Controller {
         App::abort(400, $s);
     }
 
+    /**
+     * Retrieve and return all entities that the user can book.
+     * @param $user_name : user's name from url.
+     *
+     */
     public function getEntities($user_name) {
     		
-        $user = DB::table('user')
-        ->where('username', '=', $user_name)
-        ->first();
+        $user = User::where('username', '=', $user_name)->first();
 
         if(isset($user)){
-			$db_entities = DB::table('entity')
-            ->where('user_id', '=', $user->id)
-            ->get();
+			$_entities = Entity::where('user_id', '=', $user->id)->get()->toArray();
 
 			$entities = array();
 
-			foreach($db_entities as $entity){
+			foreach($_entities as $entity){
                 if(isset($entity->body))
 				    array_push($entities, json_decode($entity->body));
 			}
@@ -37,22 +43,21 @@ class EntityController extends Controller {
     	}
     }
 
+    /**
+     * Retrieve and return all amenities that the user can book.
+     * @param $user_name : user's name from url.
+     *
+     */
     public function getAmenities($user_name) {
         
-        $user = DB::table('user')
-        ->where('username', '=', $user_name)
-        ->first();
+        $user = User::where('username', '=', $user_name)->first();
 
         if(isset($user)){
 
-            $db_amenities = DB::table('entity')
-            ->where('user_id', '=', $user->id)
-            ->where('type', '=', 'amenity')
-            ->get();
-
+            $_amenities = Entity::whereRaw('user_id = ? and type = ?', array($user->id, 'amenity'))->get()->toArray();
             $amenities = array();
 
-            foreach($db_amenities as $amenity){
+            foreach($_amenities as $amenity){
                 if(isset($amenity->body))
                     array_push($amenities, json_decode($amenity->body));                
             }
@@ -63,19 +68,20 @@ class EntityController extends Controller {
         }
     }
 
+    /**
+     * Retrieve and return the amenity called $name.
+     * @param $user_name : user's name from url.
+     * @param $name : the amenity's name
+     *
+     */
     public function getAmenityByName($user_name, $name) {
 
     
-        $user = DB::table('user')
-        ->where('username', '=', $user_name)
-        ->first();
+        $user = User::where('username', '=', $user_name)->first();
 
         if(isset($user)){
-            $amenity = DB::table('entity')
-            ->where('user_id', '=', $user->id)
-            ->where('type', '=', 'amenity')
-            ->where('name', '=', $name)
-            ->first();
+            $amenity = Entity::whereRaw('user_id = ? and type = ? and name = ?', 
+                array($user->id, 'amenity', $name))->first();
 
             if(!isset($amenity)){
                 App::abort(404, 'Amenity not found');
@@ -89,19 +95,20 @@ class EntityController extends Controller {
     }
 
 
+    /**
+     * Retrieve and return the entity called $name.
+     * @param $user_name : user's name from url.
+     * @param $name : the entity's name
+     *
+     */
     public function getEntityByName($user_name, $name) {
 
  
-        $user = DB::table('user')
-        ->where('username', '=', $user_name)
-        ->first();
+        $user = User::where('username', '=', $user_name)->first();
 
         if(isset($user)){
 
-            $entity = DB::table('entity')
-            ->where('user_id', '=', $user->id)
-            ->where('name', '=', $name)
-            ->first();
+            $entity = Entity::whereRaw('user_id = ? and name = ?', array($user->id, $name))->first();
 
             if(!isset($entity)){
                 App::abort(404, 'Entity not found');
@@ -114,11 +121,15 @@ class EntityController extends Controller {
         }
     }
 
+    /**
+     * Create a new entity.
+     * @param $user_name : user's name from the url
+     * @param $name : the name of the entity to be created
+     *
+     */
     public function createEntity($user_name, $name) {
 
-        $user = DB::table('user')
-            ->where('username', '=', $user_name)
-            ->first();
+        $user = User::where('username', '=', $user_name)->first();
 
         if(isset($user)){
 
@@ -128,7 +139,7 @@ class EntityController extends Controller {
             $client = User::where('username', '=', $username)->first();
             if(!strcmp($user_name, $username) || $client->isAdmin()){
 
-                $exist = DB::table('entity')->where('name', '=', $name)->get();
+                $exist = Entity::where('name', '=', $name)->first();
                 if($exist){
                     App::abort(400, 'An entity with this name already exist.');
                 }else{
@@ -278,8 +289,12 @@ class EntityController extends Controller {
 
 
     
-
-
+    /**
+     * Create a new amenity.
+     * @param $user_name : user's name from the url
+     * @param $name : the name of the amenity to be created
+     *
+     */
     public function createAmenity($user_name, $name) {
 
         Validator::extend('schema_type', function($attribute, $value, $parameters)
@@ -303,9 +318,7 @@ class EntityController extends Controller {
                 validateProperty($property['properties']);
         }
 
-        $user = DB::table('user')
-            ->where('username', '=', $user_name)
-            ->first();
+        $user = User::where('username', '=', $user_name)->first();
         if(isset($user)){
             
             /* we pass the basicauth so we can test against 
@@ -389,6 +402,12 @@ class EntityController extends Controller {
         }               
     }
 
+    /**
+     * Delete an amenity.
+     * @param $user_name : user's name from the url
+     * @param $name : the name of the amenity to be deleted
+     *
+     */
     public function deleteAmenity($user_name, $name) {
         
         

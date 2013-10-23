@@ -4,6 +4,11 @@
 class ReservationController extends Controller {
 
 
+	/**
+	 * This function throw an error 400 and provide error messages
+	 * from validator $validator in JSON.
+	 * @param $validator : a Laravel validator
+	 */
 	private function sendErrorMessage($validator){
         $messages = $validator->messages();
         $s = "JSON does not validate. Violations:\n";
@@ -14,24 +19,25 @@ class ReservationController extends Controller {
         App::abort(400, $s);
     }
 
+    /**
+     * Return a list of reservations that the user has made for the current day.
+     * Day can be change by providing a 'day' as GET parameter.
+     * @param $user_name : the user's name
+     */
 	public function getReservations($user_name) {
     	
-    	$user = DB::table('user')
-            ->where('username', '=', $user_name)
-            ->first();
+    	$user = User::where('username', '=', $user_name)->first();
 
     	if(isset($user)){
     		
     		if(Input::get('day')!=null){
-    			$reservations = DB::table('reservation')
-				->where('user_id', '=', $user->id)
-				->where('from', '>=', strtotime(Input::get('day')))
-				->where('from', '<=', strtotime(Input::get('day')))
-				->get();
+    			$reservations = Reservation::whereRaw(
+    				'user_id = ? and from >= ? and from <= ?', 
+    				array($user->id, strtotime(Input::get('day')), strtotime(Input::get('day'))))->get();
     		}else{
-    			$reservations = DB::table('reservation')
-				->where('user_id', '=', $user->id)
-				->get();
+    			//coming reservations for today
+    			$reservations = Reservation::whereRaw('user_id = ? and DATE(from) >= DATE(NOW())', 
+    				array($user->id))->get();
     		}
     		foreach($reservations as $reservation){
     			$reservation->announce = json_decode($reservation->announce);
@@ -44,6 +50,12 @@ class ReservationController extends Controller {
 	}
 
 
+	/**
+	 * Verify if a room is available by checking its $opening_hours
+	 * agains the $reservation_time.
+	 * @param $opening_hours : the room's opening hours
+	 * @param $reservation_time : the reservation's time (from & to)
+	 */
 	private function isAvailable($opening_hours, $reservation_time) {
 
 		$from = strtotime($reservation_time['from']);
@@ -85,7 +97,11 @@ class ReservationController extends Controller {
 		return $available;
 	}
 
-	private function assertISO8601Date($date) {
+	/**
+	 * Check if a date is a valid ISO8601 formatted date.
+	 * @param $date : the date to check
+	 */
+	private function isValidISO8601($date) {
 		if (preg_match('/^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/', $date) > 0) {
 			return TRUE;
 		} else {
@@ -93,12 +109,15 @@ class ReservationController extends Controller {
 		}
 	}
 
+	/**
+	 * Create a new reservation for a authenticated user.
+	 * @param $user_name : user's name from url.
+	 *
+	 */
 	public function createReservation($user_name){
 
 	
-    	$user = DB::table('user')
-            ->where('username', '=', $user_name)
-            ->first();
+    	$user = User::where('username', '=', $user_name)->first();
     	if(isset($user)){
 
 			/* we pass the basicauth so we can compare 
@@ -119,9 +138,9 @@ class ReservationController extends Controller {
                 	if(!isset($value['from']) || !isset($value['to']))
                 		return false;
                 	//check against ISO8601 regex
-                	if(!$this->assertISO8601Date($value['from']))
+                	if(!$this->isValidISO8601($value['from']))
                 		return false;
-                	if(!$this->assertISO8601Date($value['to']))
+                	if(!$this->isValidISO8601($value['to']))
                 		return false;
 
                 	$from=strtotime($value['from']);
