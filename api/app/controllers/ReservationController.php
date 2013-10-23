@@ -75,6 +75,7 @@ class ReservationController extends Controller {
 			if($opening_hour->dayOfWeek == date('N', $from)
 				&& $opening_hour->dayOfWeek == date('N', $to)){
 				$i=0;
+				
 				foreach(array_combine($opening_hour->opens, $opening_hour->closes) as $open => $close){
 					
 					if(strtotime(date('Y-m-d H:m', $from)) >=

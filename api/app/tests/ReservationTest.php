@@ -520,7 +520,7 @@ class ReservationTest extends TestCase {
 		$payload['entity'] = 'reservation_entity';
 		$payload['type'] = 'room';
 		$payload['time']['from'] = date('c', mktime(date('H', time())+3));
-		$payload['time']['to'] = date('c', strtotime($opening_hours['closes'][0]));
+		$payload['time']['to'] = date('c', mktime(date('H', time())+5));
 		$headers = array('Accept' => 'application/json');
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
@@ -551,7 +551,7 @@ class ReservationTest extends TestCase {
 		$payload['entity'] = 'admin_entity';
 		$payload['type'] = 'room';
 		$payload['time']['from'] = date('c', mktime(date('H', time())+3));
-		$payload['time']['to'] = date('c', strtotime($opening_hours['closes'][0]));
+		$payload['time']['to'] = date('c', mktime(date('H', time())+5));
 		$headers = array('Accept' => 'application/json');
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
