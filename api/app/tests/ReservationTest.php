@@ -90,6 +90,14 @@ class ReservationTest extends TestCase {
 
 	}
 
+	public function testCreateAmenityAdmin() {
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('admin', 'admin'));
+		$request = Requests::put(Config::get('app.url'). '/test/amenity/admin_amenity', $headers, 
+			$this->amenity_payload, $options);
+		$this->assertEquals($request->status_code, 200);
+	}
+
 	public function testCreateAmenityInexistentCustomer() {
 
 		$headers = array('Accept' => 'application/json');
@@ -224,6 +232,15 @@ class ReservationTest extends TestCase {
 		$headers = array('Accept' => 'application/json');
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::put(Config::get('app.url'). '/test/create_entity', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 200);
+	}
+
+	public function testCreateEntityAdmin() {
+
+		$payload = $this->payload;
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('admin', 'admin'));
+		$request = Requests::put(Config::get('app.url'). '/test/admin_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 200);
 	}
 
@@ -479,9 +496,6 @@ class ReservationTest extends TestCase {
 	}
 
 
-
-
-
 	public function testCreateReservation() {
 
 		$payload = $this->payload;
@@ -512,6 +526,39 @@ class ReservationTest extends TestCase {
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 200);
 	}
+
+	public function testCreateReservationAdmin() {
+
+		$payload = $this->payload;
+		$payload['body']['opening_hours'] = array();
+
+		for($i=1; $i <= 7; $i++){
+			$opening_hours = array();
+			$opening_hours['opens'] = array('00:00');
+			$opening_hours['closes'] = array('23:59');
+			$opening_hours['dayOfWeek'] = $i;
+			$opening_hours['validFrom'] = date("Y-m-d H:m:s", time()-365*24*60*60);
+			$opening_hours['validThrough'] =  date("Y-m-d H:m:s", time()+(365*24*60*60));
+			array_push($payload['body']['opening_hours'], $opening_hours);
+		}
+
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('admin', 'admin'));
+		$request = Requests::put(Config::get('app.url'). '/test/admin_entity', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 200);
+
+		$payload = $this->reservation_payload;
+		$payload['entity'] = 'admin_entity';
+		$payload['type'] = 'room';
+		$payload['time']['from'] = date('c', mktime(date('H', time())+3));
+		$payload['time']['to'] = date('c', strtotime($opening_hours['closes'][0]));
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('test', 'test'));
+		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
+		$this->assertEquals($request->status_code, 200);
+	}
+
+
 
 	public function testCreateReservationWrongCustomer() {
 

@@ -105,8 +105,8 @@ class ReservationController extends Controller {
 			this username with the url {user_name}*/
 			
     		$username = Request::header('php-auth-user');
-    		
-    		if(!strcmp($user_name, $username)){
+    		$client = User::where('username', '=', $username)->first();
+    		if(!strcmp($user_name, $username) || $client->isAdmin()){
     		
     			Validator::extend('type', function($attribute, $value, $parameters)
                 {

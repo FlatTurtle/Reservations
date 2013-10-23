@@ -125,8 +125,8 @@ class EntityController extends Controller {
             /* we pass the basicauth so we can test against 
             this username with the url {user_name}*/
             $username = Request::header('php-auth-user');
-
-            if(!strcmp($user_name, $username)){
+            $client = User::where('username', '=', $username)->first();
+            if(!strcmp($user_name, $username) || $client->isAdmin()){
 
                 $exist = DB::table('entity')->where('name', '=', $name)->get();
                 if($exist){
@@ -311,7 +311,9 @@ class EntityController extends Controller {
             /* we pass the basicauth so we can test against 
             this username with the url {user_name}*/
             $username = Request::header('php-auth-user');
-            if(!strcmp($user_name, $username)){
+            $client = User::where('username', '=', $username)->first();
+
+            if(!strcmp($user_name, $username) || $client->isAdmin()){
 
                 //TODO : custom error messages
                 Validator::extend('schema', function($attribute, $value, $parameters)
@@ -393,14 +395,15 @@ class EntityController extends Controller {
         $user = DB::table('user')
             ->where('username', '=', $user_name)
             ->first();
-        print_r($user);
+        
         if(isset($user)){
 
             /* we pass the basicauth so we can test against 
             this username with the url {user_name}*/
             $username = Request::header('php-auth-user');
+            $client = User::where('username', '=', $username)->first();
 
-            if(!strcmp($user_name, $username)){
+            if(!strcmp($user_name, $username) || $client->isAdmin()){
                 $amenity = DB::table('entity')
                 ->where('user_id', '=', $user->id)
                 ->where('type', '=', 'amenity')
