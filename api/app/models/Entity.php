@@ -20,11 +20,11 @@ class Entity extends Eloquent {
 	 * Body is a zlib compressed json string.
 	 * @var string
 	 */
-	private $body;
+	private $user;
 
 
-	public function customer() {
-		return $this->belongsTo('Customer');
+	public function user() {
+		return $this->belongsTo('User');
 	}
 
 	

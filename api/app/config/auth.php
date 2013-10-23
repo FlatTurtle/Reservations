@@ -28,7 +28,7 @@ return array(
 	|
 	*/
 
-	'model' => 'Customer',
+	'model' => 'User',
 
 	/*
 	|--------------------------------------------------------------------------
@@ -41,7 +41,7 @@ return array(
 	|
 	*/
 
-	'table' => 'customer',
+	'table' => 'user',
 
 
 	/*

@@ -13,15 +13,15 @@ class EntityController extends Controller {
         App::abort(400, $s);
     }
 
-    public function getEntities($customer_name) {
+    public function getEntities($user_name) {
     		
-        $customer = DB::table('customer')
-        ->where('username', '=', $customer_name)
+        $user = DB::table('user')
+        ->where('username', '=', $user_name)
         ->first();
 
-        if(isset($customer)){
+        if(isset($user)){
 			$db_entities = DB::table('entity')
-            ->where('customer_id', '=', $customer->id)
+            ->where('user_id', '=', $user->id)
             ->get();
 
 			$entities = array();
@@ -33,20 +33,20 @@ class EntityController extends Controller {
 			return json_encode($entities);
 			
     	}else{
-    		App::abort(404, 'Customer not found');
+    		App::abort(404, 'user not found');
     	}
     }
 
-    public function getAmenities($customer_name) {
+    public function getAmenities($user_name) {
         
-        $customer = DB::table('customer')
-        ->where('username', '=', $customer_name)
+        $user = DB::table('user')
+        ->where('username', '=', $user_name)
         ->first();
 
-        if(isset($customer)){
+        if(isset($user)){
 
             $db_amenities = DB::table('entity')
-            ->where('customer_id', '=', $customer->id)
+            ->where('user_id', '=', $user->id)
             ->where('type', '=', 'amenity')
             ->get();
 
@@ -59,20 +59,20 @@ class EntityController extends Controller {
             return json_encode($amenities);
             
         }else{
-            App::abort(404, 'Customer not found');
+            App::abort(404, 'user not found');
         }
     }
 
-    public function getAmenityByName($customer_name, $name) {
+    public function getAmenityByName($user_name, $name) {
 
     
-        $customer = DB::table('customer')
-        ->where('username', '=', $customer_name)
+        $user = DB::table('user')
+        ->where('username', '=', $user_name)
         ->first();
 
-        if(isset($customer)){
+        if(isset($user)){
             $amenity = DB::table('entity')
-            ->where('customer_id', '=', $customer->id)
+            ->where('user_id', '=', $user->id)
             ->where('type', '=', 'amenity')
             ->where('name', '=', $name)
             ->first();
@@ -84,22 +84,22 @@ class EntityController extends Controller {
             }
             
         }else{
-            App::abort(404, 'Customer not found');
+            App::abort(404, 'user not found');
         }
     }
 
 
-    public function getEntityByName($customer_name, $name) {
+    public function getEntityByName($user_name, $name) {
 
  
-        $customer = DB::table('customer')
-        ->where('username', '=', $customer_name)
+        $user = DB::table('user')
+        ->where('username', '=', $user_name)
         ->first();
 
-        if(isset($customer)){
+        if(isset($user)){
 
             $entity = DB::table('entity')
-            ->where('customer_id', '=', $customer->id)
+            ->where('user_id', '=', $user->id)
             ->where('name', '=', $name)
             ->first();
 
@@ -110,23 +110,23 @@ class EntityController extends Controller {
             }
             
         }else{
-            App::abort(404, 'Customer not found');
+            App::abort(404, 'user not found');
         }
     }
 
-    public function createEntity($customer_name, $name) {
+    public function createEntity($user_name, $name) {
 
-        $customer = DB::table('customer')
-            ->where('username', '=', $customer_name)
+        $user = DB::table('user')
+            ->where('username', '=', $user_name)
             ->first();
 
-        if(isset($customer)){
+        if(isset($user)){
 
             /* we pass the basicauth so we can test against 
-            this username with the url {customer_name}*/
+            this username with the url {user_name}*/
             $username = Request::header('php-auth-user');
 
-            if(!strcmp($customer_name, $username)){
+            if(!strcmp($user_name, $username)){
 
                 $exist = DB::table('entity')->where('name', '=', $name)->get();
                 if($exist){
@@ -261,7 +261,7 @@ class EntityController extends Controller {
                                 'updated_at' => microtime(),
                                 'created_at' => microtime(),
                                 'body' => json_encode($body),
-                                'customer_id' => $customer->id
+                                'user_id' => $user->id
                             )
                         );
                     } else {
@@ -269,10 +269,10 @@ class EntityController extends Controller {
                     } 
                 }
             }else{
-               App::abort(403, "You can't modify entities from another customer");
+               App::abort(403, "You can't modify entities from another user");
             }
         }else{
-            App::abort(404, 'Customer not found');
+            App::abort(404, 'user not found');
         }   
     }
 
@@ -280,7 +280,7 @@ class EntityController extends Controller {
     
 
 
-    public function createAmenity($customer_name, $name) {
+    public function createAmenity($user_name, $name) {
 
         Validator::extend('schema_type', function($attribute, $value, $parameters)
         {
@@ -303,15 +303,15 @@ class EntityController extends Controller {
                 validateProperty($property['properties']);
         }
 
-        $customer = DB::table('customer')
-            ->where('username', '=', $customer_name)
+        $user = DB::table('user')
+            ->where('username', '=', $user_name)
             ->first();
-        if(isset($customer)){
+        if(isset($user)){
             
             /* we pass the basicauth so we can test against 
-            this username with the url {customer_name}*/
+            this username with the url {user_name}*/
             $username = Request::header('php-auth-user');
-            if(!strcmp($customer_name, $username)){
+            if(!strcmp($user_name, $username)){
 
                 //TODO : custom error messages
                 Validator::extend('schema', function($attribute, $value, $parameters)
@@ -370,7 +370,7 @@ class EntityController extends Controller {
                                 'updated_at' => time(),
                                 'created_at' => time(),
                                 'body' => json_encode(Input::get('schema')),
-                                'customer_id' => $customer->id
+                                'user_id' => $user->id
                             )
                         );
                     }else{
@@ -379,30 +379,30 @@ class EntityController extends Controller {
                 }
                 
             }else{
-                App::abort(403, "You are not allowed to modify amenities from another customer");
+                App::abort(403, "You are not allowed to modify amenities from another user");
             }
             
         }else{
-            App::abort(404, 'Customer not found');
+            App::abort(404, 'user not found');
         }               
     }
 
-    public function deleteAmenity($customer_name, $name) {
+    public function deleteAmenity($user_name, $name) {
         
         
-        $customer = DB::table('customer')
-            ->where('username', '=', $customer_name)
+        $user = DB::table('user')
+            ->where('username', '=', $user_name)
             ->first();
-        print_r($customer);
-        if(isset($customer)){
+        print_r($user);
+        if(isset($user)){
 
             /* we pass the basicauth so we can test against 
-            this username with the url {customer_name}*/
+            this username with the url {user_name}*/
             $username = Request::header('php-auth-user');
 
-            if(!strcmp($customer_name, $username)){
+            if(!strcmp($user_name, $username)){
                 $amenity = DB::table('entity')
-                ->where('customer_id', '=', $customer->id)
+                ->where('user_id', '=', $user->id)
                 ->where('type', '=', 'amenity')
                 ->where('name', '=', $name);
 
@@ -411,11 +411,11 @@ class EntityController extends Controller {
                 else
                     App::abort(404, 'Amenity not found');
             }else{
-                App::abort(403, "You're not allowed to delete amenities from another customer");
+                App::abort(403, "You're not allowed to delete amenities from another user");
             }
             
         }else{
-            App::abort(404, 'Customer not found');
+            App::abort(404, 'user not found');
         }
     }
 }

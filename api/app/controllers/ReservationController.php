@@ -14,23 +14,23 @@ class ReservationController extends Controller {
         App::abort(400, $s);
     }
 
-	public function getReservations($customer_name) {
+	public function getReservations($user_name) {
     	
-    	$customer = DB::table('customer')
-            ->where('username', '=', $customer_name)
+    	$user = DB::table('user')
+            ->where('username', '=', $user_name)
             ->first();
 
-    	if(isset($customer)){
+    	if(isset($user)){
     		
     		if(Input::get('day')!=null){
     			$reservations = DB::table('reservation')
-				->where('customer_id', '=', $customer->id)
+				->where('user_id', '=', $user->id)
 				->where('from', '>=', strtotime(Input::get('day')))
 				->where('from', '<=', strtotime(Input::get('day')))
 				->get();
     		}else{
     			$reservations = DB::table('reservation')
-				->where('customer_id', '=', $customer->id)
+				->where('user_id', '=', $user->id)
 				->get();
     		}
     		foreach($reservations as $reservation){
@@ -39,7 +39,7 @@ class ReservationController extends Controller {
 			return json_encode($reservations);
 			
     	}else{
-    		App::abort(404, 'Customer not found');
+    		App::abort(404, 'user not found');
     	}
 	}
 
@@ -93,20 +93,20 @@ class ReservationController extends Controller {
 		}
 	}
 
-	public function createReservation($customer_name){
+	public function createReservation($user_name){
 
 	
-    	$customer = DB::table('customer')
-            ->where('username', '=', $customer_name)
+    	$user = DB::table('user')
+            ->where('username', '=', $user_name)
             ->first();
-    	if(isset($customer)){
+    	if(isset($user)){
 
 			/* we pass the basicauth so we can compare 
-			this username with the url {customer_name}*/
+			this username with the url {user_name}*/
 			
     		$username = Request::header('php-auth-user');
     		
-    		if(!strcmp($customer_name, $username)){
+    		if(!strcmp($user_name, $username)){
     		
     			Validator::extend('type', function($attribute, $value, $parameters)
                 {
@@ -159,7 +159,7 @@ class ReservationController extends Controller {
     				$entity = DB::table('entity')
 					->where('name', '=', Input::get('entity'))
 					->where('type', '=', Input::get('type'))
-					->where('customer_id', '=', $customer->id)->first();
+					->where('user_id', '=', $user->id)->first();
 					
 					if($entity==null){
 						App::abort(404, "Entity not found");
@@ -185,7 +185,7 @@ class ReservationController extends Controller {
 										'subject' => Input::get('subject'),
 										'announce' => json_encode(Input::get('announce')),
 										'entity_id' => $entity->id,
-										'customer_id' => $customer->id
+										'user_id' => $user->id
 									)
 								);
 							}
@@ -200,10 +200,10 @@ class ReservationController extends Controller {
 				
 				
 			}else{
-				App::abort(403, "You are not allowed to make reservations for another customer");
+				App::abort(403, "You are not allowed to make reservations for another user");
 			}
     	}else{
-    		App::abort(404, 'Customer not found');
+    		App::abort(404, 'user not found');
     	}
 	}
 }

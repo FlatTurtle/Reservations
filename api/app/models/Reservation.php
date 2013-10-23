@@ -55,10 +55,10 @@ class Reservation extends Eloquent {
 	 * The customer that made this reservation.
 	 * @var Customer
 	 */
-	private $customer;
+	private $user;
 
-	public function customer() {
-		return $this->hasOne('Customer');
+	public function user() {
+		return $this->hasOne('User');
 	}
 
 
