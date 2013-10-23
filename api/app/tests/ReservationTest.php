@@ -232,7 +232,6 @@ class ReservationTest extends TestCase {
 		$headers = array('Accept' => 'application/json');
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::put(Config::get('app.url'). '/test/create_entity', $headers, $payload, $options);
-		print_r($request);
 		$this->assertEquals($request->status_code, 200);
 	}
 

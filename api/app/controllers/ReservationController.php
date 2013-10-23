@@ -36,8 +36,7 @@ class ReservationController extends Controller {
     				array($user->id, strtotime(Input::get('day')), strtotime(Input::get('day'))))->get();
     		}else{
     			//coming reservations for today
-    			$reservations = Reservation::whereRaw('user_id = ? and DATE(from) >= DATE(NOW())', 
-    				array($user->id))->get();
+    			$reservations = Reservation::where('user_id', '=', $user->id)->where('from', '>', mktime(0,0,0))->get();
     		}
     		foreach($reservations as $reservation){
     			$reservation->announce = json_decode($reservation->announce);
