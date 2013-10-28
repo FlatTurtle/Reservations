@@ -2,15 +2,17 @@
 
 class ReservationTest extends TestCase {
 
+	public function __init__() {
+
+		Artisan::call('migrate');
+		Artisan::call('db:seed');
+	}
+
 	public function setUp()
 	{
 		parent::setUp();
 		 
 		Route::enableFilters();
-		
-
-		Artisan::call('migrate');
-		Artisan::call('db:seed');
 
 		$this->entity_payload = array();
 		$this->entity_payload['name'] = 'Deep Blue';
@@ -91,8 +93,8 @@ class ReservationTest extends TestCase {
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
 			$this->amenity_payload, $options);
-		$this->assertEquals($request->status_code, 200);
-
+		$this->assertEquals($request->status_code, 200);	
+		$this->assertNotNull(json_decode($request->body));	
 	}
 
 	/**
@@ -106,6 +108,7 @@ class ReservationTest extends TestCase {
 		$request = Requests::put(Config::get('app.url'). '/test/amenity/admin_amenity', $headers, 
 			$this->amenity_payload, $options);
 		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
 	}
 
 	/**
@@ -120,6 +123,7 @@ class ReservationTest extends TestCase {
 		$request = Requests::put(Config::get('app.url'). '/unknown/amenity/test_amenity', $headers, 
 			$this->amenity_payload, $options);
 		$this->assertEquals($request->status_code, 404);
+		$this->assertNotNull(json_decode($request->body));
 	}
 
 	/**
@@ -166,6 +170,7 @@ class ReservationTest extends TestCase {
 		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
 			$amenity_payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$amenity_payload = $this->amenity_payload;
 		$amenity_payload['description'] = null;
@@ -174,6 +179,7 @@ class ReservationTest extends TestCase {
 		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
 			$amenity_payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$amenity_payload = $this->amenity_payload;
 		$amenity_payload['schema'] = null;
@@ -182,6 +188,7 @@ class ReservationTest extends TestCase {
 		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
 			$amenity_payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 	}
 
 
@@ -195,6 +202,7 @@ class ReservationTest extends TestCase {
 		$request = Requests::get(Config::get('app.url'). '/test/amenity', $headers);
 		$this->assertEquals($request->status_code, 200);
 		$this->assertNotNull(json_decode($request->body));
+		$this->assertEquals(count(json_decode($request->body)), 2);
 	}
 
 	/**
@@ -221,10 +229,13 @@ class ReservationTest extends TestCase {
 		$request = Requests::put(Config::get('app.url'). '/test/amenity/get_amenity', $headers, 
 			$amenity_payload, $options);
 		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
 
 		$request = Requests::get(Config::get('app.url'). '/test/amenity/get_amenity', $headers, $options);
 		$this->assertEquals($request->status_code, 200);
 		$this->assertNotNull(json_decode($request->body));
+		$this->assertNotNull(json_decode($request->body));
+		$this->assertEquals(count(json_decode($request->body)), 1);
 
 
 	}
@@ -265,8 +276,10 @@ class ReservationTest extends TestCase {
 		$request = Requests::put(Config::get('app.url'). '/test/amenity/to_delete', $headers, 
 			$this->amenity_payload, $options);
 		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
 		$request = Requests::delete(Config::get('app.url'). '/test/amenity/to_delete', $headers, $options);
 		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
 
 	}
 
@@ -309,6 +322,8 @@ class ReservationTest extends TestCase {
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::put(Config::get('app.url'). '/test/create_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
+		$this->assertEquals(count(json_decode($request->body)), 1);
 	}
 
 	/**
@@ -325,6 +340,8 @@ class ReservationTest extends TestCase {
 		$options = array('auth' => array('admin', 'admin'));
 		$request = Requests::put(Config::get('app.url'). '/test/admin_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
+		$this->assertEquals(count(json_decode($request->body)), 1);
 	}
 
 
@@ -354,11 +371,14 @@ class ReservationTest extends TestCase {
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::put(Config::get('app.url'). '/test/existing_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
 
 		$headers = array('Accept' => 'application/json');
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::put(Config::get('app.url'). '/test/existing_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
+		$this->assertEquals(count(json_decode($request->body)), 1);
 	}
 
 	/**
@@ -374,112 +394,134 @@ class ReservationTest extends TestCase {
 		$payload['type'] = '';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['type'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body'] = '';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['type'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['type'] = '';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['location'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['price'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['contact'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['contact'] = '';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['contact'] = 'not a url';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['support'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['support'] = '';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['support'] = 'not a url';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['opening_hours'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		unset($payload['body']['price']['daily']);
 		unset($payload['body']['price']['hourly']);
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['price']['daily'] = -1;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['price']['currency'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['price']['currency'] = '';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['price']['currency'] = 'pokethunes';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['opening_hours'] = array();
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['opening_hours'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		//TODO : need to check every field of opening_hours
 		$payload = $this->entity_payload;
@@ -493,61 +535,73 @@ class ReservationTest extends TestCase {
 		array_push($this->entity_payload['body']['opening_hours'], $opening_hours);
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['location']['map'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['location']['map'] = '';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['location']['floor'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['location']['floor'] = '';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['location']['floor'] = 'not an int';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['location']['building_name'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['location']['building_name'] = '';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['location']['map']['img'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['location']['map']['img'] = '';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['location']['map']['img'] = 'not a url';
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['location']['map']['reference'] = null;
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->entity_payload;
 		$payload['body']['location']['map']['reference'] = '';
@@ -558,6 +612,7 @@ class ReservationTest extends TestCase {
 		$payload['body']['amenities'] = array('unknown amenities');
 		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 		
 	}
 
@@ -572,6 +627,7 @@ class ReservationTest extends TestCase {
 		$request = Requests::get(Config::get('app.url'). '/test', $headers);
 		$this->assertEquals($request->status_code, 200);
 		$this->assertNotNull(json_decode($request->body));
+		$this->assertEquals(count(json_decode($request->body)), 6);
 	}
 
 	/**
@@ -587,10 +643,12 @@ class ReservationTest extends TestCase {
 		$payload['body']['name'] = 'get_entity';
 		$request = Requests::put(Config::get('app.url'). '/test/get_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
 
 		$request = Requests::get(Config::get('app.url'). '/test/get_entity', $headers);
 		$this->assertEquals($request->status_code, 200);
 		$this->assertNotNull(json_decode($request->body));
+		$this->assertEquals(count(json_decode($request->body)), 1);
 	}
 
 	/**
@@ -644,6 +702,7 @@ class ReservationTest extends TestCase {
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::put(Config::get('app.url'). '/test/reservation_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['entity'] = 'reservation_entity';
@@ -654,6 +713,9 @@ class ReservationTest extends TestCase {
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
+
+
 	}
 
 	/**
@@ -681,6 +743,7 @@ class ReservationTest extends TestCase {
 		$options = array('auth' => array('admin', 'admin'));
 		$request = Requests::put(Config::get('app.url'). '/test/admin_entity', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['entity'] = 'admin_entity';
@@ -691,6 +754,7 @@ class ReservationTest extends TestCase {
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 200);
+		$this->assertNotNull(json_decode($request->body));
 	}
 
 
@@ -728,92 +792,110 @@ class ReservationTest extends TestCase {
 		$payload['entity'] = '';
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['entity'] = null;
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['type'] = '';
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['type'] = null;
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['time'] = null;
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['time']['from'] = null;
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['time']['from'] = -1;
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['time']['from'] = time()-1;
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['time']['to'] = null;
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['time']['to'] = -1;
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['time']['to'] = time()-1;
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['time']['to'] = time();
 		$payload['time']['from'] = $payload['time']['to'] - 1;
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['comment'] = '';
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['comment'] = null;
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['subject'] = '';
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['subject'] = null;
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['announce'] = null;
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 		$payload = $this->reservation_payload;
 		$payload['announce'] = '';
 		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
 		$this->assertEquals($request->status_code, 400);
+		$this->assertNotNull(json_decode($request->body));
 
 	}
 
@@ -857,11 +939,13 @@ class ReservationTest extends TestCase {
 		$request = Requests::get(Config::get('app.url'). '/test/reservation', $headers);
 		$this->assertEquals($request->status_code, 200);
 		$this->assertNotNull(json_decode($request->body));
+		$this->assertEquals(count(json_decode($request->body)), 2);
 
 		$data = array('day' => date('Y-m-d', time()));	
 		$request = Requests::get(Config::get('app.url'). '/test/reservation', $headers, $data);
 		$this->assertEquals($request->status_code, 200);
 		$this->assertNotNull(json_decode($request->body));
+		$this->assertEquals(count(json_decode($request->body)), 2);
 	}
 
 	
@@ -875,9 +959,11 @@ class ReservationTest extends TestCase {
 		$request = Requests::get(Config::get('app.url'). '/test/reservation', $headers);
 		$reservations = json_decode($request->body);
 		foreach($reservations as $reservation){
-			$request = Requests::get(Config::get('app.url'). '/test/reservation/'.$reservation['id'], $headers);
+			$request = Requests::get(Config::get('app.url'). '/test/reservation/'.$reservation->id, $headers);
 			$this->assertEquals($request->status_code, 200);
 			$this->assertNotNull(json_decode($request->body));
+			$this->assertEquals(count(json_decode($request->body)), 1);
+
 		}
 		
 	}

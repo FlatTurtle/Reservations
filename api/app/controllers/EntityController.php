@@ -276,10 +276,11 @@ class EntityController extends Controller {
                     if(isset($entity)){
                         // the entity already exist in db, we update the json body.
                         $entity->body = json_encode(Input::get('body'));
-                        $entity->save();
+                        if($entity->save())
+                            return json_encode(array('success' => true, 'message' => 'Entity successfully updated'));
                     }else{
                         // the entity don't exist in db so we insert it.
-                        $entity = Entity::insert(
+                        return Entity::create(
                             array(
                                 'name' => Input::get('body')['name'],
                                 'type' => Input::get('type'),
@@ -393,12 +394,10 @@ class EntityController extends Controller {
                         $amenity->body = json_encode(Input::get('schema'));
                         $amenity->save();
                     }else{
-                        Entity::insert(
+                        return Entity::create(
                             array(
                                 'name' => $name,
                                 'type' => 'amenity',
-                                'updated_at' => time(),
-                                'created_at' => time(),
                                 'body' => json_encode(Input::get('schema')),
                                 'user_id' => $user->id
                             )
@@ -411,7 +410,7 @@ class EntityController extends Controller {
                 App::abort(403, "You are not allowed to modify amenities from another user");
             }
         }else{
-            App::abort(404, 'user not found');
+            App::abort(404, 'User not found');
         }               
     }
 
@@ -439,9 +438,13 @@ class EntityController extends Controller {
                 ->where('name', '=', $name);
 
                 if($amenity->first() != null)
-                    $amenity->delete();
+                    if($amenity->delete())
+                        return json_encode(array('success' => true, 'message' => 'Amenity successfully deleted'));
+                    else
+                        App::abort(500, 'An error occured while deleting amenity.');
                 else
                     App::abort(404, 'Amenity not found');
+                    
             }else{
                 App::abort(403, "You're not allowed to delete amenities from another user");
             }

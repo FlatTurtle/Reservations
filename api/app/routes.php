@@ -65,11 +65,17 @@ Route::post('/{customer_name}/reservation',
 	array('before' => 'auth.basic', 'uses' => 'ReservationController@createReservation'));
 
 /*
+	GET http://reservation.hostname/{customer_name}/reservation/{id} : return the reservation with
+	id {id}.
+*/
+Route::get('/{customer_name}/reservation/{id}', 
+	array('uses' => 'ReservationController@getReservation'));
+/*
 	POST http://reservation.hostname/{customer_name}/reservation/{id} : update the reservation with
 	id {id}.
 */
 Route::post('/{customer_name}/reservation/{id}', 
-	array('before' => 'auth.basic', 'uses' => 'ReservationController@getReservation'));
+	array('before' => 'auth.basic', 'uses' => 'ReservationController@updateReservation'));
 
 /* 
 	DELETE http://reservation.hostname/{customer_name}/reservation/{id} : cancel the reservation {id}

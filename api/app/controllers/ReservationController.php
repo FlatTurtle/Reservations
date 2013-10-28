@@ -36,13 +36,13 @@ class ReservationController extends Controller {
     			decode announce json and return reservations to the user */
     		if(Input::get('day')!=null){
     			$day = strtotime(Input::get('day'));	//convert YYYY-mm-dd dates to unix timestamp
-    			$_reservations = Reservation::where('user_id', '=', $user->id)->where('from', '>=', $day)->where('from', '<=', $day)->get();
+    			$_reservations = Reservation::where('user_id', '=', $user->id)->where('from', '>=', $day)->where('from', '<=', $day)->get()->toArray();
     		}else{
-    			$_reservations = Reservation::where('user_id', '=', $user->id)->get();
+    			$_reservations = Reservation::where('user_id', '=', $user->id)->get()->toArray();
     		}
     		$reservations = array();
     		foreach($_reservations as $reservation){
-    			$reservation->announce = json_decode($reservation->announce);
+    			$reservation['announce'] = json_decode($reservation['announce']);
     			array_push($reservations, $reservation);
     		}
 			return json_encode($reservations);
@@ -222,7 +222,7 @@ class ReservationController extends Controller {
 							if(isset($reservation)){
 								App::abort(400, 'The entity is already reserved at that time');
 							}else{
-								$reservation = Reservation::insert(
+								return Reservation::create(
 									array(
 										'from' => $from,
 										'to' => $to,
@@ -234,6 +234,117 @@ class ReservationController extends Controller {
 									)
 								);
 							}
+						}else{
+							App::abort(400, 'The entity is not available at that time');
+						}
+						
+					}
+    			}else{
+    				$this->sendErrorMessage($reservation_validator);
+    			}
+				
+				
+			}else{
+				App::abort(403, "You are not allowed to make reservations for another user");
+			}
+    	}else{
+    		App::abort(404, 'user not found');
+    	}
+	}
+
+	/**
+	 * Create a new reservation for a authenticated user.
+	 * @param $user_name : user's name from url.
+	 *
+	 */
+	public function updateReservation($user_name, $id){
+
+	
+    	$user = User::where('username', '=', $user_name)->first();
+    	if(isset($user)){
+
+			/* we pass the basicauth so we can compare 
+			this username with the url {user_name}*/
+			
+    		$username = Request::header('php-auth-user');
+    		$client = User::where('username', '=', $username)->first();
+    		if(!strcmp($user_name, $username) || $client->isAdmin()){
+    		
+    			Validator::extend('type', function($attribute, $value, $parameters)
+                {
+                	$types = array('room', 'amenity');
+                    return in_array($value, $types);
+                });
+
+                Validator::extend('time', function($attribute, $value, $parameters)
+                {
+                	if(!isset($value['from']) || !isset($value['to']))
+                		return false;
+                	//check against ISO8601 regex
+                	if(!$this->isValidISO8601($value['from']))
+                		return false;
+                	if(!$this->isValidISO8601($value['to']))
+                		return false;
+
+                	$from=strtotime($value['from']);
+                	$to=strtotime($value['to']);
+
+                	if(!$from || !$to)
+                		return false;
+                
+                	if($from < (time()-Config::get('app.reservation_time_span')))
+                		return false;
+                	if ($to < (time() - Config::get('app.reservation_time_span')))
+                		return false;
+                	if ($to < $from)
+                		return false;
+                	if (($to-$from) < Config::get('app.reservation_time_span'))
+                		return false;
+                	return true;
+                });
+
+            
+    			$reservation_validator = Validator::make(
+    				Input::all(),
+    				array(
+    					'entity' => 'required',
+    					'type' => 'required|type',
+    					'time' => 'required|time',
+    					'comment' => 'required',
+    					'subject' => 'required',
+    					'announce' => 'required'
+                    )
+    			);
+
+
+    			if(!$reservation_validator->fails()){
+
+    				$entity = Entity::where('name', '=', Input::get('entity'))
+					->where('type', '=', Input::get('type'))
+					->where('user_id', '=', $user->id)->first();
+					
+					if(!isset($entity)){
+						App::abort(404, "Entity not found");
+					}else{
+						if($this->isAvailable(json_decode($entity->body)->opening_hours, Input::get('time'))){
+
+							//FIXME
+							$from = date("U",strtotime(Input::get('time')['from']));
+							$to = date("U",strtotime(Input::get('time')['to']));
+
+							$reservation = Reservation::find($id);
+
+							if($reservation->exists){
+								$reservation->from = $from;
+								$reservation->to = $to;
+								$reservation->subject = Input::get('subject');
+								$reservation->comment = Input::get('comment');
+								$reservation->announce = json_encode(Input::get('announce'));
+								$reservation->entity_id = $entity->id;
+								$reservation->user_id = $user->id;
+								return $reservation->save();
+							}
+							
 						}else{
 							App::abort(400, 'The entity is not available at that time');
 						}
