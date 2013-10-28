@@ -14,9 +14,13 @@ How-to
 ======
 
     '''git clone git@github.com:FlatTurtle/Reservations.git'''
+    
     '''cd Reservations'''
+    
     '''php composer.phar install''' 
+    
     '''cd api'''
+    
     '''phpunit'''
 
 
