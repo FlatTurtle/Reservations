@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * An entity is a generic thing that can be reserved.
+ * 
+ */
 class Entity extends Eloquent {
 
 	/**
@@ -9,16 +13,34 @@ class Entity extends Eloquent {
 	 */
 	protected $table = 'entity';
 
+	protected $fillable = array('id', 'name', 'type', 'body', 'user_id');
 	/**
 	 * Simple primary key
 	 * @var int
 	 */
 	private $id;
 
+	/**
+	 * Name of the entity.
+	 * @var string
+	 */
+	private $name;
 
 	/**
-	 * Body is a zlib compressed json string.
+	 * Type describe the entity (room, amenity, ...).
 	 * @var string
+	 */
+	private $type;
+
+	/**
+	 * Body is a json string stored as a blob, describing the entity.
+	 * @var string
+	 */
+	private $body;
+	
+	/**
+	 * User is the entity's owner.
+	 * @var User
 	 */
 	private $user;
 
@@ -27,33 +49,4 @@ class Entity extends Eloquent {
 		return $this->belongsTo('User');
 	}
 
-	
-	/**
-	 *
-	 * @param $body 
-	 * @return
-	 */
-	public function setBody($body) {
-		//check if json is valid
-		
-		
-		$compressed_body = gzencode($body, 9);
-		if(!$compressed_body){
-			throw new Exception("An error occured while compressing body.");
-		}else{
-			$this->body = $compressed_body;
-		}
-
-	}
-
-	/**
-	 *
-	 * @return $body
-	 */
-	public function getBody() {
-		return gzdecode($this->body);
-	}
 }
-
-
-?>

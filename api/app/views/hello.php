@@ -7,6 +7,284 @@
     <link rel="stylesheet" href="./assets/application.css" type="text/css"/>
     <link rel="icon" href="https://flatturtle.com/wp-content/uploads/2013/08/favicon.ico" data="https://flatturtle.com/wp-content/uploads/2013/08/favicon.ico" />
     <script src="./assets/application.js"></script>
+    <script src="./assets/jquery-2.0.3.min.js"></script>
+    <script type="text/javascript">
+
+    var amenity = {
+      'description' : 'Broadband wireless connection in every meeting room.',
+      'schema' : {
+        '$schema' : 'http://json-schema.org/draft-04/schema#',
+        'title' : 'wifi',
+        'description' : 'Broadband wireless connection in every meeting room.',
+        'type' : 'object', 
+        'properties' : {
+          'essid' : {
+            'description' : 'Service set identifier.',
+            'type' : 'string'
+          },
+          'code' : {
+            'description' : 'Authentication code.',
+            'type' : 'string'
+          },
+          'encryption' : {
+            'description' : 'Encryption system (e.g. WEP, WPA, WPA2).',
+            'type' : 'string'
+          }
+        },
+        'required' : ['essid', 'code']
+      }
+    };
+
+    var from = new Date();
+    from.setFullYear(from.getFullYear() - 1)
+    from = from.getFullYear() + "-" + (from.getMonth()+1) + "-" + from.getDate() + " " + from.getHours() + ":" + from.getMinutes();
+    var to = new Date();
+    to.setFullYear(to.getFullYear() + 1)
+    to = to.getFullYear() + "-" + (to.getMonth()+1) + "-" + to.getDate() + " " + to.getHours() + ":" + to.getMinutes();
+
+
+    var entity = {
+      'name' : 'Deep Blue',
+      'type' : 'room',
+      'body' : {
+        'name' : 'Deep Blue',
+        'type' : 'room',
+        'opening_hours' : [
+            {
+              'opens' : ['09:00', '13:00'],
+              'closes' : ['12:00', '17:00'],
+              'dayOfWeek' : 1,
+              'validFrom' : from,
+              'validThrough' : to
+            },
+            {
+              'opens' : ['09:00', '13:00'],
+              'closes' : ['12:00', '17:00'],
+              'dayOfWeek' : 2,
+              'validFrom' : from,
+              'validThrough' : to
+            },
+            {
+              'opens' : ['09:00', '13:00'],
+              'closes' : ['12:00', '17:00'],
+              'dayOfWeek' : 3,
+              'validFrom' : from,
+              'validThrough' : to
+            },
+            {
+              'opens' : ['09:00', '13:00'],
+              'closes' : ['12:00', '17:00'],
+              'dayOfWeek' : 4,
+              'validFrom' : from,
+              'validThrough' : to
+            },
+            {
+              'opens' : ['09:00', '13:00'],
+              'closes' : ['12:00', '17:00'],
+              'dayOfWeek' : 5,
+              'validFrom' : from,
+              'validThrough' : to
+            },
+            {
+              'opens' : ['09:00', '13:00'],
+              'closes' : ['12:00', '17:00'],
+              'dayOfWeek' : 6,
+              'validFrom' : from,
+              'validThrough' : to
+            },
+            {
+              'opens' : ['09:00', '13:00'],
+              'closes' : ['12:00', '17:00'],
+              'dayOfWeek' : 7,
+              'validFrom' : from,
+              'validThrough' : to
+            }
+        ],
+        'price' : {
+          'currency' : 'EUR',
+          'hourly' : 5,
+          'daily' : 40
+        },
+        'description' : 'description',
+        'location' : {
+          'map' : {
+            'img' : 'http://foo.bar/map.png',
+            'reference' : 'DB'
+          },
+          'floor' : 1,
+          'building_name' : 'main'
+        },
+        'contact' : 'http://foo.bar/contact.vcf',
+        'support' : 'http://foo.bar/support.vcf'
+      },
+      'amenities' : [
+        {
+          'type' : 'wifi',
+          'body' : {
+            'essid' : 'essid',
+            'code' : '123456'
+          }
+        }
+      ]
+    };
+
+    var from = new Date();
+    var to = new Date();
+    from.setHours(14);
+    to.setHours(16);
+
+    var reservation = {
+      'entity' : 'deep_blue',
+      'type' : 'room',
+      'time' : {
+        'from' : from.toISOString(),
+        'to' : to.toISOString()
+      },
+      'subject' : 'meeting',
+      'comment' : 'comment',
+      'announce' : ['yeri', 'pieter', 'nik', 'quentin']
+    };
+
+    $( document ).ready(function() {
+      
+      $.ajax({
+      url: '/freelance/irail/reservations/api/public/test/amenity/test_amenity',
+      type: 'PUT',
+      data : amenity,
+      beforeSend: function (xhr) {
+          xhr.setRequestHeader ("Authorization", "Basic "+ btoa('test' + ":" + 'test'));
+      }
+    })
+    .done(function( result ) {
+      console.log(result);
+    })
+    .fail(function( result ) {
+      console.log(result);
+    });
+
+    $.ajax({
+      url: '/freelance/irail/reservations/api/public/test/deep_blue',
+      type: 'PUT',
+      data : entity,
+      beforeSend: function (xhr) {
+          xhr.setRequestHeader ("Authorization", "Basic "+ btoa('test' + ":" + 'test'));
+      }
+    })
+    .done(function( result ) {
+      console.log(result);
+    })
+    .fail(function( result ) {
+      console.log(result);
+    });
+
+    $.ajax({
+      url: '/freelance/irail/reservations/api/public/test/reservation',
+      type: 'POST',
+      data : reservation,
+      beforeSend: function (xhr) {
+          xhr.setRequestHeader ("Authorization", "Basic "+ btoa('test' + ":" + 'test'));
+      }
+    })
+    .done(function( result ) {
+      console.log(result);
+    })
+    .fail(function( result ) {
+      console.log(result);
+    });
+
+    $.ajax({
+      url: '/freelance/irail/reservations/api/public/test',
+      type: 'GET',
+      data : reservation,
+      beforeSend: function (xhr) {
+          xhr.setRequestHeader ("Authorization", "Basic "+ btoa('test' + ":" + 'test'));
+      }
+    })
+    .done(function( result ) {
+      console.log(result);
+    })
+    .fail(function( result ) {
+      console.log(result);
+    });
+
+    $.ajax({
+      url: '/freelance/irail/reservations/api/public/test/deep_blue',
+      type: 'GET',
+      data : reservation,
+      beforeSend: function (xhr) {
+          xhr.setRequestHeader ("Authorization", "Basic "+ btoa('test' + ":" + 'test'));
+      }
+    })
+    .done(function( result ) {
+      console.log(result);
+    })
+    .fail(function( result ) {
+      console.log(result);
+    });
+
+    $.ajax({
+      url: '/freelance/irail/reservations/api/public/test/amenity',
+      type: 'GET',
+      data : reservation,
+      beforeSend: function (xhr) {
+          xhr.setRequestHeader ("Authorization", "Basic "+ btoa('test' + ":" + 'test'));
+      }
+    })
+    .done(function( result ) {
+      console.log(result);
+    })
+    .fail(function( result ) {
+      console.log(result);
+    });
+
+    $.ajax({
+      url: '/freelance/irail/reservations/api/public/test/amenity/test_amenity',
+      type: 'GET',
+      data : reservation,
+      beforeSend: function (xhr) {
+          xhr.setRequestHeader ("Authorization", "Basic "+ btoa('test' + ":" + 'test'));
+      }
+    })
+    .done(function( result ) {
+      console.log(result);
+    })
+    .fail(function( result ) {
+      console.log(result);
+    });
+
+     $.ajax({
+      url: '/freelance/irail/reservations/api/public/test/reservation',
+      type: 'GET',
+      data : reservation,
+      beforeSend: function (xhr) {
+          xhr.setRequestHeader ("Authorization", "Basic "+ btoa('test' + ":" + 'test'));
+      }
+    })
+    .done(function( result ) {
+      console.log(result);
+    })
+    .fail(function( result ) {
+      console.log(result);
+    });
+
+    $.ajax({
+      url: '/freelance/irail/reservations/api/public/test/amenity/test_amenity',
+      type: 'DELETE',
+      data : reservation,
+      beforeSend: function (xhr) {
+          xhr.setRequestHeader ("Authorization", "Basic "+ btoa('test' + ":" + 'test'));
+      }
+    })
+    .done(function( result ) {
+      console.log(result);
+    })
+    .fail(function( result ) {
+      console.log(result);
+    });
+  });
+    
+
+    </script>
   </head>
   <body class="">
     <div id="header" class="wrap">

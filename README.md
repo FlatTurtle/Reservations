@@ -13,11 +13,11 @@ Requirements
 How-to
 ======
 
-    git clone git@github.com:FlatTurtle/Reservations.git
-    cd Reservations
-    php composer.phar install 
-    cd api
-    phpunit
+    '''git clone git@github.com:FlatTurtle/Reservations.git'''
+    '''cd Reservations'''
+    '''php composer.phar install''' 
+    '''cd api'''
+    '''phpunit'''
 
 
 ! You have to change values in config/testing/database.php to test the app

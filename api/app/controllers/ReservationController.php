@@ -1,6 +1,9 @@
 <?php
 
-
+/**
+ * This class take care of everything related to reservations 
+ * (create / update / delete).
+ */
 class ReservationController extends Controller {
 
 
@@ -23,23 +26,24 @@ class ReservationController extends Controller {
      * Return a list of reservations that the user has made for the current day.
      * Day can be change by providing a 'day' as GET parameter.
      * @param $user_name : the user's name
-     */
+     */	
 	public function getReservations($user_name) {
     	
     	$user = User::where('username', '=', $user_name)->first();
 
     	if(isset($user)){
-    		
+    		/* Announce value is json encoded in db so we first retrieve reservations from db, 
+    			decode announce json and return reservations to the user */
     		if(Input::get('day')!=null){
-    			$reservations = Reservation::whereRaw(
-    				'user_id = ? and from >= ? and from <= ?', 
-    				array($user->id, strtotime(Input::get('day')), strtotime(Input::get('day'))))->get();
+    			$day = strtotime(Input::get('day'));	//convert YYYY-mm-dd dates to unix timestamp
+    			$_reservations = Reservation::where('user_id', '=', $user->id)->where('from', '>=', $day)->where('from', '<=', $day)->get();
     		}else{
-    			//coming reservations for today
-    			$reservations = Reservation::where('user_id', '=', $user->id)->where('from', '>', mktime(0,0,0))->get();
+    			$_reservations = Reservation::where('user_id', '=', $user->id)->get();
     		}
-    		foreach($reservations as $reservation){
+    		$reservations = array();
+    		foreach($_reservations as $reservation){
     			$reservation->announce = json_decode($reservation->announce);
+    			array_push($reservations, $reservation);
     		}
 			return json_encode($reservations);
 			
@@ -48,6 +52,27 @@ class ReservationController extends Controller {
     	}
 	}
 
+	/**
+     * Return a the reservation that has id $id.
+     * @param $user_name : the user's name
+     * @param $id : the id of the reservation to be deleted
+     */
+	public function getReservation($user_name, $id) {
+    	
+    	$user = User::where('username', '=', $user_name)->first();
+
+    	if(isset($user)){
+    		$reservation = Reservation::find($id);
+    		if(isset($reservation))
+    			return '['.json_encode($reservation).']';
+    		else
+    			App::abort(404, 'Reservation not found.');
+    	}else{
+    		App::abort(404, 'user not found');
+    	}
+	}
+
+	
 
 	/**
 	 * Verify if a room is available by checking its $opening_hours
@@ -72,12 +97,15 @@ class ReservationController extends Controller {
 			 * if a user wants to book an entity on multiple days he had to
 			 * do reservations for each day
 			 */
+
+			//compare dayOfWeek with the day value of $from and $to
 			if($opening_hour->dayOfWeek == date('N', $from)
 				&& $opening_hour->dayOfWeek == date('N', $to)){
 				$i=0;
 				
 				foreach(array_combine($opening_hour->opens, $opening_hour->closes) as $open => $close){
-					
+					/* open an close values are formatted as H:m and dayOfWeek is the same so we compare
+						timestamp between $from, $to, $open and $close and the same day. */
 					if(strtotime(date('Y-m-d H:m', $from)) >=
 						strtotime(date('Y-m-d', $from) . $open))
 						$i++;
@@ -175,36 +203,34 @@ class ReservationController extends Controller {
 
 
     			if(!$reservation_validator->fails()){
-    				$entity = DB::table('entity')
-					->where('name', '=', Input::get('entity'))
+
+    				$entity = Entity::where('name', '=', Input::get('entity'))
 					->where('type', '=', Input::get('type'))
 					->where('user_id', '=', $user->id)->first();
 					
-					if($entity==null){
+					if(!isset($entity)){
 						App::abort(404, "Entity not found");
 					}else{
-						if($this->isAvailable(json_decode($entity->body)->opening_hours, 
-							Input::get('time'))){
+						if($this->isAvailable(json_decode($entity->body)->opening_hours, Input::get('time'))){
 
-							$reservation = DB::table('reservation')
-							->where('from', '>=', Input::get('time')['from'])
-							->where('to', '<=', Input::get('time')['to'])
-							->where('entity_id', '=', $entity->id)
-							->first();
+							//FIXME
+							$from = date("U",strtotime(Input::get('time')['from']));
+							$to = date("U",strtotime(Input::get('time')['to']));
 
-							if($reservation!=null){
+							$reservation = Reservation::where('from', '>=', $from)->where('to', '<=', $to)->where('entity_id', '=', $entity->id)->first();
+
+							if(isset($reservation)){
 								App::abort(400, 'The entity is already reserved at that time');
 							}else{
-								//we json encode the announce array for the sake of simplicity
-								DB::table('reservation')->insert(
+								$reservation = Reservation::insert(
 									array(
-										'from' => Input::get('time')['from'],
-										'to' => Input::get('time')['to'],
-										'comment' => Input::get('comment'),
+										'from' => $from,
+										'to' => $to,
 										'subject' => Input::get('subject'),
+										'comment' => Input::get('comment'),
 										'announce' => json_encode(Input::get('announce')),
 										'entity_id' => $entity->id,
-										'user_id' => $user->id
+										'user_id' => $user->id,
 									)
 								);
 							}
@@ -225,7 +251,29 @@ class ReservationController extends Controller {
     		App::abort(404, 'user not found');
     	}
 	}
+
+	/**
+     * Cancel the reservation with id $id by deleting it from database.
+     * @param $user_name : the user's name
+     * @param $id : the reservation's id
+     */
+	public function deleteReservation($user_name, $id) {
+    	
+    	$user = User::where('username', '=', $user_name)->first();
+
+    	if(isset($user)){
+    		
+    		$reservation = Reservation::find($id);
+
+    		if(isset($reservation))
+    			$reservation->delete();
+    		else
+    			App::abort(404, 'Reservation not found');
+			
+    	}else{
+    		App::abort(404, 'user not found');
+    	}
+	}
 }
 
 
-?>

@@ -3,6 +3,10 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
+/**
+ * This class is called by artisan when using the artisan migrate cli.
+ * It create the user table on up and drop it on down.
+ */
 class CreateUserTable extends Migration {
 
 	/**

@@ -1,8 +1,18 @@
 <?php
 
 
+/**
+ * Seeds the entity table by inserting data into it.
+ * We insert two test users and an administrator user.
+ * This is called by the artisan cli on 'artisan migrate --seed'
+ */
 class UserTableSeeder extends Seeder {
 
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
 	public function run()
     {
 		if(Schema::hasTable('user'))

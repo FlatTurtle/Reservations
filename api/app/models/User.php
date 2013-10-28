@@ -18,6 +18,7 @@ class User extends Eloquent implements UserInterface {
 	 * @var array
 	 */
 	protected $hidden = array('password');
+	protected $fillable = array('username');
 
 	public function reservations() {
 		return $this->hasMany('Reservation');
