@@ -40,6 +40,7 @@ class ReservationController extends Controller {
     		}else{
     			$_reservations = Reservation::where('user_id', '=', $user->id)->get()->toArray();
     		}
+    		//FIXME : return entity name instead of id ?
     		$reservations = array();
     		foreach($_reservations as $reservation){
     			$reservation['announce'] = json_decode($reservation['announce']);

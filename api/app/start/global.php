@@ -14,6 +14,7 @@
 ClassLoader::addDirectories(array(
 
 	app_path().'/commands',
+	app_path().'/providers',
 	app_path().'/controllers',
 	app_path().'/models',
 	app_path().'/database/seeds',
@@ -88,4 +89,12 @@ Route::filter('auth.basic', function()
     return Auth::basic('username');
 });
 
-
+use Hautelook\Phpass\PasswordHash;
+Auth::extend('flatturtle_phpass', function()
+{
+    $hasher = new PasswordHash(8,false);
+    return new Guard(
+        new FlatTurtleUserProvider($hasher, 'Customer'),
+        App::make('session')
+    );
+});

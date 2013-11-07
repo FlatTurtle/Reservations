@@ -93,6 +93,7 @@ class ReservationTest extends TestCase {
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
 			$this->amenity_payload, $options);
+		print_r($request);
 		$this->assertEquals($request->status_code, 200);	
 		$this->assertNotNull(json_decode($request->body));	
 	}
@@ -107,6 +108,7 @@ class ReservationTest extends TestCase {
 		$options = array('auth' => array('admin', 'admin'));
 		$request = Requests::put(Config::get('app.url'). '/test/amenity/admin_amenity', $headers, 
 			$this->amenity_payload, $options);
+		print_r($request);
 		$this->assertEquals($request->status_code, 200);
 		$this->assertNotNull(json_decode($request->body));
 	}
@@ -122,6 +124,7 @@ class ReservationTest extends TestCase {
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::put(Config::get('app.url'). '/unknown/amenity/test_amenity', $headers, 
 			$this->amenity_payload, $options);
+		print_r($request);
 		$this->assertEquals($request->status_code, 404);
 		$this->assertNotNull(json_decode($request->body));
 	}
@@ -965,8 +968,39 @@ class ReservationTest extends TestCase {
 			$this->assertEquals(count(json_decode($request->body)), 1);
 
 		}
-		
 	}
+
+
+	/**
+	 * @group reservation
+	 *
+	 */
+	/*public function testUpdateReservation()
+	{
+		$headers = array('Accept' => 'application/json');
+		$options = array('auth' => array('admin', 'admin'));
+		$request = Requests::get(Config::get('app.url'). '/test/reservation', $headers);
+		$reservations = json_decode($request->body);
+		foreach($reservations as $reservation){
+			//let say that we just change the reservation time.
+			$payload = array(
+				'time' => array(
+					'from' => date('c', mktime(date('H', time())+3)),
+					'to' => date('c', mktime(date('H', time())+5))
+				),
+				'subject' => 'updated subject',
+				'comment' => 'I think we just updated this reservation',
+				'announce' => array('yeri', 'pieter', 'nik', 'quentin', 'new member')
+			);
+			$request = Requests::post(Config::get('app.url'). '/test/reservation/'.$reservation->id, $headers, 
+				$payload, $options);
+			$this->assertEquals($request->status_code, 200);
+			$this->assertNotNull(json_decode($request->body));
+			$this->assertEquals(count(json_decode($request->body)), 1);
+
+		}
+	}*/
+
 
 	/**
 	 * @group reservation
@@ -978,7 +1012,6 @@ class ReservationTest extends TestCase {
 		$request = Requests::get(Config::get('app.url'). '/wrong/reservation', $headers);
 		$this->assertEquals($request->status_code, 404);
 	}
-
 }
 
 
