@@ -41,8 +41,10 @@ class EntityController extends Controller {
 			$_entities = Entity::where('user_id', '=', $user->id)->get()->toArray();
 			$entities = array();
 			foreach($_entities as $entity){
-                if(isset($entity['body']))
-				    array_push($entities, json_decode($entity['body']));
+                if(isset($entity['body'])){
+                    array_push($entities, json_decode($entity['body']));
+                    $entities[count($entities)-1]->id = $entity['id'];
+                }
 			}
 			return json_encode($entities);
 			
@@ -68,8 +70,10 @@ class EntityController extends Controller {
             $amenities = array();
 
             foreach($_amenities as $amenity){
-                if(isset($amenity['body']))
-                    array_push($amenities, json_decode($amenity['body']));                
+                if(isset($amenity['body'])){
+                    array_push($amenities, json_decode($amenity['body']));               
+                    $amenities[count($amenities)-1]->id = $amenity['id'];
+                } 
             }
             return json_encode($amenities);
             
@@ -96,7 +100,9 @@ class EntityController extends Controller {
             if(!isset($amenity)){
                 App::abort(404, 'Amenity not found');
             }else{
-                return '['.$amenity->body.']';
+                $d = json_decode($amenity->body);
+                $d->id = $amenity->id;
+                return json_encode($d);
             }
             
         }else{
@@ -123,7 +129,9 @@ class EntityController extends Controller {
             if(!isset($entity)){
                 App::abort(404, 'Entity not found');
             }else{
-                return '['.$entity->body.']';
+                $d = json_decode($entity->body);
+                $d->id = $entity->id;
+                return json_encode($d);
             }
             
         }else{

@@ -93,7 +93,6 @@ class ReservationTest extends TestCase {
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
 			$this->amenity_payload, $options);
-		print_r($request);
 		$this->assertEquals($request->status_code, 200);	
 		$this->assertNotNull(json_decode($request->body));	
 	}
@@ -108,7 +107,6 @@ class ReservationTest extends TestCase {
 		$options = array('auth' => array('admin', 'admin'));
 		$request = Requests::put(Config::get('app.url'). '/test/amenity/admin_amenity', $headers, 
 			$this->amenity_payload, $options);
-		print_r($request);
 		$this->assertEquals($request->status_code, 200);
 		$this->assertNotNull(json_decode($request->body));
 	}
@@ -124,7 +122,6 @@ class ReservationTest extends TestCase {
 		$options = array('auth' => array('test', 'test'));
 		$request = Requests::put(Config::get('app.url'). '/unknown/amenity/test_amenity', $headers, 
 			$this->amenity_payload, $options);
-		print_r($request);
 		$this->assertEquals($request->status_code, 404);
 		$this->assertNotNull(json_decode($request->body));
 	}
