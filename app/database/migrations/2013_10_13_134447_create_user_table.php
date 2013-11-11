@@ -16,14 +16,37 @@ class CreateUserTable extends Migration {
 	 */
 	public function up()
 	{
-		Schema::create('user', function(Blueprint $table)
-		{
-			$table->increments('id');
-			$table->timestamps();
-			$table->string('username');
-			$table->string('password');
-			$table->integer('rights');
-		});
+        // checking the existence of the user table before adding
+        if(!Schema::hasTable('user')){
+            Schema::create('user', function(Blueprint $table)
+            {
+                $table->increments('id');
+                $table->timestamps();
+                $table->string('username');
+                $table->string('password');
+                $table->integer('rights');
+            });
+        }else{
+            if(!Schema::hasColumn('user', 'username')){
+                Schema::table('user', function($table)
+                {
+                    $table->string('username');
+                });
+            }
+            if(!Schema::hasColumn('user', 'password')){
+                Schema::table('user', function($table)
+                {
+                    $table->string('password');
+                });
+            }
+            if(!Schema::hasColumn('user', 'rights')){
+                Schema::table('user', function($table)
+                {
+                    $table->integer('rights');
+                });
+            }
+        }
+
 	}
 
 	/**
