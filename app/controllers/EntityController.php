@@ -39,10 +39,15 @@ class EntityController extends Controller {
 
             $_entities = Entity::where('user_id', '=', $user->id)->get()->toArray();
             $entities = array();
+            $i = 0;
             foreach($_entities as $entity){
                 if(isset($entity['body'])){
-                    array_push($entities, json_decode($entity['body']));
-                    $entities[count($entities)-1]->id = $entity['id'];
+                    $entities[$i] = json_decode($entity['body']);
+                    if(is_null($entities[$i])){
+                        $entities[$i] = new stdClass();
+                    }
+                    $entities[$i]->id = $entity['id'];
+                    $i++;
                 }
             }
             return json_encode($entities);
