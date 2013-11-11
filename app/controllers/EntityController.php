@@ -50,7 +50,7 @@ class EntityController extends Controller {
                     $i++;
                 }
             }
-            return json_encode($entities);
+            return Response::json($entities);
 			
     	}else{
             App::abort(404, 'user not found');
@@ -79,7 +79,7 @@ class EntityController extends Controller {
                     $amenities[count($amenities)-1]->id = $amenity['id'];
                 } 
             }
-            return json_encode($amenities);
+            return Response::json($amenities);
             
         }else{
             App::abort(404, 'user not found');
@@ -106,7 +106,7 @@ class EntityController extends Controller {
             }else{
                 $d = json_decode($amenity->body);
                 $d->id = $amenity->id;
-                return json_encode($d);
+                return Response::json($d);
             }
             
         }else{
@@ -135,7 +135,7 @@ class EntityController extends Controller {
             }else{
                 $d = json_decode($entity->body);
                 $d->id = $entity->id;
-                return json_encode($d);
+                return Response::json($d);
             }
             
         }else{
@@ -289,7 +289,7 @@ class EntityController extends Controller {
                         // the entity already exist in db, we update the json body.
                         $entity->body = json_encode(Input::get('body'));
                         if($entity->save())
-                            return json_encode(array('success' => true, 'message' => 'Entity successfully updated'));
+                            return Response::json(array('success' => true, 'message' => 'Entity successfully updated'));
                     }else{
                         // the entity don't exist in db so we insert it.
                         return Entity::create(
@@ -451,7 +451,7 @@ class EntityController extends Controller {
 
                 if($amenity->first() != null)
                     if($amenity->delete())
-                        return json_encode(array('success' => true, 'message' => 'Amenity successfully deleted'));
+                        return Response::json(array('success' => true, 'message' => 'Amenity successfully deleted'));
                     else
                         App::abort(500, 'An error occured while deleting amenity.');
                 else
