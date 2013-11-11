@@ -25,7 +25,7 @@
     </p>
     <dl>
       <dt id='api-root'>
-        <a href='/api.json'>GET /{customername}</a>
+        <a href='/'>GET /{customername}/things</a>
         <span class="label">Accept JSON</span>
       </dt>
       <br />
@@ -57,14 +57,14 @@
     "contact" : "http://foo.bar/vcard.vcf",
     "support" : "http://foo.bar/vcard.vcf",
     "amenities" : {
-        "http://reservation.{hostname}/{customername}/amenity/wifi" : {
+        "http://reservation.{hostname}/{customername}/amenities/wifi" : {
             "label" : "WiFi Deep Blue"
         }, 
-        "http://reservation.{hostname}/{customername}/amenity/phone": {
+        "http://reservation.{hostname}/{customername}/amenities/phone": {
             "label": "phone",
             "number" : "+32 ..."
         },
-        "http://reservation.{hostname}/{customername}/amenity/whiteboard" : { 
+        "http://reservation.{hostname}/{customername}/amenities/whiteboard" : { 
         }
     }
 }]
@@ -72,7 +72,7 @@
       </dd>
 
       <dt id='api-put-entity'>
-        <a href='/api.json'>PUT /{customername}/{entity_name}</a>
+        <a href='/'>PUT /{customername}/things/{entity_name}</a>
         <span class="label">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>
@@ -105,14 +105,14 @@
     "contact" : "http://foo.bar/vcard.vcf",
     "support" : "http://foo.bar/vcard.vcf",
     "amenities" : {
-        "http://reservation.{hostname}/{customername}/amenity/wifi" : {
+        "http://reservation.{hostname}/{customername}/amenities/wifi" : {
             "label" : "WiFi Deep Blue"
         }, 
-        "http://reservation.{hostname}/{customername}/amenity/phone": {
+        "http://reservation.{hostname}/{customername}/amenities/phone": {
             "label": "phone",
             "number" : "+32 ..."
         },
-        "http://reservation.{hostname}/{customername}/amenity/whiteboard" : { 
+        "http://reservation.{hostname}/{customername}/amenities/whiteboard" : { 
         }
     }
 }
@@ -120,7 +120,7 @@
       </dd>
 
       <dt id='api-get-reservations'>
-        <a href='/api/status.json'>GET /{customer_name}/reservation</a>
+        <a href='/api/status.json'>GET /{customer_name}/reservations</a>
         <span class="label">Accept JSON</span>
       </dt>
       <br />
@@ -144,7 +144,7 @@
 </pre>
       </dd>
       <dt id='api-post-reservation'>
-        <a href='/api/last-message.json'>POST /{customer_name}/reservation</a>
+        <a href='/'>POST /{customer_name}/reservations</a>
         <span class="label">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>
@@ -153,7 +153,7 @@
       <dd>
 <pre class='terminal'>
 {
-"thing" : "http://reservation.{hostname}/{customername}/DB",
+"thing" : "http://reservation.{hostname}/{customername}/things/DB",
 "type": "meetingroom",
 "time" : {
     "from" : "2013-09-26T12:00Z", //iso8601
@@ -169,7 +169,7 @@
 </pre>
       </dd>
       <dt id='api-delete-reservation'>
-        <a href='/api/last-message.json'>DELETE /{customer_name}/reservation/{id}</a>
+        <a href='/api/last-message.json'>DELETE /{customer_name}/reservations/{id}</a>
         <span class="label">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>
@@ -181,7 +181,7 @@
 </pre>
       </dd>
       <dt id='api-get-amenities'>
-        <a href='/api/messages.json'>GET /{customer_name}/amenity</a>
+        <a href='/api/messages.json'>GET /{customer_name}/amenities</a>
         <span class="label">Accept JSON</span>
       </dt>
       <br />
@@ -205,7 +205,7 @@
       </dd>
 
       <dt id='api-get-amenity'>
-        <a href='/api/messages.json'>GET /{customer_name}/amenity/red_phone</a>
+        <a href='/messages.json'>GET /{customer_name}/amenities/{amenity}</a>
         <span class="label">Accept JSON</span>
       </dt>
       <br />
@@ -223,7 +223,7 @@
       </dd>
 
       <dt id='api-put-amenity'>
-        <a href='/api/messages.json'>PUT /{customer_name}/amenity/new_amenity</a>
+        <a href='/messages.json'>PUT /{customer_name}/amenities/{amenity}</a>
         <span class="label">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>
@@ -242,7 +242,7 @@
       </dd>
 
     <dt id='api-put-amenity'>
-        <a href='/api/messages.json'>DELETE /{customer_name}/amenity/new_amenity</a>
+        <a href='/messages.json'>DELETE /{customer_name}/amenities/{amenity}</a>
         <span class="label">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>
@@ -264,10 +264,10 @@
         <ul>
           <li><a href="http://flatturtle.com">FlatTurtle Website</a></li>
           <li><a href="mailto:support@flatturtle.com">Support</a></li>
-          <li><a href="https://flatturtle.com/contact">Contact</a></li>
+          <li><a href="https://flatturtle.com/#contact">Contact</a></li>
           <li><a href="/api">API</a></li>
         </ul>
-        <p>© 2013 FlatTurtle bvba. All rights reserved.</p>
+        <p>© 2013 FlatTurtle bvba. Some rights reserved.</p>
       </div>
       
     </div>
