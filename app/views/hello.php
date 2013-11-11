@@ -6,14 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <link rel="stylesheet" href="./assets/bootstrap.min.css" type="text/css"/>
     <link rel="stylesheet" href="./assets/application.css" type="text/css"/>
-    <link rel="icon" href="https://flatturtle.com/wp-content/uploads/2013/08/favicon.ico" data="https://flatturtle.com/wp-content/uploads/2013/08/favicon.ico" />
+    <link rel="icon" href="https://img.flatturtle.com/favicon/favicon.ico" data="https://img.flatturtle.com/favicon/favicon.ico" />
     <script src="./assets/application.js"></script>
     <script src="./assets/jquery-2.0.3.min.js"></script>
     
   </head>
   <body class="">
     <div id="header" class="wrap">
-      <h1 class="logo"><a href="/"><img src="./images/FlatTurtle.png" alt="logo" /></a></h1>
+      <h1 class="logo"><a href="/"><img src="https://img.flatturtle.com/flatturtle/logo/FlatTurtle.png" alt="logo" /></a></h1>
     </div>
 
     <div id="main">
@@ -262,12 +262,12 @@
     <div id="footer" class="wrap">
       <div id="legal">
         <ul>
-          <li><a href="http://flatturtle.com">FlatTurtle Website</a></li>
-          <li><a href="mailto:support@flatturtle.com">Support</a></li>
-          <li><a href="https://flatturtle.com/#contact">Contact</a></li>
+          <li><a href="https://FlatTurtle.com">FlatTurtle website</a></li>
+          <li><a href="mailto:help@flatturtle.com">Support</a></li>
+          <li><a href="https://FlatTurtle.com/#contact">Contact</a></li>
           <li><a href="/api">API</a></li>
         </ul>
-        <p>© 2013 FlatTurtle bvba. Some rights reserved.</p>
+        <p>© 2013 <a href="https://FlatTurtle.com">FlatTurtle</a>. Some rights reserved.</p>
       </div>
       
     </div>
