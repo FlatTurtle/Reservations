@@ -26,7 +26,7 @@ return array(
 	|
 	*/
 
-	'url' => 'http://reservations.irail.local',
+	'url' => 'http://localhost/',
 
 	/*
 	|--------------------------------------------------------------------------
