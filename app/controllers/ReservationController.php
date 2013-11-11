@@ -46,7 +46,7 @@ class ReservationController extends Controller {
                 $reservation['announce'] = json_decode($reservation['announce']);
                 array_push($reservations, $reservation);
             }
-            return json_encode($reservations);
+            return Response::json($reservations);
 			
     	}else{
             App::abort(404, 'user not found');
@@ -65,7 +65,7 @@ class ReservationController extends Controller {
     	if(isset($user)){
             $reservation = Reservation::find($id);
             if(isset($reservation))
-                return '['.json_encode($reservation).']';
+                return Response::json($reservation);
             else
                 App::abort(404, 'Reservation not found.');
     	}else{
