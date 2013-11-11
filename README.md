@@ -27,7 +27,7 @@ phpunit
 # create a database for development purposes and add the credentials over here:
 vim app/config/local/database.php
 # Now add your hostname to the array in this file:
-vim bootstrap.php
+vim bootstrap/start.php
 # Finally, when doing a commit, please don't commit a filled out local/database.php!
 ``` 
 
