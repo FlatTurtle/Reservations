@@ -3,74 +3,74 @@
 class Reservation extends Eloquent {
 
 
-	/**
-	 * The database table used by the model.
-	 *
-	 * @var string
-	 */
-	protected $table = 'reservation';
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'reservation';
 
-	protected $fillable = array('id', 'from', 'to', 'subject', 'comment', 'announce', 'user_id', 'entity_id');
-	/**
-	 * Simple primary key
-	 * @var int
-	 */
-	private $id;
-
-
-	/**
-	 * The reservation start on $from.
-	 * @var timestamp (int)
-	 */
-	private $from;
+    protected $fillable = array('id', 'from', 'to', 'subject', 'comment', 'announce', 'user_id', 'entity_id');
+    /**
+     * Simple primary key
+     * @var int
+     */
+    private $id;
 
 
-	/**
-	 * The reservation end on $to.
-	 * @var timestamp (int)
-	 */
-	private $to;
-
-	/**
-	 * Customer subject
-	 * @var string
-	 */
-	private $subject;
+    /**
+     * The reservation start on $from.
+     * @var timestamp (int)
+     */
+    private $from;
 
 
-	/**
-	 * Customer comment.
-	 * @var string
-	 */
-	private $comment;
+    /**
+     * The reservation end on $to.
+     * @var timestamp (int)
+     */
+    private $to;
+
+    /**
+     * Customer subject
+     * @var string
+     */
+    private $subject;
 
 
-	/**
-	 * For on screen announcements
-	 * @var array
-	 */
-	private $announce;
+    /**
+     * Customer comment.
+     * @var string
+     */
+    private $comment;
 
 
-	/**
-	 * The customer that made this reservation.
-	 * @var Customer
-	 */
-	private $user;
-
-	public function user() {
-		return $this->hasOne('User');
-	}
+    /**
+     * For on screen announcements
+     * @var array
+     */
+    private $announce;
 
 
-	/**
-	 * The entity that is reserved.
-	 * @var Entity
-	 */
-	private $entity;
+    /**
+     * The customer that made this reservation.
+     * @var Customer
+     */
+    private $user;
 
-	public function entity() {
-		return $this->hasOne('entity');
-	}
+    public function user() {
+        return $this->hasOne('User');
+    }
+
+
+    /**
+     * The entity that is reserved.
+     * @var Entity
+     */
+    private $entity;
+
+    public function entity() {
+        return $this->hasOne('entity');
+    }
 
 }
