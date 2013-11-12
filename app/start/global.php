@@ -90,11 +90,13 @@ Route::filter('auth.basic', function()
 });
 
 use Hautelook\Phpass\PasswordHash;
+use Illuminate\Auth\Guard;
+use Illuminate\Session\Store;
 Auth::extend('flatturtle_phpass', function()
 {
     $hasher = new PasswordHash(8,false);
     return new Guard(
         new FlatTurtleUserProvider($hasher, 'Customer'),
-        App::make('session')
+        $this->app['session.store']  
     );
 });
