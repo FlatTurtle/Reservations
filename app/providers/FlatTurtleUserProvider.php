@@ -1,11 +1,19 @@
 <?php 
-
+/**
+ *
+ *
+ */
 use Illuminate\Auth\UserInterface;
 use Illuminate\Auth\EloquentUserProvider;
 use Illuminate\Auth\Guard;
 use Hautelook\Phpass\PasswordHash;
 
-class FlatTurtleUserProvider extends EloquentUserProvider {
+/**
+ *
+ *
+ */
+class FlatTurtleUserProvider extends EloquentUserProvider
+{
 
     /**
      * The hasher implementation.
@@ -24,9 +32,10 @@ class FlatTurtleUserProvider extends EloquentUserProvider {
     /**
      * Create a new database user provider.
      *
-     * @param \Hautelook\Phpass\PasswordHash $hasher
-     * @param string $model
+     * @param \Hautelook\Phpass\PasswordHash $hasher : the password hashing class
+     * @param string $model : the user model
      * @return void
+     *
      */
     public function __construct(PasswordHash $hasher, $model)
     {
@@ -37,7 +46,8 @@ class FlatTurtleUserProvider extends EloquentUserProvider {
     /**
      * Retrieve a user by their unique identifier.
      *
-     * @param mixed $identifier
+     * @param mixed $identifier : the user's unique identifier
+     *
      * @return \Illuminate\Auth\UserInterface|null
      */
     public function retrieveById($identifier)
@@ -49,6 +59,7 @@ class FlatTurtleUserProvider extends EloquentUserProvider {
      * Retrieve a user by the given credentials.
      *
      * @param array $credentials
+     *
      * @return \Illuminate\Auth\UserInterface|null
      */
     public function retrieveByCredentials(array $credentials)

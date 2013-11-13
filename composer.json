@@ -1,13 +1,13 @@
 {
-	"name": "laravel/laravel",
-	"description": "The Laravel Framework.",
-	"keywords": ["framework", "laravel"],
-	"license": "MIT",
+	"name": "flatturtle/reservations",
+	"description": "Create your own reservation system, start with an API.",
+	"keywords": ["reservations", "booking", "meeting rooms"],
+	"license": "AGPL-3.0",
 	"require": {
 		"laravel/framework": "4.0.*",	
-        "rmccue/requests": ">=1.0",
-        "hautelook/phpass": "dev-master"
-    },
+		"rmccue/requests": ">=1.0",
+	 	"hautelook/phpass": "dev-master"
+    	},
 	"autoload": {
 		"classmap": [
 			"app/commands",

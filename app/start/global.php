@@ -13,11 +13,11 @@
 
 ClassLoader::addDirectories(array(
 
-	app_path().'/commands',
-	app_path().'/providers',
-	app_path().'/controllers',
-	app_path().'/models',
-	app_path().'/database/seeds',
+        app_path().'/commands',
+        app_path().'/providers',
+        app_path().'/controllers',
+        app_path().'/models',
+        app_path().'/database/seeds',
 
 ));
 
@@ -51,7 +51,7 @@ Log::useDailyFiles(storage_path().'/logs/'.$logFile);
 
 App::error(function(Exception $exception, $code)
 {
-	Log::error($exception);
+        Log::error($exception);
 });
 
 /*
@@ -67,7 +67,7 @@ App::error(function(Exception $exception, $code)
 
 App::down(function()
 {
-	return Response::make("Be right back!", 503);
+        return Response::make("Be right back!", 503);
 });
 
 /*
@@ -89,12 +89,20 @@ Route::filter('auth.basic', function()
     return Auth::basic('username');
 });
 
+Route::filter('auth.basic.once', function()
+{
+    Config::set('auth.model', 'User');
+    return Auth::onceBasic('username');
+});
+
 use Hautelook\Phpass\PasswordHash;
+use Illuminate\Auth\Guard;
+use Illuminate\Session\Store;
 Auth::extend('flatturtle_phpass', function()
 {
     $hasher = new PasswordHash(8,false);
     return new Guard(
-        new FlatTurtleUserProvider($hasher, 'Customer'),
-        App::make('session')
+        new FlatTurtleUserProvider($hasher, 'User'),
+        $this->app['session.store']  
     );
 });

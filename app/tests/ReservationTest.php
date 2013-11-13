@@ -1,1014 +1,2191 @@
 <?php
-
-class ReservationTest extends TestCase {
-
-	public function __init__() {
-
-		Artisan::call('migrate');
-		Artisan::call('db:seed');
-	}
-
-	public function setUp()
-	{
-		parent::setUp();
-		 
-		Route::enableFilters();
-
-		$this->entity_payload = array();
-		$this->entity_payload['name'] = 'Deep Blue';
-		$this->entity_payload['type'] = 'room';
-		$this->entity_payload['body'] = array();
-		$this->entity_payload['body']['name'] = 'Deep Blue';
-		$this->entity_payload['body']['type'] = 'room';
-		$this->entity_payload['body']['opening_hours'] = array();
-
-		for($i=1; $i < 5; $i++){
-			$opening_hours = array();
-			$opening_hours['opens'] = array('09:00', '13:00');
-			$opening_hours['closes'] = array('12:00', '17:00');
-			$opening_hours['dayOfWeek'] = $i;
-			$opening_hours['validFrom'] = date("Y-m-d h:m:s", time()+60*60*24);
-			$opening_hours['validThrough'] =  date("Y-m-d h:m:s", time()+(365*24*60*60));
-			array_push($this->entity_payload['body']['opening_hours'], $opening_hours);
-		}
-
-		$this->entity_payload['body']['price'] = array();
-		$this->entity_payload['body']['price']['currency'] = 'EUR';
-		$this->entity_payload['body']['price']['hourly'] = 5;
-		$this->entity_payload['body']['price']['daily'] = 40;
-		$this->entity_payload['body']['description'] = 'description';
-		$this->entity_payload['body']['location'] = array();
-		$this->entity_payload['body']['location']['map'] = array();
-		$this->entity_payload['body']['location']['map']['img'] = 'http://foo.bar/map.png';
-		$this->entity_payload['body']['location']['map']['reference'] = 'DB';
-		$this->entity_payload['body']['location']['floor'] = 1;
-		$this->entity_payload['body']['location']['building_name'] = 'main';
-		$this->entity_payload['body']['contact'] = 'http://foo.bar/contact.vcf';
-		$this->entity_payload['body']['support'] = 'http://foo.bar/support.vcf';
-		$this->entity_payload['body']['amenities'] = array();
-
-
-		$this->amenity_payload = array();
-		$this->amenity_payload['description'] = 'Broadband wireless connection in every meeting room.';
-		$this->amenity_payload['schema'] = array();
-		$this->amenity_payload['schema']['$schema'] = "http://json-schema.org/draft-04/schema#";
-		$this->amenity_payload['schema']['title'] = 'wifi';
-		$this->amenity_payload['schema']['description'] = 'Broadband wireless connection in every meeting room.';
-		$this->amenity_payload['schema']['type'] = 'object';
-		$this->amenity_payload['schema']['properties'] = array();
-		$this->amenity_payload['schema']['properties']['essid'] = array();
-		$this->amenity_payload['schema']['properties']['essid']['description'] = 'Service set identifier.';
-		$this->amenity_payload['schema']['properties']['essid']['type'] = 'string';
-		$this->amenity_payload['schema']['properties']['label'] = array();
-		$this->amenity_payload['schema']['properties']['label']['description'] = 'Simple label.';
-		$this->amenity_payload['schema']['properties']['label']['type'] = 'string';
-		$this->amenity_payload['schema']['properties']['code'] = array();
-		$this->amenity_payload['schema']['properties']['code']['description'] = 'Authentication code.';
-		$this->amenity_payload['schema']['properties']['code']['type'] = 'string';
-		$this->amenity_payload['schema']['properties']['encryption'] = array();
-		$this->amenity_payload['schema']['properties']['encryption']['description'] = 'Encryption system (e.g. WEP, WPA, WPA2).';
-		$this->amenity_payload['schema']['properties']['encryption']['type'] = 'string';
-		$this->amenity_payload['schema']['required'] = array('essid', 'code');
-		 
-		$this->reservation_payload = array();
-		$this->reservation_payload['entity'] = null;
-		$this->reservation_payload['type'] = null;
-		$this->reservation_payload['time'] = array();
-		$this->reservation_payload['time']['from'] = date('c', time());
-		$this->reservation_payload['time']['to'] = date('c', time() + (60*60*2));
-		$this->reservation_payload['subject'] = 'subject';
-		$this->reservation_payload['comment'] = 'comment';
-		$this->reservation_payload['announce'] = array('yeri', 'pieter', 'nik', 'quentin');
-
-	}
-
-	/**
-	 * @group amenity
-	 * @group create
-	 *
-	 */
-	public function testCreateAmenity() {
-		
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
-			$this->amenity_payload, $options);
-		$this->assertEquals($request->status_code, 200);	
-		$this->assertNotNull(json_decode($request->body));	
-	}
-
-	/**
-	 * @group amenity
-	 * @group create
-	 *
-	 */
-	public function testCreateAmenityAdmin() {
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('admin', 'admin'));
-		$request = Requests::put(Config::get('app.url'). '/test/amenity/admin_amenity', $headers, 
-			$this->amenity_payload, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-	}
-
-	/**
-	 * @group amenity
-	 * @group create
-	 *
-	 */
-	public function testCreateAmenityInexistentCustomer() {
-
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::put(Config::get('app.url'). '/unknown/amenity/test_amenity', $headers, 
-			$this->amenity_payload, $options);
-		$this->assertEquals($request->status_code, 404);
-		$this->assertNotNull(json_decode($request->body));
-	}
-
-	/**
-	 * @group amenity
-	 * @group create
-	 *
-	 */
-	public function testCreateAmenityWrongCustomer() {
-
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::put(Config::get('app.url'). '/test2/amenity/test_amenity', $headers, 
-			$this->amenity_payload, $options);
-		$this->assertEquals($request->status_code, 403);
-	}
-
-	/**
-	 * @group amenity
-	 * @group create
-	 *
-	 */
-	public function testCreateAmenityWrongCredentials() {
-
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'wrong password'));
-		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
-			$this->amenity_payload, $options);
-		$this->assertEquals($request->status_code, 401);
-	}
-
-
-	/**
-	 * @group amenity
-	 * @group create
-	 *
-	 */
-	public function testCreateMalformedAmenity() {
-
-
-		$amenity_payload = $this->amenity_payload;
-		$amenity_payload['description'] = '';
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
-			$amenity_payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$amenity_payload = $this->amenity_payload;
-		$amenity_payload['description'] = null;
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
-			$amenity_payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$amenity_payload = $this->amenity_payload;
-		$amenity_payload['schema'] = null;
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::put(Config::get('app.url'). '/test/amenity/test_amenity', $headers, 
-			$amenity_payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-	}
-
-
-	/**
-	 * @group amenity
-	 * @group get
-	 *
-	 */
-	public function testGetAmenities() {
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/test/amenity', $headers);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-		$this->assertEquals(count(json_decode($request->body)), 2);
-	}
-
-	/**
-	 * @group amenity
-	 * @group get
-	 *
-	 */
-	public function testGetAmenitiesWrongCustomer() {
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/wrong/amenity', $headers);
-		$this->assertEquals($request->status_code, 404);
-	}
-
-	/**
-	 * @group amenity
-	 * @group get
-	 *
-	 */
-	public function testGetAmenity() {
-		
-		$amenity_payload = $this->amenity_payload;
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::put(Config::get('app.url'). '/test/amenity/get_amenity', $headers, 
-			$amenity_payload, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-
-		$request = Requests::get(Config::get('app.url'). '/test/amenity/get_amenity', $headers, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-		$this->assertNotNull(json_decode($request->body));
-		$this->assertEquals(count(json_decode($request->body)), 1);
-
-
-	}
-
-	/**
-	 * @group amenity
-	 * @group get
-	 *
-	 */
-	public function testGetAmenitiesNonExistentCustomer() {
-		
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/unkown/amenity', $headers);
-		$this->assertEquals($request->status_code, 404);
-	}
-
-	/**
-	 * @group amenity
-	 * @group get
-	 *
-	 */
-	public function testGetNonExistentAmenity() {
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/test/amenity/unknown', $headers);
-		$this->assertEquals($request->status_code, 404);
-	}
-
-
-	/**
-	 * @group amenity
-	 * @group delete
-	 *
-	 */
-	public function testDeleteAmenity() {
-
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::put(Config::get('app.url'). '/test/amenity/to_delete', $headers, 
-			$this->amenity_payload, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-		$request = Requests::delete(Config::get('app.url'). '/test/amenity/to_delete', $headers, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-
-	}
-
-	/**
-	 * @group amenity
-	 * @group delete
-	 *
-	 */
-	public function testDeleteAmenityWrongCustomer() {
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::delete(Config::get('app.url'). '/test2/amenity/test_amenity', $headers, $options);
-		$this->assertEquals($request->status_code, 403);
-	}
-
-	/**
-	 * @group amenity
-	 * @group delete
-	 *
-	 */
-	public function testDeleteNonExistentAmenity() {
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::delete(Config::get('app.url'). '/test/amenity/unknown', $headers, $options);
-		$this->assertEquals($request->status_code, 404);
-	}
-
-
-	/**
-	 * @group entity
-	 * @group create
-	 *
-	 */
-	public function testCreateEntity() {
-
-		$payload = $this->entity_payload;
-		$payload['name'] = 'create_entity';
-		$payload['body']['name'] = 'create_entity';
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::put(Config::get('app.url'). '/test/create_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-		$this->assertEquals(count(json_decode($request->body)), 1);
-	}
-
-	/**
-	 * @group entity
-	 * @group create
-	 *
-	 */
-	public function testCreateEntityAdmin() {
-
-		$payload = $this->entity_payload;
-		$payload['name'] = 'admin_entity';
-		$payload['body']['name'] = 'admin_entity';
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('admin', 'admin'));
-		$request = Requests::put(Config::get('app.url'). '/test/admin_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-		$this->assertEquals(count(json_decode($request->body)), 1);
-	}
-
-
-	/**
-	 * @group entity
-	 * @group create
-	 *
-	 */
-	public function testCreateEntityWrongCustomer() {
-		$payload = $this->entity_payload;
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::put(Config::get('app.url'). '/test2/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 403);
-	}
-
-	/**
-	 * @group entity
-	 * @group update
-	 *
-	 */
-	public function testUpdateExistingEntity() {
-		$payload = $this->entity_payload;
-		$payload['name'] = 'existing_entity';
-		$payload['body']['name'] = 'existing_entity';
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::put(Config::get('app.url'). '/test/existing_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::put(Config::get('app.url'). '/test/existing_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-		$this->assertEquals(count(json_decode($request->body)), 1);
-	}
-
-	/**
-	 * @group entity
-	 * @group create
-	 *
-	 */
-	public function testCreateEntityMissingParameters() {
-
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$payload = $this->entity_payload;
-		$payload['type'] = '';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['type'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body'] = '';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['type'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['type'] = '';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['location'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['price'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['contact'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['contact'] = '';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['contact'] = 'not a url';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['support'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['support'] = '';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['support'] = 'not a url';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['opening_hours'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		unset($payload['body']['price']['daily']);
-		unset($payload['body']['price']['hourly']);
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['price']['daily'] = -1;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['price']['currency'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['price']['currency'] = '';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['price']['currency'] = 'pokethunes';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['opening_hours'] = array();
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['opening_hours'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		//TODO : need to check every field of opening_hours
-		$payload = $this->entity_payload;
-		$payload['body']['opening_hours'] = array();
-		$opening_hour = array();
-		$opening_hours['opens'] = array('09:00', '13:00');
-		$opening_hours['closes'] = array('12:00', '17:00');
-		$opening_hours['dayOfWeek'] = 1;
-		$opening_hours['validFrom'] = date("Y-m-d h:m:s", time()+60*60*24);
-		$opening_hours['validThrough'] =  date("Y-m-d h:m:s", time()+(365*24*60*60));
-		array_push($this->entity_payload['body']['opening_hours'], $opening_hours);
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['location']['map'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['location']['map'] = '';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['location']['floor'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['location']['floor'] = '';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['location']['floor'] = 'not an int';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['location']['building_name'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['location']['building_name'] = '';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['location']['map']['img'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['location']['map']['img'] = '';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['location']['map']['img'] = 'not a url';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['location']['map']['reference'] = null;
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->entity_payload;
-		$payload['body']['location']['map']['reference'] = '';
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-
-		$payload = $this->entity_payload;
-		$payload['body']['amenities'] = array('unknown amenities');
-		$request = Requests::put(Config::get('app.url'). '/test/new_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-		
-	}
-
-	/**
-	 * @group entity
-	 * @group get
-	 *
-	 */
-	public function testGetEntities()
-	{
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/test', $headers);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-		$this->assertEquals(count(json_decode($request->body)), 6);
-	}
-
-	/**
-	 * @group entity
-	 * @group get
-	 *
-	 */
-	public function testGetEntity() {
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$payload = $this->entity_payload;
-		$payload['name'] = 'get_entity';
-		$payload['body']['name'] = 'get_entity';
-		$request = Requests::put(Config::get('app.url'). '/test/get_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-
-		$request = Requests::get(Config::get('app.url'). '/test/get_entity', $headers);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-		$this->assertEquals(count(json_decode($request->body)), 1);
-	}
-
-	/**
-	 * @group entity
-	 * @group get
-	 *
-	 */
-	public function testGetEntityWrongCustomer() {
-		
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/wrong/entity/wrong', $headers);
-		$this->assertEquals($request->status_code, 404);
-	}
-
-	/**
-	 * @group entity
-	 * @group get
-	 *
-	 */
-	public function testGetNonExistentEntity() {
-
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/test/entity/unknown', $headers);
-		$this->assertEquals($request->status_code, 404);
-
-	}
-
-	/**
-	 * @group reservation
-	 * @group create
-	 *
-	 */
-	public function testCreateReservation() {
-
-		$payload = $this->entity_payload;
-		$payload['name'] = 'reservation_entity';
-		$payload['body']['name'] = 'reservation_entity';
-		$payload['body']['opening_hours'] = array();
-
-		for($i=1; $i <= 7; $i++){
-			$opening_hours = array();
-			$opening_hours['opens'] = array('00:00');
-			$opening_hours['closes'] = array('23:59');
-			$opening_hours['dayOfWeek'] = $i;
-			$opening_hours['validFrom'] = date("Y-m-d H:m:s", time()-365*24*60*60);
-			$opening_hours['validThrough'] =  date("Y-m-d H:m:s", time()+(365*24*60*60));
-			array_push($payload['body']['opening_hours'], $opening_hours);
-		}
-
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::put(Config::get('app.url'). '/test/reservation_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['entity'] = 'reservation_entity';
-		$payload['type'] = 'room';
-		$payload['time']['from'] = date('c', mktime(date('H', time())+3));
-		$payload['time']['to'] = date('c', mktime(date('H', time())+5));
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-
-
-	}
-
-	/**
-	 * @group reservation
-	 * @group create
-	 */
-	public function testCreateReservationAdmin() {
-
-		$payload = $this->entity_payload;
-		$payload['name'] = 'admin_entity';
-		$payload['body']['name'] = 'admin_entity';
-		$payload['body']['opening_hours'] = array();
-
-		for($i=1; $i <= 7; $i++){
-			$opening_hours = array();
-			$opening_hours['opens'] = array('00:00');
-			$opening_hours['closes'] = array('23:59');
-			$opening_hours['dayOfWeek'] = $i;
-			$opening_hours['validFrom'] = date("Y-m-d H:m:s", time()-365*24*60*60);
-			$opening_hours['validThrough'] =  date("Y-m-d H:m:s", time()+(365*24*60*60));
-			array_push($payload['body']['opening_hours'], $opening_hours);
-		}
-
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('admin', 'admin'));
-		$request = Requests::put(Config::get('app.url'). '/test/admin_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['entity'] = 'admin_entity';
-		$payload['type'] = 'room';
-		$payload['time']['from'] = date('c', mktime(date('H', time())+3));
-		$payload['time']['to'] = date('c', mktime(date('H', time())+5));
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-	}
-
-
-	/**
-	 * @group reservation
-	 *
-	 */
-	public function testCreateReservationWrongCustomer() {
-
-		$payload = $this->reservation_payload;
-		$payload['time']['from'] = time();
-		$payload['time']['to'] = time() + (60*60*2);
-		$payload['announce'] = array('yeri', 'pieter', 'nik', 'quentin');
-		$payload['entity'] = 'reservation_entity';
-		$payload['type'] = 'room';
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-		$request = Requests::post(Config::get('app.url'). '/test2/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 403);
-	}
-
-	/**
-	 * @group reservation
-	 *
-	 */
-	public function testCreateReservationMissingParameters() {
-
-		$this->reservation_payload['entity'] = 'reservation_entity';
-		$this->reservation_payload['type'] = 'room';
-		
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-
-		$payload = $this->reservation_payload;
-		$payload['entity'] = '';
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['entity'] = null;
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['type'] = '';
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['type'] = null;
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['time'] = null;
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['time']['from'] = null;
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['time']['from'] = -1;
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['time']['from'] = time()-1;
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['time']['to'] = null;
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['time']['to'] = -1;
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['time']['to'] = time()-1;
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['time']['to'] = time();
-		$payload['time']['from'] = $payload['time']['to'] - 1;
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['comment'] = '';
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['comment'] = null;
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['subject'] = '';
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['subject'] = null;
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['announce'] = null;
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-		$payload = $this->reservation_payload;
-		$payload['announce'] = '';
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-		$this->assertNotNull(json_decode($request->body));
-
-	}
-
-	
-	//TODO : work on times to check validation
-	/*public function testCreateAlreadyBookedReservation() {
-		$payload = $this->entity_payload;
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('test', 'test'));
-
-		$request = Requests::put(Config::get('app.url'). '/test/already_booked_entity', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 200);
-
-		$payload = $this->reservation_payload;
-		$payload['entity'] = 'already_booked_entity';
-		$payload['type'] = 'room';
-		$payload['time']['from'] = time()+(60*60);
-		$payload['time']['to'] = $payload['time']['from'] + (60*60*2);
-
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 200);
-
-		$request = Requests::post(Config::get('app.url'). '/test/reservation', $headers, $payload, $options);
-		$this->assertEquals($request->status_code, 400);
-
-
-
-	}
-
-	public function testCreateReservationOnUnavailableEntity() {
-
-	}*/
-
-	/**
-	 * @group reservation
-	 *
-	 */
-	public function testGetReservations()
-	{
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/test/reservation', $headers);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-		$this->assertEquals(count(json_decode($request->body)), 2);
-
-		$data = array('day' => date('Y-m-d', time()));	
-		$request = Requests::get(Config::get('app.url'). '/test/reservation', $headers, $data);
-		$this->assertEquals($request->status_code, 200);
-		$this->assertNotNull(json_decode($request->body));
-		$this->assertEquals(count(json_decode($request->body)), 2);
-	}
-
-	
-	/**
-	 * @group reservation
-	 *
-	 */
-	public function testGetReservation()
-	{
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/test/reservation', $headers);
-		$reservations = json_decode($request->body);
-		foreach($reservations as $reservation){
-			$request = Requests::get(Config::get('app.url'). '/test/reservation/'.$reservation->id, $headers);
-			$this->assertEquals($request->status_code, 200);
-			$this->assertNotNull(json_decode($request->body));
-			$this->assertEquals(count(json_decode($request->body)), 1);
-
-		}
-	}
-
-
-	/**
-	 * @group reservation
-	 *
-	 */
-	/*public function testUpdateReservation()
-	{
-		$headers = array('Accept' => 'application/json');
-		$options = array('auth' => array('admin', 'admin'));
-		$request = Requests::get(Config::get('app.url'). '/test/reservation', $headers);
-		$reservations = json_decode($request->body);
-		foreach($reservations as $reservation){
-			//let say that we just change the reservation time.
-			$payload = array(
-				'time' => array(
-					'from' => date('c', mktime(date('H', time())+3)),
-					'to' => date('c', mktime(date('H', time())+5))
-				),
-				'subject' => 'updated subject',
-				'comment' => 'I think we just updated this reservation',
-				'announce' => array('yeri', 'pieter', 'nik', 'quentin', 'new member')
-			);
-			$request = Requests::post(Config::get('app.url'). '/test/reservation/'.$reservation->id, $headers, 
-				$payload, $options);
-			$this->assertEquals($request->status_code, 200);
-			$this->assertNotNull(json_decode($request->body));
-			$this->assertEquals(count(json_decode($request->body)), 1);
-
-		}
-	}*/
-
-
-	/**
-	 * @group reservation
-	 *
-	 */
-	public function testGetReservationWrongCustomer() {
-		
-		$headers = array('Accept' => 'application/json');
-		$request = Requests::get(Config::get('app.url'). '/wrong/reservation', $headers);
-		$this->assertEquals($request->status_code, 404);
-	}
+/**
+ *
+ *
+ */
+
+/**
+ *
+ *
+ */
+class ReservationTest extends TestCase
+{
+    public static $headers = array(
+        'HTTP_Accept' => 'application/json', 
+    );
+
+    /**
+     *
+     *
+     */
+    public function setUp()
+    {
+        parent::setUp();
+         
+        Route::enableFilters();
+
+        Artisan::call('migrate');
+        Artisan::call('db:seed');
+        $this->test_user = DB::table('user')->where('username', '=', 'test')->first();
+        $this->admin_user = DB::table('user')->where('username', '=', 'admin')->first();
+                
+        $this->entity_payload = array();
+        $this->entity_payload['name'] = 'Deep Blue';
+        $this->entity_payload['type'] = 'room';
+        $this->entity_payload['body'] = array();
+        $this->entity_payload['body']['name'] = 'Deep Blue';
+        $this->entity_payload['body']['type'] = 'room';
+        $this->entity_payload['body']['opening_hours'] = array();
+
+        for ($i=1; $i < 5; $i++) {
+                $opening_hours = array();
+                $opening_hours['opens'] = array('09:00', '13:00');
+                $opening_hours['closes'] = array('12:00', '17:00');
+                $opening_hours['dayOfWeek'] = $i;
+                $opening_hours['validFrom'] = date(
+                    "Y-m-d h:m:s", time()+60*60*24
+                );
+                $opening_hours['validThrough'] = date(
+                    "Y-m-d h:m:s", time()+(365*24*60*60)
+                );
+                array_push(
+                    $this->entity_payload['body']['opening_hours'], 
+                    $opening_hours
+                );
+        }
+
+        $this->entity_payload['body']['price'] = array();
+        $this->entity_payload['body']['price']['currency'] = 'EUR';
+        $this->entity_payload['body']['price']['hourly'] = 5;
+        $this->entity_payload['body']['price']['daily'] = 40;
+        $this->entity_payload['body']['description'] = 'description';
+        $this->entity_payload['body']['location'] = array();
+        $this->entity_payload['body']['location']['map'] = array();
+        $this->entity_payload['body']['location']['map']['img'] 
+            = 'http://foo.bar/map.png';
+        $this->entity_payload['body']['location']['map']['reference'] = 'DB';
+        $this->entity_payload['body']['location']['floor'] = 1;
+        $this->entity_payload['body']['location']['building_name'] = 'main';
+        $this->entity_payload['body']['contact'] = 'http://foo.bar/contact.vcf';
+        $this->entity_payload['body']['support'] = 'http://foo.bar/support.vcf';
+        $this->entity_payload['body']['amenities'] = array();
+
+
+        $this->amenity_payload = array();
+        $this->amenity_payload['description'] 
+            = 'Broadband wireless connection in every meeting room.';
+        $this->amenity_payload['schema'] 
+            = array();
+        $this->amenity_payload['schema']['$schema'] 
+            = "http://json-schema.org/draft-04/schema#";
+        $this->amenity_payload['schema']['title'] 
+            = 'wifi';
+        $this->amenity_payload['schema']['description'] 
+            = 'Broadband wireless connection in every meeting room.';
+        $this->amenity_payload['schema']['type'] 
+            = 'object';
+        $this->amenity_payload['schema']['properties'] 
+            = array();
+        $this->amenity_payload['schema']['properties']['essid'] 
+            = array();
+        $this->amenity_payload['schema']['properties']['essid']['description'] 
+            = 'Service set identifier.';
+        $this->amenity_payload['schema']['properties']['essid']['type'] 
+            = 'string';
+        $this->amenity_payload['schema']['properties']['label'] 
+            = array();
+        $this->amenity_payload['schema']['properties']['label']['description'] 
+            = 'Simple label.';
+        $this->amenity_payload['schema']['properties']['label']['type'] 
+            = 'string';
+        $this->amenity_payload['schema']['properties']['code'] 
+            = array();
+        $this->amenity_payload['schema']['properties']['code']['description'] 
+            = 'Authentication code.';
+        $this->amenity_payload['schema']['properties']['code']['type'] 
+            = 'string';
+        $this->amenity_payload['schema']['properties']['encryption'] 
+            = array();
+        $this->amenity_payload['schema']['properties']['encryption']['description'] 
+            = 'Encryption system (e.g. WEP, WPA, WPA2).';
+        $this->amenity_payload['schema']['properties']['encryption']['type'] 
+            = 'string';
+        $this->amenity_payload['schema']['required'] 
+            = array('essid', 'code');
+         
+        $this->reservation_payload 
+            = array();
+        $this->reservation_payload['entity'] 
+            = null;
+        $this->reservation_payload['type'] 
+            = null;
+        $this->reservation_payload['time'] 
+            = array();
+        $this->reservation_payload['time']['from'] 
+            = date('c', time());
+        $this->reservation_payload['time']['to'] 
+            = date('c', time() + (60*60*2));
+        $this->reservation_payload['subject'] 
+            = 'subject';
+        $this->reservation_payload['comment'] 
+            = 'comment';
+        $this->reservation_payload['announce'] 
+            = array('yeri', 'pieter', 'nik', 'quentin');
+
+    }
+
+    /**
+     *
+     * @group amenity
+     * @group create
+     * @return null null
+     */
+    public function testCreateAmenity()
+    {
+        Auth::loginUsingId($this->test_user->id);
+        $response = $this->call(
+            'PUT',
+            'test/amenities/test_amenity',
+            $this->amenity_payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertNotNull(json_decode($response->getContent()));
+        Auth::logout();   
+    }
+
+    /**
+     *
+     * @group amenity
+     * @group create
+     * @return null
+     */
+    public function testCreateAmenityAdmin()
+    {
+        Auth::loginUsingId($this->admin_user->id);
+        $payload = $this->amenity_payload;
+        $response = $this->call(
+            'PUT',
+            'test/amenities/admin_amenity',
+            $payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $content = $response->getContent();
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+        Auth::logout();        
+    }
+
+    /**
+     *
+     * @group amenity
+     * @group create
+     * @return null
+     *
+     */
+    public function testCreateAmenityInexistentCustomer()
+    {
+        Auth::loginUsingId($this->test_user->id);
+        $payload = $this->amenity_payload;
+        try{
+            $response = $this->call(
+                'PUT',
+                'unknown/amenities/amenity',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
+            return;
+        }
+        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+    }
+
+    /**
+     *
+     * @group amenity
+     * @group create
+     * @return null
+     *
+     */
+    public function testCreateAmenityWrongCustomer()
+    {
+        Auth::loginUsingId($this->test_user->id);
+        $payload = $this->amenity_payload;
+        try{
+            $response = $this->call(
+                'PUT',
+                'wrong/amenities/wrong_amenity',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
+            return;
+        }
+        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+    }
+
+    /**
+     *
+     * @group amenity
+     * @group create
+     * @return null
+     *
+     */
+    public function testCreateAmenityWrongCredentials()
+    {
+        Auth::logout();
+        $response = $this->call(
+            'PUT',
+            'test/amenities/wrong_amenity',
+            $this->amenity_payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 401);
+    }
+
+
+    /**
+     *
+     * @group amenity
+     * @group create
+     * @return null
+     *
+     */
+    public function testCreateMalformedAmenity()
+    {
+        $caught = false;
+        Auth::loginUsingId($this->test_user->id);
+        $payload = $this->amenity_payload;
+        $payload['description'] = '';
+        try {
+            $response = $this->call(
+                'PUT',
+                'test/amenities/test_amenity',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+        $payload = $this->amenity_payload;
+        $payload['description'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/amenities/test_amenity',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+        $payload = $this->amenity_payload;
+        $payload['schema'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/amenities/test_amenity',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        Auth::logout();
+    }
+
+
+    /**
+     *
+     * @group amenity
+     * @group get
+     * @return null
+     *
+     */
+    public function testGetAmenities()
+    {
+        $response = $this->call(
+            'GET',
+            'test/amenities',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );        
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+        $this->assertInternalType('array', $data); 
+    }
+
+    /**
+     *
+     * @group amenity
+     * @group get
+     * @return null
+     *
+     */
+    public function testGetAmenitiesWrongCustomer()
+    {   
+        try{
+            $response = $this->call(
+                'GET',
+                'wrong/amenities',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );  
+        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
+            return;
+        }
+        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+    }
+
+    /**
+     *
+     * @group amenity
+     * @group get
+     * @return null
+     *
+     */
+    public function testGetAmenity()
+    {
+        Auth::loginUsingId($this->test_user->id);
+        $payload = $this->amenity_payload;
+        $response = $this->call(
+            'PUT',
+            'test/amenities/get_amenity',
+            $payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertNotNull(json_decode($response->getContent()));
+        Auth::logout();
+
+        $response = $this->call(
+            'GET',
+            'test/amenities/get_amenity',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );  
+        $content = $response->getContent();
+                $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+        $this->assertInternalType('object', $data);
+    }
+
+    /**
+     *
+     * @group amenity
+     * @group get
+     * @return null
+     *
+     */
+    public function testGetAmenitiesNonExistentCustomer()
+    {
+        try{
+            $response = $this->call(
+                'GET',
+                'unknown/amenities',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            ); 
+        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
+            return;
+        }
+        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+    }
+
+    /**
+     *
+     * @group amenity
+     * @group get
+     * @return null
+     *
+     */
+    public function testGetNonExistentAmenity()
+    {
+        try{
+            $response = $this->call(
+                'GET',
+                'test/amenities/inexistent',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            ); 
+        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
+            return;
+        }
+        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+    }
+
+
+    /**
+     *
+     * @group amenity
+     * @group delete
+     * @return null
+     *
+     */
+    public function testDeleteAmenity()
+    {
+        Auth::loginUsingId($this->test_user->id);
+        $payload = $this->amenity_payload;
+        $response = $this->call(
+            'PUT',
+            'test/amenities/to_delete',
+            $payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $content = $response->getContent();
+        $data = json_decode($content);
+
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+
+        $response = $this->call(
+            'DELETE',
+            'test/amenities/to_delete',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+    }
+
+    /**
+     *
+     * @group amenity
+     * @group delete
+     * @return null
+     *
+     */
+    public function testDeleteAmenityWrongCustomer()
+    {
+        Auth::loginUsingId($this->test_user->id);
+        try{
+            $response = $this->call(
+                'DELETE',
+                'test2/amenities/test_amenity',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            return;
+        }
+        $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+    }
+
+    /**
+     *
+     * @group amenity
+     * @group delete
+     * @return null
+     *
+     */
+    public function testDeleteNonExistentAmenity()
+    {
+        Auth::loginUsingId($this->test_user->id);
+        try{
+            $response = $this->call(
+                'DELETE',
+                'test/amenities/inexistent',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
+            return;
+        }        
+        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+    }
+
+
+    /**
+     *
+     * @group entity
+     * @group create
+     * @return null
+     *
+     */
+    public function testCreateEntity()
+    {
+        Auth::loginUsingId($this->test_user->id);
+        $payload = $this->entity_payload;
+        $payload['name'] = 'create_thing';
+        $payload['body']['name'] = 'create_thing';
+        $response = $this->call(
+            'PUT',
+            'test/things/create_thing',
+            $payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+        Auth::logout();
+    }
+
+    /**
+     *
+     * @group entity
+     * @group create
+     * @return null
+     */
+    public function testCreateEntityAdmin()
+    {
+        Auth::loginUsingId($this->admin_user->id);
+        $payload = $this->entity_payload;
+        $payload['name'] = 'create_admin_thing';
+        $payload['body']['name'] = 'create_admin_thing';
+        $response = $this->call(
+            'PUT',
+            'test/things/create_admin_thing',
+            $payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+        Auth::logout();
+    }
+
+
+    /**
+     *
+     * @group entity
+     * @group create
+     * @return null
+     *
+     */
+    public function testCreateEntityWrongCustomer()
+    {
+        Auth::loginUsingId($this->test_user->id);
+        $payload = $this->entity_payload;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test2/things/new_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+                return;
+        }
+        $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+    }
+
+    /**
+     *
+     * @group entity
+     * @group update
+     * @return null
+     *
+     */
+    public function testUpdateExistingEntity()
+    {
+        Auth::loginUsingId($this->test_user->id);
+        $payload = $this->entity_payload;
+        $payload['name'] = 'existing_entity';
+        $payload['body']['name'] = 'existing_entity';
+        $response = $this->call(
+            'PUT',
+            'test/things/existing_thing',
+            $payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+
+        $response = $this->call(
+            'PUT',
+            'test/things/existing_thing',
+            $payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+        Auth::logout();
+    }
+
+    /**
+     *
+     * @group entity
+     * @group create
+     * @return null
+     *
+     */
+    public function testCreateEntityMissingParameters()
+    {
+        $caught = false;
+
+        Auth::loginUsingId($this->test_user->id);
+        
+        $payload = $this->entity_payload;
+        $payload['type'] = '';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['type'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body'] = '';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['type'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['type'] = '';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['location'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['price'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['contact'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['contact'] = '';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['contact'] = 'not a url';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['support'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['support'] = '';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['support'] = 'not a url';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['opening_hours'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        unset($payload['body']['price']['daily']);
+        unset($payload['body']['price']['hourly']);
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['price']['daily'] = -1;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['price']['currency'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['price']['currency'] = '';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        
+
+        $payload = $this->entity_payload;
+        $payload['body']['price']['currency'] = 'pokethunes';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['opening_hours'] = array();
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['opening_hours'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['opening_hours'] = array();
+        $opening_hour = array();
+        $opening_hours['opens'] = array('09:00', '13:00');
+        $opening_hours['closes'] = array('12:00', '17:00');
+        $opening_hours['dayOfWeek'] = 1;
+        $opening_hours['validFrom'] = date("Y-m-d h:m:s", time()+60*60*24);
+        $opening_hours['validThrough'] =  date("Y-m-d h:m:s", time()+(365*24*60*60));
+        array_push($this->entity_payload['body']['opening_hours'], $opening_hours);
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['location']['map'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['location']['map'] = '';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['location']['floor'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['location']['floor'] = '';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['location']['floor'] = 'not an int';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['location']['building_name'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['location']['building_name'] = '';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['location']['map']['img'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['location']['map']['img'] = '';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['location']['map']['img'] = 'not a url';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['location']['map']['reference'] = null;
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['location']['map']['reference'] = '';
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->entity_payload;
+        $payload['body']['amenities'] = array('unknown amenities');
+        try{
+            $response = $this->call(
+                'PUT',
+                'test/things/missing_thing',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        
+        Auth::logout();
+    }
+
+    /**
+     *
+     * @group entity
+     * @group get
+     * @return null
+     *
+     */
+    public function testGetEntities()
+    {   
+        
+        Auth::loginUsingId($this->test_user->id);
+
+        $response = $this->call(
+            'GET',
+            'test/things',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+        $this->assertInternalType('array', $data); 
+
+        Auth::logout();
+    }
+
+    /**
+     *
+     * @group entity
+     * @group get
+     * @return null
+     *
+     */
+    public function testGetEntity()
+    {
+        Auth::loginUsingId($this->test_user->id);
+        
+        $payload = $this->entity_payload;
+        $payload['name'] = 'get_thing';
+        $payload['body']['name'] = 'get_thing';
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/get_thing',
+            $payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+        
+        Auth::logout();
+
+        $response = $this->call(
+            'GET',
+            'test/things/get_thing',
+            $payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+    }
+
+    /**
+     *
+     * @group entity
+     * @group get
+     * @return null
+     *
+     */
+    public function testGetEntityWrongCustomer()
+    {
+        try{ 
+            $response = $this->call(
+                'GET',
+                'wrong/things/get_thing',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
+            return;
+        }
+        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+    }
+
+    /** 
+     *
+     * @group entity
+     * @group get
+     * @return null
+     *
+     */
+    public function testGetNonExistentEntity()
+    { 
+        try{ 
+            $response = $this->call(
+                'GET',
+                'test/things/unknown_thing',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
+            return;
+        }
+        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+    }
+
+    /**
+     *
+     * @group reservation
+     * @group create
+     * @return null
+     *
+     */
+    public function testCreateReservation()
+    {
+        Auth::loginUsingId($this->test_user->id);
+        
+        $payload = $this->entity_payload;
+        $payload['name'] = 'reservation_thing';
+        $payload['body']['name'] = 'reservation_thing';
+        $payload['body']['opening_hours'] = array();
+
+        for($i=1; $i <= 7; $i++){
+            $opening_hours = array();
+            $opening_hours['opens'] = array('00:00');
+            $opening_hours['closes'] = array('23:59');
+            $opening_hours['dayOfWeek'] = $i;
+            $opening_hours['validFrom'] = date("Y-m-d H:m:s", time()-365*24*60*60);
+            $opening_hours['validThrough'] =  date("Y-m-d H:m:s", time()+(365*24*60*60));
+            array_push($payload['body']['opening_hours'], $opening_hours);
+        }
+
+        $response = $this->call(
+            'PUT',
+            'test/things/reservation_thing',
+            $payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+
+        $payload = $this->reservation_payload;
+        $payload['entity'] = 'reservation_thing';
+        $payload['type'] = 'room';
+        $payload['time']['from'] = date('c', time()+2*3600);
+        $payload['time']['to'] = date('c', time()+3*3600);
+        
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            $payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+
+        Auth::logout();
+    }
+
+    /**
+     *
+     * @group reservation
+     * @group create
+     * @return null
+     */
+    public function testCreateReservationAdmin()
+    {
+        Auth::loginUsingId($this->admin_user->id);
+
+        $payload = $this->entity_payload;
+        $payload['name'] = 'admin_reservation_thing';
+        $payload['body']['name'] = 'admin_reservation_thing';
+        $payload['body']['opening_hours'] = array();
+
+        for($i=1; $i <= 7; $i++){
+            $opening_hours = array();
+            $opening_hours['opens'] = array('00:00');
+            $opening_hours['closes'] = array('23:59');
+            $opening_hours['dayOfWeek'] = $i;
+            $opening_hours['validFrom'] = date("Y-m-d H:m:s", time()-365*24*60*60);
+            $opening_hours['validThrough'] =  date("Y-m-d H:m:s", time()+(365*24*60*60));
+            array_push($payload['body']['opening_hours'], $opening_hours);
+        }
+
+        $response = $this->call(
+            'PUT',
+            'test/things/admin_reservation_thing',
+            $payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+
+
+        $payload = $this->reservation_payload;
+        $payload['entity'] = 'admin_reservation_thing';
+        $payload['type'] = 'room';
+        $payload['time']['from'] = date('c', time()+2*3600);
+        $payload['time']['to'] = date('c', time()+3*3600);
+        
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            $payload,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+
+        Auth::logout();
+    }
+
+
+    /**
+     *
+     * @group reservation
+     * @return null
+     *
+     */
+    public function testCreateReservationWrongCustomer()
+    {
+        Auth::loginUsingId($this->test_user->id);
+
+        $payload = $this->reservation_payload;
+        $payload['time']['from'] = time();
+        $payload['time']['to'] = time() + (60*60*2);
+        $payload['announce'] = array('yeri', 'pieter', 'nik', 'quentin');
+        $payload['entity'] = 'reservation_entity';
+        $payload['type'] = 'room';
+
+        try{
+            $response = $this->call(
+                'POST',
+                'test2/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            return;
+        }
+        $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+    }
+
+    /**
+     *
+     * @group reservation
+     * @return null
+     *
+     */
+    public function testCreateReservationMissingParameters()
+    {
+        $caught = false;
+
+        Auth::loginUsingId($this->test_user->id);
+
+        $this->reservation_payload['entity'] = 'reservation_entity';
+        $this->reservation_payload['type'] = 'room';
+        $payload = $this->reservation_payload;
+        $payload['entity'] = '';
+
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->reservation_payload;
+        $payload['entity'] = null;
+
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->reservation_payload;
+        $payload['type'] = '';
+
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+                $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->reservation_payload;
+        $payload['type'] = null;
+
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+                $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->reservation_payload;
+        $payload['time'] = null;
+
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->reservation_payload;
+        $payload['time']['from'] = null;
+
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->reservation_payload;
+        $payload['time']['from'] = -1;
+
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+        
+        $payload = $this->reservation_payload;
+        $payload['time']['from'] = time()-1;
+        
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+        
+        $payload = $this->reservation_payload;
+        $payload['time']['to'] = null;
+        
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+        
+        $payload = $this->reservation_payload;
+        $payload['time']['to'] = -1;
+        
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+        
+        $payload = $this->reservation_payload;
+        $payload['time']['to'] = time()-1;
+        
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+        
+        $payload = $this->reservation_payload;
+        $payload['time']['to'] = time();
+        $payload['time']['from'] = $payload['time']['to'] - 1;
+        
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+
+        $payload = $this->reservation_payload;
+        $payload['comment'] = '';
+        
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+        
+        $payload = $this->reservation_payload;
+        $payload['comment'] = null;
+        
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+        
+        $payload = $this->reservation_payload;
+        $payload['subject'] = '';
+        
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+        
+        $payload = $this->reservation_payload;
+        $payload['subject'] = null;
+        
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+        
+        $payload = $this->reservation_payload;
+        $payload['announce'] = null;
+        
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+
+        
+        $payload = $this->reservation_payload;
+        $payload['announce'] = '';
+        
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                $payload,
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        
+        Auth::logout();
+    }
+
+    
+    //TODO : work on times to check validation
+    /*public function testCreateAlreadyBookedReservation()
+    {
+        $payload = $this->entity_payload;
+        ReservationTest::$headers = array('Accept' => 'application/json');
+        $options = array('auth' => array('test', 'test'));
+
+        $request = Requests::put(Config::get('app.url'). '/test/already_booked_entity', ReservationTest::$headers, $payload, $options);
+        $this->assertEquals($request->status_code, 200);
+
+        $payload = $this->reservation_payload;
+        $payload['entity'] = 'already_booked_entity';
+        $payload['type'] = 'room';
+        $payload['time']['from'] = time()+(60*60);
+        $payload['time']['to'] = $payload['time']['from'] + (60*60*2);
+
+        $request = Requests::post(Config::get('app.url'). '/test/reservation', ReservationTest::$headers, $payload, $options);
+        $this->assertEquals($request->status_code, 200);
+
+        $request = Requests::post(Config::get('app.url'). '/test/reservation', ReservationTest::$headers, $payload, $options);
+        $this->assertEquals($request->status_code, 400);
+
+
+
+    }
+
+    public function testCreateReservationOnUnavailableEntity()
+    {
+
+    }*/
+
+    /**
+     *
+     * @group reservation
+     * @return null
+     */
+    public function testGetReservations()
+    {
+        
+        $response = $this->call(
+            'GET',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+
+
+        $params = array('day' => date('Y-m-d', time()));  
+        $response = $this->call(
+            'GET',
+            'test/reservations',
+            $params,
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+    }
+
+    
+    /**
+     *
+     * @group reservation
+     * @return null
+     */
+    public function testGetReservation()
+    {
+        
+        $response = $this->call(
+            'GET',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $content = $response->getContent();
+        $reservations = json_decode($content);
+
+        foreach($reservations as $reservation){
+                $response = $this->call(
+                    'GET',
+                    'test/reservations/'.$reservation->id,
+                    array(),
+                    array(),
+                    ReservationTest::$headers,
+                    array(),
+                    false
+                );
+                $content = $response->getContent();
+                $data = json_decode($content);
+                $this->assertEquals($response->getStatusCode(), 200);
+                $this->assertJson($content);
+        }
+    }
+
+
+    /**
+     *
+     * @group reservation
+     *
+     * @return null
+     */
+    /*public function testUpdateReservation()
+    {
+        ReservationTest::$headers = array('Accept' => 'application/json');
+        $options = array('auth' => array('admin', 'admin'));
+        $request = Requests::get(Config::get('app.url'). '/test/reservation', ReservationTest::$headers);
+        $reservations = json_decode($request->body);
+        foreach($reservations as $reservation){
+                //let say that we just change the reservation time.
+                $payload = array(
+                        'time' => array(
+                                'from' => date('c', mktime(date('H', time())+3)),
+                                'to' => date('c', mktime(date('H', time())+5))
+                        ),
+                        'subject' => 'updated subject',
+                        'comment' => 'I think we just updated this reservation',
+                        'announce' => array('yeri', 'pieter', 'nik', 'quentin', 'new member')
+                );
+                $request = Requests::post(Config::get('app.url'). '/test/reservation/'.$reservation->id, ReservationTest::$headers, 
+                        $payload, $options);
+                $this->assertEquals($request->status_code, 200);
+                $this->assertNotNull(json_decode($request->body));
+                $this->assertEquals(count(json_decode($request->body)), 1);
+
+        }
+    }*/
+
+
+    /**
+     *
+     * @group reservation
+     * @return null
+     *
+     */
+    public function testGetReservationWrongCustomer()
+    { 
+        try{
+            $response = $this->call(
+                'GET',
+                'wrong/reservations',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                array(),
+                false
+            );
+        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
+            return;
+        }
+        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+    }
 }
 
 
