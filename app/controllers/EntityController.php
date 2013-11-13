@@ -166,11 +166,7 @@ class EntityController extends Controller {
 
         if (isset($user)) {
 
-            /* we pass the basicauth so we can test against 
-               this username with the url {user_name}*/
-            $username = Request::header('php-auth-user');
-            $client = User::where('username', '=', $username)->first();
-            if (!strcmp($user_name, $username) || $client->isAdmin()) {
+            if (!strcmp($user_name, Auth::user()->username) || Auth::user()->isAdmin()) {
 
                 Validator::extend(
                     'opening_hours', 
@@ -378,7 +374,21 @@ class EntityController extends Controller {
     }
 
 
-    
+    private function _validateProperty($property) {
+
+        $property_validator
+            = Validator::make(
+                $property,
+                array(
+                  'description' => 'required',
+                  'type' => 'required|schema_type'
+                )
+            );
+        if($property_validator->fails())
+            $this->sendErrorMessage($property_validator);
+        if(isset($property['properties']))
+            $this->_validateProperty($property['properties']);
+    }
     /**
      * Create a new amenity.
      * @param $user_name : user's name from the url
@@ -387,7 +397,6 @@ class EntityController extends Controller {
      */
     public function createAmenity($user_name, $name) {
 
-        return Request::header('Authorization');
         Validator::extend(
             'schema_type',
             function ($attribute, $value, $parameters)
@@ -398,21 +407,7 @@ class EntityController extends Controller {
             }
         );
 
-        function validateProperty($property) {
-
-            $property_validator
-                = Validator::make(
-                    $property,
-                    array(
-                      'description' => 'required',
-                      'type' => 'required|schema_type'
-                    )
-                );
-            if($property_validator->fails())
-                $this->sendErrorMessage($property_validator);
-            if(isset($property['properties']))
-                validateProperty($property['properties']);
-        }
+        
 
         $user = User::where('username', '=', $user_name)->first();
         if (isset($user)) {
@@ -420,10 +415,7 @@ class EntityController extends Controller {
             /* we pass the basicauth so we can test against 
                this username with the url {user_name}*/
 
-            $username = Request::header('php-auth-user');
-            $client = User::where('username', '=', $username)->first();
-
-            if (!strcmp($user_name, $username) || $client->isAdmin()) {
+            if (!strcmp($user_name, Auth::user()->username) || Auth::user()->isAdmin()) {
 
                 /* This Validator verify that the schema value is a valid json-schema
                    definition. */
@@ -452,7 +444,7 @@ class EntityController extends Controller {
                                         return false;
                                 }
                                 foreach ($value['properties'] as $property) {
-                                    validateProperty($property);
+                                    $this->_validateProperty($property);
                                 }
 
 
@@ -516,12 +508,7 @@ class EntityController extends Controller {
         
         if (isset($user)) {
 
-            /* we pass the basicauth so we can test against 
-               this username with the url {user_name}*/
-            $username = Request::header('php-auth-user');
-            $client = User::where('username', '=', $username)->first();
-
-            if (!strcmp($user_name, $username) || $client->isAdmin()) {
+            if (!strcmp($user_name, Auth::user()->username) || Auth::user()->isAdmin()) {
                 $amenity = Entity::where('user_id', '=', $user->id)
                     ->where('type', '=', 'amenity')
                     ->where('name', '=', $name);

@@ -167,12 +167,7 @@ class ReservationController extends Controller
         $user = User::where('username', '=', $user_name)->first();
         if(isset($user)){
 
-            /* we pass the basicauth so we can compare 
-               this username with the url {user_name}*/
-                        
-            $username = Request::header('php-auth-user');
-            $client = User::where('username', '=', $username)->first();
-            if(!strcmp($user_name, $username) || $client->isAdmin()){
+            if(!strcmp($user_name, Auth::user()->username) || Auth::user()->isAdmin()){
                 
                 Validator::extend('type', function($attribute, $value, $parameters)
                                   {
