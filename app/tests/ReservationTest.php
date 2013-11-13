@@ -1536,8 +1536,8 @@ class ReservationTest extends TestCase
         $payload = $this->reservation_payload;
         $payload['entity'] = 'reservation_thing';
         $payload['type'] = 'room';
-        $payload['time']['from'] = date('c', mktime(date('H', time()+2*3600)));
-        $payload['time']['to'] = date('c', mktime(date('H', time()+3*3600)));
+        $payload['time']['from'] = date('c', time()+2*3600);
+        $payload['time']['to'] = date('c', time()+3*3600);
         
         $response = $this->call(
             'POST',
@@ -1601,8 +1601,8 @@ class ReservationTest extends TestCase
         $payload = $this->reservation_payload;
         $payload['entity'] = 'admin_reservation_thing';
         $payload['type'] = 'room';
-        $payload['time']['from'] = date('c', mktime(date('H', time()+2*3600)));
-        $payload['time']['to'] = date('c', mktime(date('H', time()+3*3600)));
+        $payload['time']['from'] = date('c', time()+2*3600);
+        $payload['time']['to'] = date('c', time()+3*3600);
         
         $response = $this->call(
             'POST',

@@ -184,20 +184,20 @@ class ReservationController extends Controller
                                           return false;
                                       if(!$this->isValidISO8601($value['to']))
                                           return false;
-
                                       $from=strtotime($value['from']);
                                       $to=strtotime($value['to']);
+                                      $now = time();
+                                      $span = (int) Config::get('app.reservation_time_span');
 
                                       if(!$from || !$to)
                                           return false;
-                
-                                      if($from < (time()-Config::get('app.reservation_time_span')))
+                                      if($from < $now - $span)
                                           return false;
-                                      if ($to < (time() - Config::get('app.reservation_time_span')))
+                                      if ($to < $now - $span)
                                           return false;
                                       if ($to < $from)
                                           return false;
-                                      if (($to-$from) < Config::get('app.reservation_time_span'))
+                                      if (($to-$from) < $span)
                                           return false;
                                       return true;
                                   });
