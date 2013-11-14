@@ -16,5 +16,6 @@ Artisan::add(new AddThing);
 Artisan::add(new DeleteThing);
 Artisan::add(new AddAmenity);
 Artisan::add(new DeleteAmenity);
-
+Artisan::add(new AddReservation);
+Artisan::add(new DeleteReservation);
 
