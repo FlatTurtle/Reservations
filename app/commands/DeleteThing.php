@@ -4,6 +4,12 @@ use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
+/**
+ * Artisan CLI extension to delete things
+ *
+ * @license AGPLv3
+ * @author Quentin Kaiser <contact@quentinkaiser.be>
+ */
 class DeleteThing extends Command {
 
     /**
@@ -37,11 +43,14 @@ class DeleteThing extends Command {
      */
     public function fire()
     {
+        // check if the provided user exists
         $user = User::where('username', '=', $this->option('user'))->first();
         if (!isset($user)) {
             $this->comment("This user don't exist.");
             return;
         }
+
+        // check if the provided thing exists and delete it
         $thing = Entity::where('type', '!=', 'amenity')
         ->where('name', '=', $this->argument('name'))
         ->where('user_id', '=', $user->id)

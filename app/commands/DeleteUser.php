@@ -4,11 +4,12 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Hautelook\Phpass\PasswordHash;
 use Illuminate\Auth\UserInterface;
+
 /**
- * The 
+ * Artisan CLI extension to delete users
  *
  * @license AGPLv3
- * @author Pieter Colpaert
+ * @author Quentin Kaiser <contact@quentinkaiser.be>
  */
 class DeleteUser extends Command {
 
@@ -33,8 +34,8 @@ class DeleteUser extends Command {
      */
     public function fire(){
 
-        $username = $this->argument('username');
-        $user = User::where('username', '=', $username)->first();
+        // check if the provided user exists and delete it
+        $user = User::where('username', '=', $this->argument('username'))->first();
         if(isset($user)){
             $user->delete();
             $this->info("User '{$user->username}' has been deleted.");

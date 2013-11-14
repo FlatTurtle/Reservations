@@ -4,6 +4,12 @@ use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
+/**
+ * Artisan CLI extension to create things
+ *
+ * @license AGPLv3
+ * @author Quentin Kaiser <contact@quentinkaiser.be>
+ */
 class AddThing extends Command {
 
     /**
@@ -34,6 +40,7 @@ class AddThing extends Command {
       "XPD","XPF","XPT","XSU","XTS","XUA","XXX","YER","ZAR",
       "ZMW","ZWL"
     );
+
 	/**
 	 * The console command name.
 	 *
@@ -46,7 +53,7 @@ class AddThing extends Command {
 	 *
 	 * @var string
 	 */
-	protected $description = 'Add Thing to the reservations API for a certain organization';
+	protected $description = 'Add thing to the reservations API for a certain organization';
 
 	/**
 	 * Create a new command instance.
@@ -70,8 +77,9 @@ class AddThing extends Command {
             $this->comment("This user don't exist.");
             return;
         }
-		$thing = new Entity;
-		do{
+		
+        // get thing's name
+        do{
             $valid = true;
 			$name = $this->ask("Name : ");
 			if(empty($name)) {
@@ -84,31 +92,24 @@ class AddThing extends Command {
             }
 		} while(!$valid);
 
+        // get thing's type
 		do {
 			$type = $this->ask("Type (i.e. room) : ");
 			if(empty($type))
 				$this->comment("Your type is empty");
 		} while(empty($type));
 
+        // get thing's description
 		do{
 			$description = $this->ask("Description : ");
 			if(empty($description))
 				$this->comment("Your description is empty");
 		} while(empty($description));
 
-		$thing->name = $name;
-		$thing->type = $type;
-        $thing->user_id = $user->id;
-		
-		$body = array();
-		$body['name'] = $name;
-		$body['type'] = $type;
-		$body['description'] = $description;
-
-		$body['opening_hours'] = array();
-
-		$this->info("\t{$thing->name} - schedule");
+        // get thing's opening hours
+		$opening_hours = array();
         
+		$this->info("\t{$name} - schedule");
         $add = $this->ask("\t\tAdd opening days ? Y/n") == "Y" ? 1 : 0;
 
         while($add) {
@@ -142,7 +143,7 @@ class AddThing extends Command {
             $opens = array();
             $closes = array();
 
-            $this->info("\t\t\t{$thing->name} - schedule [day {$day} - opening hours]");
+            $this->info("\t\t\t{$name} - schedule [day {$day} - opening hours]");
             do {
             	do {
                     $valid = true;
@@ -172,7 +173,7 @@ class AddThing extends Command {
             } while($add);
 
         	array_push(
-        		$body['opening_hours'],
+        		$opening_hours,
         		array(
         			'validFrom' => $valid_from,
         			'validThrough' => $valid_through,
@@ -185,6 +186,7 @@ class AddThing extends Command {
 
         }
        
+        //get thing's price rates
        	$this->info("\t{$name} - price rates");
        	do {
        		$currency = $this->ask("\t\tCurrency (ISO4217 format) : ");
@@ -192,8 +194,8 @@ class AddThing extends Command {
        			$this->comment("\t\tYour currency value is invalid");
        	} while(empty($currency) || !in_array($currency, $this->ISO4217));
 
-       	$body['price'] = array();
-       	$body['price']['currency'] = $currency;
+        $price_rate = array();
+       	$price_rate['currency'] = $currency;
        	$rates = array('hourly', 'daily', 'weekly', 'monthly', 'yearly');
        	do {
        		do {
@@ -207,14 +209,15 @@ class AddThing extends Command {
 	       			$this->comment("\t\tYour price value is invalid");
 	       	} while(empty($price) || $price < 0);
 
-	       	$body['price'][$rate] = $price;
+	       	$price_rate[$rate] = $price;
 	       	$add = $this->ask("\t\tAdd another price rate ? Y/n : ") == "Y" ? 1 : 0;
        	} while($add);
        	
 
-       	$this->info("\t{$name} - location");
+        //get thing's location 
 
-       	$body['location'] = array();
+       	$this->info("\t{$name} - location");
+       	
        	do {
        		$building_name = $this->ask("\t\tBuilding name : ");
        		if(empty($building_name))
@@ -227,10 +230,10 @@ class AddThing extends Command {
        			$this->comment("\t\tYour floor value is invalid");
        	} while(empty($floor));
 
-       	$body['location']['building_name'] = $building_name;
-       	$body['location']['floor'] = $floor;
+       	
 
        	$this->info("\t\t\t{$name} - location [map]");
+
        	do {
        		$img = $this->ask("\t\t\tMap image URL : ");
        		if(empty($img) || !filter_var($img, FILTER_VALIDATE_URL))
@@ -243,10 +246,9 @@ class AddThing extends Command {
        			$this->comment("\t\t\tYour map reference is invalid");
        	} while(empty($reference));
 
-       	$body['location']['map'] = array();
-       	$body['location']['map']['img'] = $img;
-       	$body['location']['map']['reference'] = $reference;
+        
 
+        // get thing's contact and support vcard URLs
        	do {
        		$contact = $this->ask("Contact vcard URL : ");
        		if(empty($contact) || !filter_var($contact, FILTER_VALIDATE_URL))
@@ -259,7 +261,7 @@ class AddThing extends Command {
        			$this->comment("Your support vcard URL is invalid");
        	} while(empty($support) || !filter_var($support, FILTER_VALIDATE_URL));
 
-       	$body['amenities'] = array();
+        //get thing's amenities and fill properties
        	$this->info("\t{$name} amenities");
        	$amenities = Entity::where('type', '=', 'amenity')->where('user_id', '=', $user->id)->get();
        	$add = $this->ask("\t\tAdd amenities ? Y/n") == "Y" ? 1 : 0;
@@ -283,21 +285,43 @@ class AddThing extends Command {
 		    foreach($amenities as $amenity) {
 
 		       		if($amenity->id == $id) {
-
+                        $this->info("\t\t\t{$amenity->name} properties");
 		       			$schema = json_decode($amenity->body);
-		       			foreach($schema->properties as $name => $property){
+		       			foreach($schema->properties as $property_name => $property){
 		       				do{
-		       					$value = $this->ask("\t\t\t{$name} ({$property->description}) : ");
+		       					$value = $this->ask("\t\t\t\t{$property_name} ({$property->description}) : ");
 		       					if(empty($value))
-		       						$this->comment("\t\t\tYour {$name} value is invalid.");
+		       						$this->comment("\t\t\t\tYour {$property_name} value is invalid.");
 		       				} while(empty($value));
-		       				array_push($_amenities, array(Config::get('app.url') . $user->username . '/amenities/' . $name => $value));
+		       				array_push($_amenities, array(Config::get('app.url') . $user->username . '/amenities/' . $property_name => $value));
 		       			}
 		       			
 		       		}
 		    }
 		    $add = $this->ask("\t\tAdd another amenity ? Y/n") == "Y" ? 1 : 0;
 		}
+
+        //create thing and save it in database
+        $thing = new Entity;
+        $thing->name = $name;
+        $thing->type = $type;
+        $thing->user_id = $user->id;
+        
+        // create thing's body
+        $body = array();
+        $body['name'] = $name;
+        $body['type'] = $type;
+        $body['description'] = $description;
+        $body['opening_hours'] = $opening_hours;
+        $body['price'] = $price_rate;
+        $body['location'] = array();
+        $body['location']['building_name'] = $building_name;
+        $body['location']['floor'] = $floor;
+        $body['location']['map'] = array();
+        $body['location']['map']['img'] = $img;
+        $body['location']['map']['reference'] = $reference;
+        $body['contact'] = $contact;
+        $body['support'] = $support;
         $body['amenities'] = $_amenities;
 		$thing->body = json_encode($body);
         $thing->save();

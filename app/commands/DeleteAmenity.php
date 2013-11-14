@@ -4,10 +4,10 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
 /**
- * The 
+ * Artisan CLI extension to delete amenities
  *
  * @license AGPLv3
- * @author Pieter Colpaert
+ * @author Quentin Kaiser <contact@quentinkaiser.be>
  */
 class DeleteAmenity extends Command {
 
@@ -32,11 +32,14 @@ class DeleteAmenity extends Command {
      */
     public function fire(){
 
+        // check if the provided user exists
         $user = User::where('username', '=', $this->option('user'))->first();
         if (!isset($user)) {
             $this->comment("This user don't exist.");
             return;
         }
+
+        // check if the provided amenity exists and delete it
         $amenity = Entity::where('type', '=', 'amenity')
         ->where('name', '=', $this->argument('name'))
         ->where('user_id', '=', $user->id)

@@ -4,10 +4,10 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
 /**
- * The 
+ * Artisan CLI extension to delete reservations
  *
  * @license AGPLv3
- * @author Pieter Colpaert
+ * @author Quentin Kaiser <contact@quentinkaiser.be>
  */
 class DeleteReservation extends Command {
 
@@ -32,11 +32,14 @@ class DeleteReservation extends Command {
      */
     public function fire(){
 
+        // check if the provided user exists
         $user = User::where('username', '=', $this->option('user'))->first();
         if (!isset($user)) {
             $this->comment("This user don't exist.");
             return;
         }
+
+        // check if the provided reservation exists and delete it
         $reservation = Reservation::where('id', '=', $this->argument('id'))
         ->where('user_id', '=', $user->id)
         ->first();
@@ -46,6 +49,7 @@ class DeleteReservation extends Command {
         } else {
             $this->comment("This reservation do not exist.");
         }        
+        return;
     }
 
     /**

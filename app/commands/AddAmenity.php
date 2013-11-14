@@ -4,10 +4,10 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
 /**
- * The 
+ * Artisan CLI extension to create amenities 
  *
  * @license AGPLv3
- * @author Pieter Colpaert
+ * @author Quentin Kaiser <contact@quentinkaiser.be>
  */
 class AddAmenity extends Command {
 
@@ -81,6 +81,7 @@ class AddAmenity extends Command {
         $json_schema['type'] = 'object';
         $json_schema['properties'] = array();
         $i = 0;
+
         $this->info("\n\n{$amenity->name} properties.");
         do{
             $this->comment("\n# Property {$i}");
@@ -122,6 +123,7 @@ class AddAmenity extends Command {
         $amenity->body = json_encode($json_schema);
         $amenity->save();
         $this->info("Amenity '{$amenity->name}' has been saved.");
+        return;
     }
 
     /**

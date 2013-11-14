@@ -5,10 +5,10 @@ use Symfony\Component\Console\Input\InputArgument;
 use Hautelook\Phpass\PasswordHash;
 use Illuminate\Auth\UserInterface;
 /**
- * The 
+ * Artisan CLI extension to create users
  *
  * @license AGPLv3
- * @author Pieter Colpaert
+ * @author Quentin Kaiser <contact@quentinkaiser.be>
  */
 class AddUser extends Command {
 
@@ -34,18 +34,20 @@ class AddUser extends Command {
     public function fire(){
 
         $hasher = new PasswordHash(8,false);
-        $username = $this->argument('username');
         $password = $hasher->HashPassword($this->argument('password'));
         $rights = $this->option('admin') != null ? 100 : 0;
-        $user = User::where('username', '=', $username)->first();
+        // check if the provided user exists
+        $user = User::where('username', '=', $this->argument('username'))->first();
         if(isset($user)){
+            // user exists, let's update it
             $user->password = $password;
             $user->rights = $rights;
             $user->save();
             $this->info("User '{$user->username}' has been updated.");
         }else{
+            // user do not exists, let's create it
             $user = new User;
-            $user->username = $username;
+            $user->username = $this->argument('username');
             $user->password = $password;
             $user->rights = $rights;
             $user->save();
