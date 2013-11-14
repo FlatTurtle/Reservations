@@ -107,59 +107,59 @@ class AddThing extends Command {
 
 		$body['opening_hours'] = array();
 
-		$this->info("\t{$thing->name} - opening hours");
+		$this->info("\t{$thing->name} - schedule");
         
-        $add = $this->ask("Add opening days ? Y/n") == "Y" ? 1 : 0;
+        $add = $this->ask("\t\tAdd opening days ? Y/n") == "Y" ? 1 : 0;
 
         while($add) {
         	do {
-        		$day = $this->ask("Day of week : ");
+        		$day = $this->ask("\t\tDay of week : ");
         		if($day < 1 || $day > 8)
-        			$this->comment("Your day must be an integer between 1 and 8.");	
+        			$this->comment("\t\tYour day must be an integer between 1 and 8.");	
         	} while($day < 1 || $day > 8);
 
             do {
             	do {
-            		$valid_from = strtotime($this->ask("Valid from (d-m-Y) : "));
+            		$valid_from = strtotime($this->ask("\t\tValid from (d-m-Y) : "));
             		if(empty($valid_from))
-            			$this->comment("Your date is empty");
+            			$this->comment("\t\tYour date is empty");
                     if ($valid_from < time())
-                        $this->comment("Your valid from value is before now");
+                        $this->comment("\t\tYour valid from value is before now");
             	} while(empty($valid_from) || $valid_from < time());
 
             	do {
-            		$valid_through = strtotime($this->ask("Valid through (d-m-Y) : "));
+            		$valid_through = strtotime($this->ask("\t\tValid through (d-m-Y) : "));
             		if(empty($valid_through))
-            			$this->comment("Your date is empty");
+            			$this->comment("\t\tYour date is empty");
                     if ($valid_through < time())
-                        $this->comment("Your valid through value is before now");
+                        $this->comment("\t\tYour valid through value is before now");
             	} while(empty($valid_through) || $valid_through < time());
 
                 if($valid_from > $valid_through)
-                    $this->comment("Your valid through date is before valid from date.");
+                    $this->comment("\t\tYour valid through date is before valid from date.");
             } while($valid_from > $valid_through);
 
             $opens = array();
             $closes = array();
 
+            $this->info("\t\t\t{$thing->name} - schedule [day {$day} - opening hours]");
             do {
             	do {
                     $valid = true;
-            		$open_close = $this->ask("Opening / Closing hour (H:m / H:m) : ");
-            		$open_close = explode("/", $open_close);
+            		$open_close = $this->ask("\t\t\t\tOpening / Closing hour (H:m - H:m) : ");
+            		$open_close = explode("-", $open_close);
 
                     if(count($open_close) < 2) {
-            			$this->comment("Your opening closing hours are not valid");
+            			$this->comment("\t\t\t\tYour opening closing hours are not valid");
                         $valid = false;
                     }
-                    print_r($open_close);
                     if(!preg_match("/(2[0-3]|[01][0-9]):[0-5][0-9]/", $open_close[0])) {
-                        $this->comment("Your opening hour is not valid.");
+                        $this->comment("\t\t\t\tYour opening hour is not valid.");
                         $valid = false;
                     }
                     
                     if(!preg_match("/(2[0-3]|[01][0-9]):[0-5][0-9]/", $open_close[1])) {
-                        $this->comment("Your closing hour is not valid.");
+                        $this->comment("\t\t\t\tYour closing hour is not valid.");
                         $valid = false;
                     }
                     
@@ -167,7 +167,7 @@ class AddThing extends Command {
                 
                 array_push($opens, $open_close[0]);
                 array_push($closes, $open_close[1]);
-                $add = $this->ask("Add opening hours ? Y/n") == "Y" ? 1 : 0;   
+                $add = $this->ask("\t\t\tAdd opening hours ? Y/n") == "Y" ? 1 : 0;   
 
             } while($add);
 
@@ -181,15 +181,15 @@ class AddThing extends Command {
         			'closes' => $closes
         		)
         	);
-            $add = $this->ask("Add opening day ? Y/n") == "Y" ? 1 : 0;
+            $add = $this->ask("\t\tAdd opening day ? Y/n") == "Y" ? 1 : 0;
 
         }
        
-       	$this->info("\tPrice rates");
+       	$this->info("\t{$name} - price rates");
        	do {
-       		$currency = $this->ask("Currency (ISO4217 format) : ");
+       		$currency = $this->ask("\t\tCurrency (ISO4217 format) : ");
        		if(empty($currency) || !in_array($currency, $this->ISO4217))
-       			$this->comment("Your currency value is invalid");
+       			$this->comment("\t\tYour currency value is invalid");
        	} while(empty($currency) || !in_array($currency, $this->ISO4217));
 
        	$body['price'] = array();
@@ -197,50 +197,50 @@ class AddThing extends Command {
        	$rates = array('hourly', 'daily', 'weekly', 'monthly', 'yearly');
        	do {
        		do {
-       		$rate = $this->ask("Rate (hourly, daily, weekly, monthly, yearly) : ");
+       		$rate = $this->ask("\t\tRate (hourly, daily, weekly, monthly, yearly) : ");
 	       		if(!in_array($rate, $rates))
-	       			$this->comment("Your rate value is invalid");
+	       			$this->comment("\t\tYour rate value is invalid");
 	       	} while(!in_array($rate, $rates));
 	       	do {
-	       		$price = $this->ask("Price for {$rate} rate in {$currency} : ");
+	       		$price = $this->ask("\t\tPrice for {$rate} rate in {$currency} : ");
 	       		if(empty($price) || $price < 0)
-	       			$this->comment("Your price value is invalid");
+	       			$this->comment("\t\tYour price value is invalid");
 	       	} while(empty($price) || $price < 0);
 
 	       	$body['price'][$rate] = $price;
-	       	$add = $this->ask("Add another price rate ? Y/n : ") == "Y" ? 1 : 0;
+	       	$add = $this->ask("\t\tAdd another price rate ? Y/n : ") == "Y" ? 1 : 0;
        	} while($add);
        	
 
-       	$this->info("\t{$name} location");
+       	$this->info("\t{$name} - location");
 
        	$body['location'] = array();
        	do {
-       		$building_name = $this->ask("Building name : ");
+       		$building_name = $this->ask("\t\tBuilding name : ");
        		if(empty($building_name))
-       			$this->comment("Your building name value is invalid");
+       			$this->comment("\t\tYour building name value is invalid");
        	} while(empty($building_name));
 
        	do {
-       		$floor = $this->ask("Floor : ");
+       		$floor = $this->ask("\t\tFloor : ");
        		if(empty($floor))
-       			$this->comment("Your floor value is invalid");
+       			$this->comment("\t\tYour floor value is invalid");
        	} while(empty($floor));
 
        	$body['location']['building_name'] = $building_name;
        	$body['location']['floor'] = $floor;
 
-       	$this->info("\t{$name} location - map");
+       	$this->info("\t\t\t{$name} - location [map]");
        	do {
-       		$img = $this->ask("Map image URL : ");
+       		$img = $this->ask("\t\t\tMap image URL : ");
        		if(empty($img) || !filter_var($img, FILTER_VALIDATE_URL))
-       			$this->comment("Your map image URL is invalid");
+       			$this->comment("\t\t\tYour map image URL is invalid");
        	} while(empty($img) || !filter_var($img, FILTER_VALIDATE_URL));
 
        	do {
-       		$reference = $this->ask("Map reference : ");
+       		$reference = $this->ask("\t\t\tMap reference : ");
        		if(empty($reference))
-       			$this->comment("Your map reference is invalid");
+       			$this->comment("\t\t\tYour map reference is invalid");
        	} while(empty($reference));
 
        	$body['location']['map'] = array();
@@ -262,22 +262,22 @@ class AddThing extends Command {
        	$body['amenities'] = array();
        	$this->info("\t{$name} amenities");
        	$amenities = Entity::where('type', '=', 'amenity')->where('user_id', '=', $user->id)->get();
-       	$add = $this->ask("Add amenities ? Y/n") == "Y" ? 1 : 0;
-
+       	$add = $this->ask("\t\tAdd amenities ? Y/n") == "Y" ? 1 : 0;
+        $_amenities = array();
        	while($add) {
-       	
+       	    
 	       	do{
-		       	$this->info("Available amenities : ");
+		       	$this->info("\t\tAvailable amenities : ");
 		       	foreach($amenities as $amenity){
-		       		$this->info("[{$amenity->id}] {$amenity->name}");
+		       		$this->info("\t\t\t[{$amenity->id}] {$amenity->name}");
 		       	}
-		       	$id = $this->ask("Amenity id : ");
+		       	$id = $this->ask("\t\tAmenity id : ");
 		       	$present = false;
 		    	foreach($amenities as $amenity)
 		    		if ($amenity->id == $id) $present = true;
 
 		    	if(empty($id) || !$present)
-		    		$this->comment("Your amenity id is invalid");
+		    		$this->comment("\t\tYour amenity id is invalid");
 		    } while(empty($id) || !$present);
 		    
 		    foreach($amenities as $amenity) {
@@ -287,17 +287,18 @@ class AddThing extends Command {
 		       			$schema = json_decode($amenity->body);
 		       			foreach($schema->properties as $name => $property){
 		       				do{
-		       					$value = $this->ask("{$name} ({$property->description}) : ");
+		       					$value = $this->ask("\t\t\t{$name} ({$property->description}) : ");
 		       					if(empty($value))
-		       						$this->comment("Your {$name} value is invalid.");
+		       						$this->comment("\t\t\tYour {$name} value is invalid.");
 		       				} while(empty($value));
-		       				$body['amenities'][Config::get('app.url') . $user->username . '/amenities/' . $name] = $value;
+		       				array_push($_amenities, array(Config::get('app.url') . $user->username . '/amenities/' . $name => $value));
 		       			}
 		       			
 		       		}
 		    }
-		    $add = $this->ask("Add another amenity ? Y/n") == "Y" ? 1 : 0;
+		    $add = $this->ask("\t\tAdd another amenity ? Y/n") == "Y" ? 1 : 0;
 		}
+        $body['amenities'] = $_amenities;
 		$thing->body = json_encode($body);
         $thing->save();
         $this->info("Thing successfully saved");
