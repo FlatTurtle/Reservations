@@ -11,5 +11,6 @@
 |
 */
 Artisan::add(new AddUser);
+Artisan::add(new DeleteUser);
 Artisan::add(new AddThing);
 
