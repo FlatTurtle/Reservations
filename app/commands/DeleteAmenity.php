@@ -68,7 +68,7 @@ class DeleteAmenity extends Command {
      */
     protected function getOptions(){
         return array(
-            array('user', null, InputOption::VALUE_REQUIRED, 'Add amenity for this user')
+            array('user', null, InputOption::VALUE_REQUIRED, 'Delete amenity for this user')
         );
     }
 }
