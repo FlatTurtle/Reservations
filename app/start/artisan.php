@@ -13,6 +13,7 @@
 Artisan::add(new AddUser);
 Artisan::add(new DeleteUser);
 Artisan::add(new AddThing);
+Artisan::add(new DeleteThing);
 Artisan::add(new AddAmenity);
 Artisan::add(new DeleteAmenity);
 
