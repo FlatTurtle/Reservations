@@ -29,7 +29,23 @@ vim app/config/local/database.php
 # Now add your hostname to the array in this file:
 vim bootstrap/start.php
 ```
+
 Finally, when doing a commit, please don't commit a filled out local/database.php!
+
+Using artisan to add and delete stuff
+=====================================
+
+You can use artisan to generate the right parameters for a HTTP request towards the API.
+
+Usage:
+
+```bash
+./artisan reservations:addUser
+
+./artisan reservations:addThing
+
+//... todo
+```
 
 ## Testing
 

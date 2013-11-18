@@ -70,19 +70,14 @@ class EntityController extends Controller {
             /* retrieve all entities with type 'amenity' 
                from db and push their json bodies into an array
                that we return to the user as json */
-            $_amenities = Entity::where('user_id', '=', $user->id)
+            $amenities = Entity::where('user_id', '=', $user->id)
             ->where('type', '=', 'amenity')
             ->get()
             ->toArray();
-            $amenities = array();
 
-            foreach ($_amenities as $amenity) {
+            foreach ($amenities as $amenity) {
                 if (isset($amenity['body'])) {
-                    array_push(
-                        $amenities,
-                        json_decode($amenity['body'])
-                    );               
-                    $amenities[count($amenities)-1]->id = $amenity['id'];
+                    $amenity['body'] = json_decode($amenity['body']);        
                 } 
             }
             return Response::json($amenities);
@@ -168,6 +163,17 @@ class EntityController extends Controller {
 
             if (!strcmp($user_name, Auth::user()->username) || Auth::user()->isAdmin()) {
 
+                Validator::extend('hours',
+                  function($attribute, $value, $parameters)
+                  {
+                    foreach($value as $hour) {
+                      //validate 24 hours format time
+                      if(!preg_match("/(2[0-3]|[01][0-9]):[0-5][0-9]/", $hour))
+                        return false;
+                    }
+                    return true;
+                  }
+                );
                 Validator::extend(
                     'opening_hours', 
                     function ($attribute, $value, $parameters)
@@ -177,8 +183,8 @@ class EntityController extends Controller {
                             $opening_hour_validator = Validator::make(
                                 $opening_hour,
                                 array(
-                                    'opens' => 'required',
-                                    'closes' => 'required',
+                                    'opens' => 'required|hours',
+                                    'closes' => 'required|hours',
                                     'validFrom' => 'required',
                                     'validThrough' => 'required|after:'.$now,
                                     'dayOfWeek' => 'required|numeric|between:0,7'
