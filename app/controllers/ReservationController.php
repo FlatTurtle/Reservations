@@ -36,23 +36,23 @@ class ReservationController extends Controller
      * @param user_name : the user's name
      * @return 
      */ 
-    public function getReservations($user_name)
+    public function getReservations($clustername)
     {
-        $user = User::where('username', '=', $user_name)->first();
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
 
-        if (isset($user)) {
+        if (isset($cluster)) {
             /*  Announce value is json encoded in db so we first retrieve 
                 reservations from db, decode announce json and return 
                 reservations to the user */
             if (Input::get('day')!=null) {
                 $day = strtotime(Input::get('day'));    
-                $_reservations = Reservation::where('user_id', '=', $user->id)
+                $_reservations = Reservation::where('user_id', '=', $cluster->user->id)
                 ->where('from', '>=', $day)
                 ->where('from', '<=', $day)
                 ->get()
                 ->toArray();
             }else{
-                $_reservations = Reservation::where('user_id', '=', $user->id)->get()->toArray();
+                $_reservations = Reservation::where('user_id', '=', $cluster->user->id)->get()->toArray();
             }
             //FIXME : return entity name instead of id ?
             $reservations = array();
@@ -63,7 +63,7 @@ class ReservationController extends Controller
             return Response::json($reservations);
 
         }else{
-          App::abort(404, 'user not found');
+          App::abort(404, 'cluster not found');
         }
     }
 
@@ -72,10 +72,10 @@ class ReservationController extends Controller
      * @param user_name : the user's name
      * @param id : the id of the reservation to be deleted
      */
-    public function getReservation($user_name, $id)
+    public function getReservation($clustername, $id)
     {
-        $user = User::where('username', '=', $user_name)->first();
-        if (isset($user)) {
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
+        if (isset($cluster)) {
             $reservation = Reservation::find($id);
             if(isset($reservation)) {
                 return Response::json($reservation);
@@ -83,7 +83,7 @@ class ReservationController extends Controller
                 App::abort(404, 'Reservation not found.');
             }
         } else {
-            App::abort(404, 'user not found');
+            App::abort(404, 'cluster not found');
         }
     }
 
@@ -161,13 +161,13 @@ class ReservationController extends Controller
      * @param $user_name : user's name from url.
      *
      */
-    public function createReservation($user_name){
+    public function createReservation($clustername){
 
         
-        $user = User::where('username', '=', $user_name)->first();
-        if(isset($user)){
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
+        if(isset($cluster)){
 
-            if(!strcmp($user_name, Auth::user()->username) || Auth::user()->isAdmin()){
+            if(!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
                 
                 Validator::extend('type', function($attribute, $value, $parameters)
                                   {
@@ -220,7 +220,7 @@ class ReservationController extends Controller
 
                     $entity = Entity::where('name', '=', Input::get('entity'))
                         ->where('type', '=', Input::get('type'))
-                        ->where('user_id', '=', $user->id)->first();
+                        ->where('user_id', '=', $cluster->user->id)->first();
                                         
                     if(!isset($entity)){
                         App::abort(404, "Entity not found");
@@ -245,7 +245,7 @@ class ReservationController extends Controller
                                         'comment' => Input::get('comment'),
                                         'announce' => json_encode(Input::get('announce')),
                                         'entity_id' => $entity->id,
-                                        'user_id' => $user->id,
+                                        'user_id' => $cluster->user->id,
                                     )
                                 );
                             }
@@ -263,7 +263,7 @@ class ReservationController extends Controller
                 App::abort(403, "You are not allowed to make reservations for another user");
             }
         }else{
-            App::abort(404, 'user not found');
+            App::abort(404, 'cluster not found');
         }
     }
 
@@ -272,18 +272,13 @@ class ReservationController extends Controller
      * @param $user_name : user's name from url.
      *
      */
-    public function updateReservation($user_name, $id){
+    public function updateReservation($clustername, $id){
 
         
-        $user = User::where('username', '=', $user_name)->first();
-        if(isset($user)){
-
-            /* we pass the basicauth so we can compare 
-               this username with the url {user_name}*/
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
+        if(isset($cluster)){
                         
-            $username = Request::header('php-auth-user');
-            $client = User::where('username', '=', $username)->first();
-            if(!strcmp($user_name, $username) || $client->isAdmin()){
+            if(!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
                 
                 Validator::extend('type', function($attribute, $value, $parameters)
                                   {
@@ -336,7 +331,7 @@ class ReservationController extends Controller
 
                     $entity = Entity::where('name', '=', Input::get('entity'))
                         ->where('type', '=', Input::get('type'))
-                        ->where('user_id', '=', $user->id)->first();
+                        ->where('user_id', '=', $cluster->user->id)->first();
                                         
                     if(!isset($entity)){
                         App::abort(404, "Entity not found");
@@ -357,7 +352,7 @@ class ReservationController extends Controller
                                 $reservation->comment = Input::get('comment');
                                 $reservation->announce = json_encode(Input::get('announce'));
                                 $reservation->entity_id = $entity->id;
-                                $reservation->user_id = $user->id;
+                                $reservation->user_id = $cluster->user->id;
                                 return $reservation->save();
                             }
                                                         
@@ -375,7 +370,7 @@ class ReservationController extends Controller
                 App::abort(403, "You are not allowed to make reservations for another user");
             }
         }else{
-            App::abort(404, 'user not found');
+            App::abort(404, 'cluster not found');
         }
     }
 
@@ -384,11 +379,11 @@ class ReservationController extends Controller
      * @param $user_name : the user's name
      * @param $id : the reservation's id
      */
-    public function deleteReservation($user_name, $id) {
+    public function deleteReservation($clustername, $id) {
         
-        $user = User::where('username', '=', $user_name)->first();
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
 
-        if(isset($user)){
+        if(isset($cluster)){
                 
             $reservation = Reservation::find($id);
 
@@ -398,7 +393,7 @@ class ReservationController extends Controller
                 App::abort(404, 'Reservation not found');
                         
         }else{
-            App::abort(404, 'user not found');
+            App::abort(404, 'cluster not found');
         }
     }
 }

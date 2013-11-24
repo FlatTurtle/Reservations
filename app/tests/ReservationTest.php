@@ -26,8 +26,9 @@ class ReservationTest extends TestCase
 
         Artisan::call('migrate');
         Artisan::call('db:seed');
-        $this->test_user = DB::table('user')->where('username', '=', 'test')->first();
-        $this->admin_user = DB::table('user')->where('username', '=', 'admin')->first();
+
+        $this->test_cluster = DB::table('cluster')->where('clustername', '=', 'test')->first();
+        $this->admin_cluster = DB::table('cluster')->where('clustername', '=', 'admin')->first();
                 
         $this->entity_payload = array();
         $this->entity_payload['name'] = 'Deep Blue';
@@ -142,7 +143,7 @@ class ReservationTest extends TestCase
      */
     public function testCreateAmenity()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $response = $this->call(
             'PUT',
             'test/amenities/test_amenity',
@@ -165,7 +166,7 @@ class ReservationTest extends TestCase
      */
     public function testCreateAmenityAdmin()
     {
-        Auth::loginUsingId($this->admin_user->id);
+        Auth::loginUsingId($this->admin_cluster->id);
         $payload = $this->amenity_payload;
         $response = $this->call(
             'PUT',
@@ -191,7 +192,7 @@ class ReservationTest extends TestCase
      */
     public function testCreateAmenityInexistentCustomer()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->amenity_payload;
         try{
             $response = $this->call(
@@ -219,7 +220,7 @@ class ReservationTest extends TestCase
      */
     public function testCreateAmenityWrongCustomer()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->amenity_payload;
         try{
             $response = $this->call(
@@ -271,7 +272,7 @@ class ReservationTest extends TestCase
     public function testCreateMalformedAmenity()
     {
         $caught = false;
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->amenity_payload;
         $payload['description'] = '';
         try {
@@ -385,7 +386,7 @@ class ReservationTest extends TestCase
      */
     public function testGetAmenity()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->amenity_payload;
         $response = $this->call(
             'PUT',
@@ -476,7 +477,7 @@ class ReservationTest extends TestCase
      */
     public function testDeleteAmenity()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->amenity_payload;
         $response = $this->call(
             'PUT',
@@ -517,7 +518,7 @@ class ReservationTest extends TestCase
      */
     public function testDeleteAmenityWrongCustomer()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         try{
             $response = $this->call(
                 'DELETE',
@@ -544,7 +545,7 @@ class ReservationTest extends TestCase
      */
     public function testDeleteNonExistentAmenity()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         try{
             $response = $this->call(
                 'DELETE',
@@ -572,7 +573,7 @@ class ReservationTest extends TestCase
      */
     public function testCreateEntity()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->entity_payload;
         $payload['name'] = 'create_thing';
         $payload['body']['name'] = 'create_thing';
@@ -600,7 +601,7 @@ class ReservationTest extends TestCase
      */
     public function testCreateEntityAdmin()
     {
-        Auth::loginUsingId($this->admin_user->id);
+        Auth::loginUsingId($this->admin_cluster->id);
         $payload = $this->entity_payload;
         $payload['name'] = 'create_admin_thing';
         $payload['body']['name'] = 'create_admin_thing';
@@ -630,7 +631,7 @@ class ReservationTest extends TestCase
      */
     public function testCreateEntityWrongCustomer()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->entity_payload;
         try{
             $response = $this->call(
@@ -658,7 +659,7 @@ class ReservationTest extends TestCase
      */
     public function testUpdateExistingEntity()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->entity_payload;
         $payload['name'] = 'existing_entity';
         $payload['body']['name'] = 'existing_entity';
@@ -703,7 +704,7 @@ class ReservationTest extends TestCase
     {
         $caught = false;
 
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         
         $payload = $this->entity_payload;
         $payload['type'] = '';
@@ -720,7 +721,7 @@ class ReservationTest extends TestCase
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
             $caught = true; 
         }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        if(!$caught) throw new Exception("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
 
 
         $payload = $this->entity_payload;
@@ -1373,7 +1374,7 @@ class ReservationTest extends TestCase
     public function testGetEntities()
     {   
         
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
 
         $response = $this->call(
             'GET',
@@ -1403,7 +1404,7 @@ class ReservationTest extends TestCase
      */
     public function testGetEntity()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         
         $payload = $this->entity_payload;
         $payload['name'] = 'get_thing';
@@ -1501,7 +1502,7 @@ class ReservationTest extends TestCase
      */
     public function testCreateReservation()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         
         $payload = $this->entity_payload;
         $payload['name'] = 'reservation_thing';
@@ -1565,7 +1566,7 @@ class ReservationTest extends TestCase
      */
     public function testCreateReservationAdmin()
     {
-        Auth::loginUsingId($this->admin_user->id);
+        Auth::loginUsingId($this->admin_cluster->id);
 
         $payload = $this->entity_payload;
         $payload['name'] = 'admin_reservation_thing';
@@ -1631,7 +1632,7 @@ class ReservationTest extends TestCase
      */
     public function testCreateReservationWrongCustomer()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
 
         $payload = $this->reservation_payload;
         $payload['time']['from'] = time();
@@ -1667,7 +1668,7 @@ class ReservationTest extends TestCase
     {
         $caught = false;
 
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
 
         $this->reservation_payload['entity'] = 'reservation_entity';
         $this->reservation_payload['type'] = 'room';
