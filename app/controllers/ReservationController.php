@@ -33,7 +33,7 @@ class ReservationController extends Controller
      * Return a list of reservations that the user has made for the current day.
      * Day can be change by providing a 'day' as GET parameter.
      *
-     * @param user_name : the user's name
+     * @param clustername : the cluster's name
      * @return 
      */ 
     public function getReservations($clustername)
@@ -69,7 +69,7 @@ class ReservationController extends Controller
 
     /**
      * Return a the reservation that has id $id.
-     * @param user_name : the user's name
+     * @param clustername : the cluster's name
      * @param id : the id of the reservation to be deleted
      */
     public function getReservation($clustername, $id)
@@ -158,7 +158,7 @@ class ReservationController extends Controller
 
     /**
      * Create a new reservation for a authenticated user.
-     * @param $user_name : user's name from url.
+     * @param $clustername : cluster's name from url.
      *
      */
     public function createReservation($clustername){
@@ -269,7 +269,7 @@ class ReservationController extends Controller
 
     /**
      * Create a new reservation for a authenticated user.
-     * @param $user_name : user's name from url.
+     * @param $clustername : cluster's name from url.
      *
      */
     public function updateReservation($clustername, $id){
@@ -376,7 +376,7 @@ class ReservationController extends Controller
 
     /**
      * Cancel the reservation with id $id by deleting it from database.
-     * @param $user_name : the user's name
+     * @param $clustername : the cluster's name
      * @param $id : the reservation's id
      */
     public function deleteReservation($clustername, $id) {

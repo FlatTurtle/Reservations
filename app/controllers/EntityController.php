@@ -24,7 +24,7 @@ class EntityController extends Controller {
 
     /**
      * Retrieve and return all entities that the user can book.
-     * @param $user_name : user's name from url.
+     * @param $clustername : cluster's name from url.
      *
      */
     public function getEntities($clustername) {
@@ -58,7 +58,7 @@ class EntityController extends Controller {
 
     /**
      * Retrieve and return all amenities that the user can book.
-     * @param $user_name : user's name from url.
+     * @param $clustername : cluster's name from url.
      *
      */
     public function getAmenities($clustername) {
@@ -89,7 +89,7 @@ class EntityController extends Controller {
 
     /**
      * Retrieve and return the amenity called $name.
-     * @param $user_name : user's name from url.
+     * @param $clustername : cluster's name from url.
      * @param $name : the amenity's name
      *
      */
@@ -120,7 +120,7 @@ class EntityController extends Controller {
 
     /**
      * Retrieve and return the entity called $name.
-     * @param $user_name : user's name from url.
+     * @param $clustername : cluster's name from url.
      * @param $name : the entity's name
      *
      */
@@ -151,7 +151,7 @@ class EntityController extends Controller {
 
     /**
      * Create a new entity.
-     * @param $user_name : user's name from the url
+     * @param $clustername : cluster's name from the url
      * @param $name : the name of the entity to be created
      *
      */
@@ -395,7 +395,7 @@ class EntityController extends Controller {
     }
     /**
      * Create a new amenity.
-     * @param $user_name : user's name from the url
+     * @param $clustername : cluster's name from the url
      * @param $name : the name of the amenity to be created
      *
      */
@@ -414,8 +414,7 @@ class EntityController extends Controller {
         
         $cluster = Cluster::where('clustername', '=', $clustername)->first();
         if (isset($cluster)) {
-            /* we pass the basicauth so we can test against 
-               this username with the url {user_name}*/
+            
             if (!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()) {
                 /* This Validator verify that the schema value is a valid json-schema
                    definition. */
@@ -498,7 +497,7 @@ class EntityController extends Controller {
 
     /**
      * Delete an amenity.
-     * @param $user_name : user's name from the url
+     * @param $clustername : cluster's name from the url
      * @param $name : the name of the amenity to be deleted
      *
      */
