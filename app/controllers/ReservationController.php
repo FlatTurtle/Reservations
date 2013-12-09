@@ -44,20 +44,22 @@ class ReservationController extends Controller
             /*  Announce value is json encoded in db so we first retrieve 
                 reservations from db, decode announce json and return 
                 reservations to the user */
-            if (Input::get('day')!=null) {
-                $day = strtotime(Input::get('day'));    
-                $_reservations = Reservation::where('user_id', '=', $user->id)
-                ->where('from', '>=', $day)
-                ->where('from', '<=', $day)
-                ->get()
-                ->toArray();
-            }else{
-                $_reservations = Reservation::where('user_id', '=', $user->id)->get()->toArray();
-            }
+            if (Input::get('day')!=null)
+                $from = strtotime(Input::get('day'));
+            else
+                $from = mktime(0,0,0);
+
+            $to = $from+(60*60*24);
+            $_reservations = DB::select(
+                  'select * from reservation where user_id = ? 
+                  AND UNIX_TIMESTAMP(`from`) > ? 
+                  AND UNIX_TIMESTAMP(`to`) < ?', 
+                  array($user->id, $from, $to));
+
             //FIXME : return entity name instead of id ?
             $reservations = array();
             foreach($_reservations as $reservation){
-                $reservation['announce'] = json_decode($reservation['announce']);
+                $reservation->announce = json_decode($reservation->announce);
                 array_push($reservations, $reservation);
             }
             return Response::json($reservations);
