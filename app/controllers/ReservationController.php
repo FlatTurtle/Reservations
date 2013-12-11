@@ -91,14 +91,14 @@ class ReservationController extends Controller
 
     /**
      * Return a the reservation that has id $id.
-     * @param user_name : the user's name
+     * @param clustername : the user's name
      * @param name : the thing's name
      */
-    public function getReservationsByThing($user_name, $name)
+    public function getReservationsByThing($clustername, $name)
     {
-        $user = User::where('username', '=', $user_name)->first();
-        if (isset($user)) {
-            $thing = Entity::where('user_id', '=', $user->id)->where('name', '=', $name)->first();
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
+        if (isset($cluster)) {
+            $thing = Entity::where('user_id', '=', $cluster->user->id)->where('name', '=', $name)->first();
             if (isset($thing)) {
 
               if (Input::get('day')!=null)
@@ -112,7 +112,7 @@ class ReservationController extends Controller
                   AND entity_id = ? 
                   AND UNIX_TIMESTAMP(`from`) > ? 
                   AND UNIX_TIMESTAMP(`to`) < ?', 
-                  array($user->id, $thing->id, $from, $to));
+                  array($cluster->user->id, $thing->id, $from, $to));
               $reservations = array();
               foreach($_reservations as $reservation){
                 $reservation->announce = json_decode($reservation->announce);
