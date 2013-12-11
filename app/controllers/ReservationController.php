@@ -89,6 +89,44 @@ class ReservationController extends Controller
         }
     }
 
+    /**
+     * Return a the reservation that has id $id.
+     * @param user_name : the user's name
+     * @param name : the thing's name
+     */
+    public function getReservationsByThing($user_name, $name)
+    {
+        $user = User::where('username', '=', $user_name)->first();
+        if (isset($user)) {
+            $thing = Entity::where('user_id', '=', $user->id)->where('name', '=', $name)->first();
+            if (isset($thing)) {
+
+              if (Input::get('day')!=null)
+                $from = strtotime(Input::get('day'));
+              else
+                  $from = mktime(0,0,0);
+              $to = $from+(60*60*24);
+
+              $_reservations = DB::select(
+                  'select * from reservation where user_id = ?
+                  AND entity_id = ? 
+                  AND UNIX_TIMESTAMP(`from`) > ? 
+                  AND UNIX_TIMESTAMP(`to`) < ?', 
+                  array($user->id, $thing->id, $from, $to));
+              $reservations = array();
+              foreach($_reservations as $reservation){
+                $reservation->announce = json_decode($reservation->announce);
+                array_push($reservations, $reservation);
+              }
+              return Response::json($reservations);
+            } else{
+              App::abort(404, 'Thing not found');
+            }
+        } else {
+            App::abort(404, 'user not found');
+        }
+    }
+
         
 
     /**
