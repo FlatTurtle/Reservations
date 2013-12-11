@@ -126,16 +126,13 @@ class EntityController extends Controller {
      */
     public function getEntityByName($clustername, $name) {
 
- 
         $cluster = Cluster::where('clustername', '=', $clustername)->first();
 
         if (isset($cluster)) {
-
             $entity 
                 = Entity::where('user_id', '=', $cluster->user->id)
                 ->where('name', '=', $name)
                 ->first();
-            
             if (!isset($entity)) {
                 App::abort(404, 'Entity not found');
             } else {
@@ -326,23 +323,21 @@ class EntityController extends Controller {
                         return true;
                     }
                 );
-
                 $room_validator = Validator::make(
-                    Input::all(),
+                    Input::json()->all(),
                     array(
                         'type' => 'required|alpha_dash',
                         'body' => 'required|body'
                     )
                 );
 
-
                 // Validator testing
                 if (!$room_validator->fails()) {
-                    $body = Input::get('body');
-                    $entity 
-                        = Entity::where('name', '=', $body['name'])
+                    $body = Input::json()->get('body');
+                    $entity = Entity::where('name', '=', $body['name'])
                         ->where('user_id', '=', $cluster->user->id)
                         ->first();
+
                     if (isset($entity)) {
                         // the entity already exist in db, we update the json body.
                         $entity->body = json_encode($body);
@@ -358,13 +353,12 @@ class EntityController extends Controller {
                         return Entity::create(
                             array(
                                 'name' => $body['name'],
-                                'type' => Input::get('type'),
+                                'type' => Input::json()->get('type'),
                                 'body' => json_encode($body),
                                 'user_id' => $cluster->user->id
                             )
                         );
                     }
-                    
                 } else {
                     $this->sendErrorMessage($room_validator);
                 } 
@@ -458,7 +452,7 @@ class EntityController extends Controller {
                 );
 
                 $amenity_validator = Validator::make(
-                    Input::all(),
+                    Input::json()->all(),
                     array(
                         'description' => 'required',
                         'schema' => 'required|schema'
@@ -469,14 +463,14 @@ class EntityController extends Controller {
                 if (!$amenity_validator->fails()) {
                     $amenity = Entity::where('name', '=', $name)->first();
                     if (isset($amenity)) {
-                        $amenity->body = json_encode(Input::get('schema'));
+                        $amenity->body = json_encode(Input::json()->get('schema'));
                         $amenity->save();
                     } else {
                         return Entity::create(
                             array(
                                 'name' => $name,
                                 'type' => 'amenity',
-                                'body' => json_encode(Input::get('schema')),
+                                'body' => json_encode(Input::json()->get('schema')),
                                 'user_id' => $cluster->user->id
                             )
                         );

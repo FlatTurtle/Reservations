@@ -163,7 +163,6 @@ class ReservationController extends Controller
      */
     public function createReservation($clustername){
 
-        
         $cluster = Cluster::where('clustername', '=', $clustername)->first();
         if(isset($cluster)){
 
@@ -204,7 +203,7 @@ class ReservationController extends Controller
 
             
                 $reservation_validator = Validator::make(
-                    Input::all(),
+                    Input::json()->all(),
                     array(
                         'entity' => 'required',
                         'type' => 'required|type',
@@ -218,14 +217,14 @@ class ReservationController extends Controller
 
                 if(!$reservation_validator->fails()){
 
-                    $entity = Entity::where('name', '=', Input::get('entity'))
-                        ->where('type', '=', Input::get('type'))
+                    $entity = Entity::where('name', '=', Input::json()->get('entity'))
+                        ->where('type', '=', Input::json()->get('type'))
                         ->where('user_id', '=', $cluster->user->id)->first();
                                         
                     if(!isset($entity)){
                         App::abort(404, "Entity not found");
                     }else{
-                        $time = Input::get('time');
+                        $time = Input::json()->get('time');
                         if($this->isAvailable(json_decode($entity->body)->opening_hours, $time)){
 
                             //FIXME
@@ -241,9 +240,9 @@ class ReservationController extends Controller
                                     array(
                                         'from' => $from,
                                         'to' => $to,
-                                        'subject' => Input::get('subject'),
-                                        'comment' => Input::get('comment'),
-                                        'announce' => json_encode(Input::get('announce')),
+                                        'subject' => Input::json()->get('subject'),
+                                        'comment' => Input::json()->get('comment'),
+                                        'announce' => json_encode(Input::json()->get('announce')),
                                         'entity_id' => $entity->id,
                                         'user_id' => $cluster->user->id,
                                     )
@@ -315,7 +314,7 @@ class ReservationController extends Controller
 
             
                 $reservation_validator = Validator::make(
-                    Input::all(),
+                    Input::json()->all(),
                     array(
                         'entity' => 'required',
                         'type' => 'required|type',
@@ -329,14 +328,14 @@ class ReservationController extends Controller
 
                 if(!$reservation_validator->fails()){
 
-                    $entity = Entity::where('name', '=', Input::get('entity'))
-                        ->where('type', '=', Input::get('type'))
+                    $entity = Entity::where('name', '=', Input::json()->get('entity'))
+                        ->where('type', '=', Input::json()->get('type'))
                         ->where('user_id', '=', $cluster->user->id)->first();
                                         
                     if(!isset($entity)){
                         App::abort(404, "Entity not found");
                     }else{
-                        $time = Input::get('time');
+                        $time = Input::json()->get('time');
                         if($this->isAvailable(json_decode($entity->body)->opening_hours, $time)){
 
                             //FIXME
@@ -348,9 +347,9 @@ class ReservationController extends Controller
                             if($reservation->exists){
                                 $reservation->from = $from;
                                 $reservation->to = $to;
-                                $reservation->subject = Input::get('subject');
-                                $reservation->comment = Input::get('comment');
-                                $reservation->announce = json_encode(Input::get('announce'));
+                                $reservation->subject = Input::json()->get('subject');
+                                $reservation->comment = Input::json()->get('comment');
+                                $reservation->announce = json_encode(Input::json()->get('announce'));
                                 $reservation->entity_id = $entity->id;
                                 $reservation->user_id = $cluster->user->id;
                                 return $reservation->save();
