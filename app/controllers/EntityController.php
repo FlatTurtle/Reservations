@@ -24,19 +24,19 @@ class EntityController extends Controller {
 
     /**
      * Retrieve and return all entities that the user can book.
-     * @param $user_name : user's name from url.
+     * @param $clustername : cluster's name from url.
      *
      */
-    public function getEntities($user_name) {
+    public function getEntities($clustername) {
       
-        $user = User::where('username', '=', $user_name)->first();
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
 
-        if (isset($user)) {
+        if (isset($cluster)) {
 
             /* retrieve all entities from db and push their json bodies into an array
                that we return to the user as json */
 
-            $_entities = Entity::where('user_id', '=', $user->id)->get()->toArray();
+            $_entities = Entity::where('user_id', '=', $cluster->user->id)->get()->toArray();
             $entities = array();
             $i = 0;
             foreach ($_entities as $entity) {
@@ -58,19 +58,19 @@ class EntityController extends Controller {
 
     /**
      * Retrieve and return all amenities that the user can book.
-     * @param $user_name : user's name from url.
+     * @param $clustername : cluster's name from url.
      *
      */
-    public function getAmenities($user_name) {
+    public function getAmenities($clustername) {
         
-        $user = User::where('username', '=', $user_name)->first();
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
 
-        if (isset($user)) {
+        if (isset($cluster)) {
 
             /* retrieve all entities with type 'amenity' 
                from db and push their json bodies into an array
                that we return to the user as json */
-            $amenities = Entity::where('user_id', '=', $user->id)
+            $amenities = Entity::where('user_id', '=', $cluster->user->id)
             ->where('type', '=', 'amenity')
             ->get()
             ->toArray();
@@ -89,19 +89,19 @@ class EntityController extends Controller {
 
     /**
      * Retrieve and return the amenity called $name.
-     * @param $user_name : user's name from url.
+     * @param $clustername : cluster's name from url.
      * @param $name : the amenity's name
      *
      */
-    public function getAmenityByName($user_name, $name) {
+    public function getAmenityByName($clustername, $name) {
 
     
-        $user = User::where('username', '=', $user_name)->first();
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
 
-        if (isset($user)) {
+        if (isset($cluster)) {
             $amenity = Entity::whereRaw(
                 'user_id = ? and type = ? and name = ?',
-                array($user->id, 'amenity', $name)
+                array($cluster->user->id, 'amenity', $name)
             )->first();
 
             if (!isset($amenity)) {
@@ -120,19 +120,19 @@ class EntityController extends Controller {
 
     /**
      * Retrieve and return the entity called $name.
-     * @param $user_name : user's name from url.
+     * @param $clustername : cluster's name from url.
      * @param $name : the entity's name
      *
      */
-    public function getEntityByName($user_name, $name) {
+    public function getEntityByName($clustername, $name) {
 
  
-        $user = User::where('username', '=', $user_name)->first();
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
 
-        if (isset($user)) {
+        if (isset($cluster)) {
 
             $entity 
-                = Entity::where('user_id', '=', $user->id)
+                = Entity::where('user_id', '=', $cluster->user->id)
                 ->where('name', '=', $name)
                 ->first();
             
@@ -151,17 +151,16 @@ class EntityController extends Controller {
 
     /**
      * Create a new entity.
-     * @param $user_name : user's name from the url
+     * @param $clustername : cluster's name from the url
      * @param $name : the name of the entity to be created
      *
      */
-    public function createEntity($user_name, $name) {
+    public function createEntity($clustername, $name) {
 
-        $user = User::where('username', '=', $user_name)->first();
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
+        if (isset($cluster)) {
 
-        if (isset($user)) {
-
-            if (!strcmp($user_name, Auth::user()->username) || Auth::user()->isAdmin()) {
+            if (!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()) {
 
                 Validator::extend('hours',
                   function($attribute, $value, $parameters)
@@ -339,11 +338,10 @@ class EntityController extends Controller {
 
                 // Validator testing
                 if (!$room_validator->fails()) {
-                   
                     $body = Input::get('body');
                     $entity 
                         = Entity::where('name', '=', $body['name'])
-                        ->where('user_id', '=', $user->id)
+                        ->where('user_id', '=', $cluster->user->id)
                         ->first();
                     if (isset($entity)) {
                         // the entity already exist in db, we update the json body.
@@ -362,7 +360,7 @@ class EntityController extends Controller {
                                 'name' => $body['name'],
                                 'type' => Input::get('type'),
                                 'body' => json_encode($body),
-                                'user_id' => $user->id
+                                'user_id' => $cluster->user->id
                             )
                         );
                     }
@@ -397,11 +395,11 @@ class EntityController extends Controller {
     }
     /**
      * Create a new amenity.
-     * @param $user_name : user's name from the url
+     * @param $clustername : cluster's name from the url
      * @param $name : the name of the amenity to be created
      *
      */
-    public function createAmenity($user_name, $name) {
+    public function createAmenity($clustername, $name) {
 
         Validator::extend(
             'schema_type',
@@ -414,15 +412,10 @@ class EntityController extends Controller {
         );
 
         
-
-        $user = User::where('username', '=', $user_name)->first();
-        if (isset($user)) {
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
+        if (isset($cluster)) {
             
-            /* we pass the basicauth so we can test against 
-               this username with the url {user_name}*/
-
-            if (!strcmp($user_name, Auth::user()->username) || Auth::user()->isAdmin()) {
-
+            if (!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()) {
                 /* This Validator verify that the schema value is a valid json-schema
                    definition. */
                 Validator::extend(
@@ -472,6 +465,7 @@ class EntityController extends Controller {
                     )
                 );
 
+
                 if (!$amenity_validator->fails()) {
                     $amenity = Entity::where('name', '=', $name)->first();
                     if (isset($amenity)) {
@@ -483,7 +477,7 @@ class EntityController extends Controller {
                                 'name' => $name,
                                 'type' => 'amenity',
                                 'body' => json_encode(Input::get('schema')),
-                                'user_id' => $user->id
+                                'user_id' => $cluster->user->id
                             )
                         );
                     }
@@ -503,19 +497,20 @@ class EntityController extends Controller {
 
     /**
      * Delete an amenity.
-     * @param $user_name : user's name from the url
+     * @param $clustername : cluster's name from the url
      * @param $name : the name of the amenity to be deleted
      *
      */
-    public function deleteAmenity($user_name, $name) {
+    public function deleteAmenity($clustername, $name) {
         
         
-        $user = User::where('username', '=', $user_name)->first();
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
         
-        if (isset($user)) {
+        if (isset($cluster)) {
 
-            if (!strcmp($user_name, Auth::user()->username) || Auth::user()->isAdmin()) {
-                $amenity = Entity::where('user_id', '=', $user->id)
+            if (!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()) {
+                
+                $amenity = Entity::where('user_id', '=', $cluster->user->id)
                     ->where('type', '=', 'amenity')
                     ->where('name', '=', $name);
 

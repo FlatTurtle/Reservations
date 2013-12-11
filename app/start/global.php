@@ -85,15 +85,10 @@ require app_path().'/filters.php';
 
 Route::filter('auth.basic', function()
 {
-    Config::set('auth.model', 'User');
-    return Auth::basic('username');
+    Config::set('auth.model', 'Cluster');
+    return Auth::basic('clustername');
 });
 
-Route::filter('auth.basic.once', function()
-{
-    Config::set('auth.model', 'User');
-    return Auth::onceBasic('username');
-});
 
 use Hautelook\Phpass\PasswordHash;
 use Illuminate\Auth\Guard;
@@ -102,7 +97,7 @@ Auth::extend('flatturtle_phpass', function()
 {
     $hasher = new PasswordHash(8,false);
     return new Guard(
-        new FlatTurtleUserProvider($hasher, 'User'),
+        new FlatTurtleClusterProvider($hasher, 'Cluster'),
         $this->app['session.store']  
     );
 });
