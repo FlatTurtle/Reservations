@@ -92,12 +92,11 @@ Route::filter('auth.basic', function()
 
 use Hautelook\Phpass\PasswordHash;
 use Illuminate\Auth\Guard;
-use Illuminate\Session\Store;
-Auth::extend('flatturtle_phpass', function()
+Auth::extend('flatturtle_phpass', function($app)
 {
     $hasher = new PasswordHash(8,false);
     return new Guard(
         new FlatTurtleClusterProvider($hasher, 'Cluster'),
-        $this->app['session.store']  
+        $app['session.store']
     );
 });
