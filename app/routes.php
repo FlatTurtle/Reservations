@@ -163,6 +163,16 @@ Route::put(
 );
 
 /*
+  GET http://reservation.hostname/{customer_name}/things/{name}/reservations
+  returns reservations made on the thing {name} for the current day.
+  Day can be changed with the GET parameter ?day=2013-10-12
+*/
+Route::get(
+    '/{customer_name}/things/{name}/reservations',
+    array('uses' => 'ReservationController@getReservationsByThing')
+);
+
+/*
   GET http://reservation.hostname/{customer_name}/
   returns 3 URIs thing that can be reserved.
 */
@@ -170,3 +180,4 @@ Route::get(
     '/{customer_name}',
     array('uses' => 'CustomerController@getCustomer')
 );
+
