@@ -1667,8 +1667,6 @@ class ReservationTest extends TestCase
             false
         );
 
-        print_r($response);
-
         $content = $response->getContent();
         $data = json_decode($content);
         $this->assertEquals($response->getStatusCode(), 200);

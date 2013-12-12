@@ -324,7 +324,8 @@ class EntityController extends Controller {
                     }
                 );
 
-                if (empty(Request::instance()->getContent())) 
+                $content = Request::instance()->getContent(); 
+                if (empty($content)) 
                   App::abort(400, 'Payload is null');
                 if (Input::json() == null)
                   App::abort(400, "JSON payload is invalid.");
@@ -455,7 +456,8 @@ class EntityController extends Controller {
                     }
                 );
 
-                if (empty(Request::instance()->getContent()))
+                $content = Request::instance()->getContent(); 
+                if (empty($content)) 
                   App::abort(400, 'Payload is null.');
                 if (Input::json() == null)
                   App::abort(400, "JSON payload is invalid.");
