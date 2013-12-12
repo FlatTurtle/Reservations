@@ -89,7 +89,7 @@
         "name": "room 3",
         "price": {
             "amount": "0.5",
-            "grouping": "hourly",
+            "hourly": 50,
             "currency": "EUR"
         },
         "type": "room",
