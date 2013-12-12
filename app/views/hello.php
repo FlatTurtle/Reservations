@@ -133,7 +133,7 @@
       <dd>
 <pre class='terminal'>
 [{
-"entity" : "http://reservation.{hostname}/{clustername}/DB",
+"thing" : "http://reservation.{hostname}/{clustername}/DB",
 "type": "meetingroom",
 "time" : {
     "from" : "2013-09-26T12:00Z",
@@ -158,7 +158,7 @@
       <dd>
 <pre class='terminal'>
 {
-"entity" : "Room 2",
+"thing" : "http://reservation.{hostname}/{clustername}/DB",
 "type": "meetingroom",
 "time" : {
     "from" : "2013-09-26T12:00Z", //iso8601
