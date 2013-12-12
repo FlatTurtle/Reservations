@@ -87,7 +87,7 @@
     "type": "room",
     "body": {
         "name": "room 3",
-        "price": {"hourly" : "5", "daily": 50, "currency" : "EUR"}, 
+        "price": {"hourly" : "5", "daily": 50, "currency" : "EUR"},
         "type": "room",
         "opening_hours": [
             {
@@ -133,7 +133,7 @@
       <dd>
 <pre class='terminal'>
 [{
-"thing" : "http://reservation.{hostname}/{clustername}/DB",
+"entity" : "http://reservation.{hostname}/{clustername}/DB",
 "type": "meetingroom",
 "time" : {
     "from" : "2013-09-26T12:00Z",
@@ -158,7 +158,7 @@
       <dd>
 <pre class='terminal'>
 {
-"thing" : "http://reservation.{hostname}/{clustername}/things/DB",
+"entity" : "Room 2",
 "type": "meetingroom",
 "time" : {
     "from" : "2013-09-26T12:00Z", //iso8601
