@@ -84,43 +84,46 @@
       <dd>
 <pre class='terminal'>
 {
-    "type" : "room",
-    "body" : {
-      "name": "Deep Blue",
-      "price": {"amount" : "0.5", "grouping" : "hourly", currency" : "EUR"}, 
-      "type": "room"
-      "opening_hours": [
-        {
-            "opens" : ["09:00", "13:00"],
-            "closes" : ["12:00", "17:00"],
-            "dayOfWeek" : 1,
-            "validFrom" : 1382202015,
-            "validThrough" : 1382202015
+    "type": "room",
+    "body": {
+        "name": "room 3",
+        "price": {
+            "amount": "0.5",
+            "grouping": "hourly",
+            "currency": "EUR"
+        },
+        "type": "room",
+        "opening_hours": [
+            {
+                "opens": ["09:00", "13:00"],
+                "closes": ["12:00", "17:00"],
+                "dayOfWeek": 1,
+                "validFrom": 1382202015,
+                "validThrough": 1382202015
+            }
+        ],
+        "description": "DeepBlueislocatednearthestart-upgarage.",
+        "location": {
+            "map": {
+                "img": "http: //foo.bar/map.png",
+                "reference": "DB"
+            },
+            "floor": 1,
+            "building_name": "main"
+        },
+        "contact": "http: //foo.bar/vcard.vcf",
+        "support": "http: //foo.bar/vcard.vcf",
+        "amenities": {
+            "http: //reservation.[hostname]/[clustername]/amenities/wifi": {
+                "label": "WiFiDeepBlue"
+            },
+            "http: //reservation.[hostname]/[clustername]/amenities/phone": {
+                "label": "phone",
+                "number": "+32..."
+            },
+            "http: //reservation.[hostname]/[clustername]/amenities/whiteboard": {}
         }
-      ],
-      "description" : "Deep Blue is located near the start-up garage.",
-      "location" : {
-          "map" : {
-              "img" : "http://foo.bar/map.png",
-              "reference" : "DB"
-          },
-          "floor" : 1,
-          "building_name" : "main"
-      },
-      "contact" : "http://foo.bar/vcard.vcf",
-      "support" : "http://foo.bar/vcard.vcf",
-      "amenities" : {
-          "http://reservation.{hostname}/{clustername}/amenities/wifi" : {
-              "label" : "WiFi Deep Blue"
-          }, 
-          "http://reservation.{hostname}/{clustername}/amenities/phone": {
-              "label": "phone",
-              "number" : "+32 ..."
-          },
-          "http://reservation.{hostname}/{clustername}/amenities/whiteboard" : { 
-          }
-      }
-  }
+    }
 }
 </pre>
       </dd>
@@ -137,9 +140,9 @@
 "thing" : "http://reservation.{hostname}/{clustername}/DB",
 "type": "meetingroom",
 "time" : {
-    "from" : "2013-09-26T12:00Z", //iso8601
+    "from" : "2013-09-26T12:00Z",
     "to"      :  "2013-09-26T14:00Z"
- },   
+ },
  "comment" : "Last time I booked a room there was not enough water in the room, can someone please check?",
  "customer" : {
     "mail" : "pieter@flatturtle.com" , "company" : "http://FlatTurtle.com"
