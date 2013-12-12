@@ -644,6 +644,63 @@ class ReservationTest extends TestCase
     /**
      *
      * @group entity
+     * @group create
+     * @return null
+     *
+     */
+    public function testCreateEntityMalformedJson()
+    {
+        try {
+            Auth::loginUsingId($this->test_cluster->id);
+            $payload = $this->entity_payload;
+            $payload['name'] = 'malformedjson_thing';
+            $payload['body']['name'] = 'malformedjson_thing';
+            $response = $this->call(
+                'PUT',
+                'test/things/malformedjson_thing',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                '{"this" : {"is" : "malformed"}',
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true; 
+        }
+        if(!$caught) throw new Exception("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+    }
+
+    /**
+     *
+     * @group entity
+     * @group create
+     * @return null
+     *
+     */
+    public function testCreateEntityEmptyPayload()
+    {
+        try {
+            Auth::loginUsingId($this->test_cluster->id);
+            $response = $this->call(
+                'PUT',
+                'test/things/emptypayload_thing',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                '',
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) throw new Exception("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+    }
+
+    /**
+     *
+     * @group entity
      * @group update
      * @return null
      *
@@ -684,6 +741,96 @@ class ReservationTest extends TestCase
         Auth::logout();
     }
 
+    
+    /**
+     *
+     * @group entity
+     * @group create
+     * @return null
+     *
+     */
+    public function testUpdateEntityEmptyPayload()
+    {
+        try {
+            Auth::loginUsingId($this->test_cluster->id);
+            $payload = $this->entity_payload;
+            $payload['name'] = 'updateemptypayload_thing';
+            $payload['body']['name'] = 'updateemptypayload_thing';
+            $response = $this->call(
+                'PUT',
+                'test/things/updateemptypayload_thing',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                json_encode($payload),
+                false
+            );
+            $content = $response->getContent();
+            $data = json_decode($content);
+            $this->assertEquals($response->getStatusCode(), 200);
+            $this->assertJson($content);
+
+
+            $response = $this->call(
+                'PUT',
+                'test/things/updateemptypayload_thing',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                '',
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) throw new Exception("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+    }
+
+    /**
+     *
+     * @group entity
+     * @group create
+     * @return null
+     *
+     */
+    public function testUpdateEntityMalformedJson()
+    {
+        try {
+            Auth::loginUsingId($this->test_cluster->id);
+            $payload = $this->entity_payload;
+            $payload['name'] = 'updatemalformedjson_thing';
+            $payload['body']['name'] = 'updatemalformedjson_thing';
+            $response = $this->call(
+                'PUT',
+                'test/things/updatemalformedjson_thing',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                json_encode($payload),
+                false
+            );
+            $content = $response->getContent();
+            $data = json_decode($content);
+            $this->assertEquals($response->getStatusCode(), 200);
+            $this->assertJson($content);
+
+
+            $response = $this->call(
+                'PUT',
+                'test/things/updatemalformedjson_thing',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                '{"this" : {"is" : "malformed"}',
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) throw new Exception("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+    }
     /**
      *
      * @group entity
@@ -1520,6 +1667,8 @@ class ReservationTest extends TestCase
             false
         );
 
+        print_r($response);
+
         $content = $response->getContent();
         $data = json_decode($content);
         $this->assertEquals($response->getStatusCode(), 200);
@@ -1648,6 +1797,62 @@ class ReservationTest extends TestCase
         $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
     }
 
+    /**
+     *
+     * @group reservation
+     * @return null
+     *
+     */
+    public function testCreateReservationInvalidJson()
+    {
+        $caught = false;
+
+        Auth::loginUsingId($this->test_cluster->id);
+
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                '"{this" : { "is" : "malformed"}',
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+    }
+
+    /**
+     *
+     * @group reservation
+     * @return null
+     *
+     */
+    public function testCreateReservationEmptyPayload()
+    {
+        $caught = false;
+
+        Auth::loginUsingId($this->test_cluster->id);
+        try{
+            $response = $this->call(
+                'POST',
+                'test/reservations',
+                array(),
+                array(),
+                ReservationTest::$headers,
+                '',
+                false
+            );
+            Auth::logout();
+        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
+            $caught = true;
+        }
+        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+    }
     /**
      *
      * @group reservation
