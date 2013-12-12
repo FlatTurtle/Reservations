@@ -219,8 +219,20 @@
 <pre class='terminal'>
 [
     { 
-        "name" : "red_phone",
-        "number" : "+32 ..."
+        "description" : "Broadband wireless access point",
+        "schema" : {
+          "$schema" : http://json-schema.org/draft-04/schema#",
+          "title" : "wifi",
+          "description" : "Broadband wireless access point",
+          "properties" : [
+            "essid" : {
+              "description" : "The essid of your wifi access point",
+              "type" : "string"
+            }, 
+            ...
+          ]
+
+        }
     }
 
 ]
@@ -238,11 +250,26 @@
 <pre class='terminal'>
 [
     { 
-        "name" : "red_phone",
-        "number" : "+32 ..."
+        "description" : "Broadband wireless access point",
+        "schema" : {
+          "$schema" : http://json-schema.org/draft-04/schema#",
+          "title" : "wifi",
+          "description" : "Broadband wireless access point",
+          "properties" : [
+            "essid" : {
+              "description" : "The essid of your wifi access point",
+              "type" : "string"
+            }, 
+            ...
+          ]
+
+        }
     }
 
 ]
+
+The schema has to be a valid json-schema entity, informations about json-schema
+are available here http://json-schema.org/.
 </pre>
       </dd>
 
