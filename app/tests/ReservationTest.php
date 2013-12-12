@@ -116,7 +116,7 @@ class ReservationTest extends TestCase
          
         $this->reservation_payload 
             = array();
-        $this->reservation_payload['entity'] 
+        $this->reservation_payload['thing'] 
             = null;
         $this->reservation_payload['type'] 
             = null;
@@ -1526,7 +1526,7 @@ class ReservationTest extends TestCase
         $this->assertJson($content);
 
         $payload = $this->reservation_payload;
-        $payload['entity'] = 'reservation_thing';
+        $payload['thing'] = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_thing';
         $payload['type'] = 'room';
         $payload['time']['from'] = date('c', mktime(9, 0, 0, date('m'), date('d')+1, date('Y')));
         $payload['time']['to'] = date('c', mktime(10, 0, 0, date('m'), date('d')+1, date('Y')));
@@ -1591,7 +1591,7 @@ class ReservationTest extends TestCase
 
 
         $payload = $this->reservation_payload;
-        $payload['entity'] = 'admin_reservation_thing';
+        $payload['thing'] = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/admin_reservation_thing';
         $payload['type'] = 'room';
         $payload['time']['from'] = date('c', mktime(9, 0, 0, date('m'), date('d')+1, date('Y')));
         $payload['time']['to'] = date('c', mktime(10, 0, 0, date('m'), date('d')+1, date('Y')));
@@ -1628,7 +1628,7 @@ class ReservationTest extends TestCase
         $payload['time']['from'] = time();
         $payload['time']['to'] = time() + (60*60*2);
         $payload['announce'] = array('yeri', 'pieter', 'nik', 'quentin');
-        $payload['entity'] = 'reservation_entity';
+        $payload['thing'] = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_thing';
         $payload['type'] = 'room';
 
         try{
@@ -1660,10 +1660,9 @@ class ReservationTest extends TestCase
 
         Auth::loginUsingId($this->test_cluster->id);
 
-        $this->reservation_payload['entity'] = 'reservation_entity';
-        $this->reservation_payload['type'] = 'room';
         $payload = $this->reservation_payload;
-        $payload['entity'] = '';
+        $payload['type'] = 'room';
+        $payload['thing'] = '';
 
         try{
             $response = $this->call(
@@ -1683,7 +1682,7 @@ class ReservationTest extends TestCase
 
 
         $payload = $this->reservation_payload;
-        $payload['entity'] = null;
+        $payload['thing'] = null;
 
         try{
             $response = $this->call(
