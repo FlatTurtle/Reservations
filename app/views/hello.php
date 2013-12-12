@@ -165,9 +165,6 @@
     "to"      :  "2013-09-26T14:00Z"
  },   
  "comment" : "Last time I booked a room there was not enough water in the room, can someone please check?",
- "customer" : {
-    "mail" : "pieter@flatturtle.com" , "company" : "http://FlatTurtle.com"
-  },
  "subject" : "Board meeting",
  "announce" : ["Jan Janssens", "Yeri Tiete"], // For on screen announcements
 }

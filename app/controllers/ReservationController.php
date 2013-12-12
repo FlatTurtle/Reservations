@@ -208,12 +208,6 @@ class ReservationController extends Controller
 
             if(!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
                 
-                Validator::extend('type', function($attribute, $value, $parameters)
-                                  {
-                                      $types = array('room', 'amenity');
-                                      return in_array($value, $types);
-                                  });
-
                 Validator::extend('time', function($attribute, $value, $parameters)
                                   {
                                       if(!isset($value['from']) || !isset($value['to']))
@@ -245,8 +239,8 @@ class ReservationController extends Controller
                 $reservation_validator = Validator::make(
                     Input::json()->all(),
                     array(
-                        'entity' => 'required',
-                        'type' => 'required|type',
+                        'thing' => 'required|url',
+                        'type' => 'required',
                         'time' => 'required|time',
                         'comment' => 'required',
                         'subject' => 'required',
@@ -257,7 +251,9 @@ class ReservationController extends Controller
 
                 if(!$reservation_validator->fails()){
 
-                    $entity = Entity::where('name', '=', Input::json()->get('entity'))
+                    $entity_name = explode('/', Input::json()->get('thing'));
+                    $entity_name = $entity_name[count($entity_name)-1];
+                    $entity = Entity::where('name', '=', $entity_name)
                         ->where('type', '=', Input::json()->get('type'))
                         ->where('user_id', '=', $cluster->user->id)->first();
                                         
@@ -319,12 +315,6 @@ class ReservationController extends Controller
                         
             if(!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
                 
-                Validator::extend('type', function($attribute, $value, $parameters)
-                                  {
-                                      $types = array('room', 'amenity');
-                                      return in_array($value, $types);
-                                  });
-
                 Validator::extend('time', function($attribute, $value, $parameters)
                                   {
                                       if(!isset($value['from']) || !isset($value['to']))
@@ -356,8 +346,8 @@ class ReservationController extends Controller
                 $reservation_validator = Validator::make(
                     Input::json()->all(),
                     array(
-                        'entity' => 'required',
-                        'type' => 'required|type',
+                        'thing' => 'required|url',
+                        'type' => 'required',
                         'time' => 'required|time',
                         'comment' => 'required',
                         'subject' => 'required',
@@ -368,7 +358,10 @@ class ReservationController extends Controller
 
                 if(!$reservation_validator->fails()){
 
-                    $entity = Entity::where('name', '=', Input::json()->get('entity'))
+                    $entity_name = explode('/', Input::json()->get('thing'));
+                    $entity_name = $entity_name[count($entity_name)-1];
+
+                    $entity = Entity::where('name', '=', $entity_name)
                         ->where('type', '=', Input::json()->get('type'))
                         ->where('user_id', '=', $cluster->user->id)->first();
                                         
