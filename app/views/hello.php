@@ -88,9 +88,8 @@
     "body": {
         "name": "room 3",
         "price": {
-            "amount": "0.5",
-            "hourly": 50,
-            "currency": "EUR"
+            "currency": "EUR",
+            "hourly": 50
         },
         "type": "room",
         "opening_hours": [
