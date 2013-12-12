@@ -26,8 +26,9 @@ class ReservationTest extends TestCase
 
         Artisan::call('migrate');
         Artisan::call('db:seed');
-        $this->test_user = DB::table('user')->where('username', '=', 'test')->first();
-        $this->admin_user = DB::table('user')->where('username', '=', 'admin')->first();
+
+        $this->test_cluster = DB::table('cluster')->where('clustername', '=', 'test')->first();
+        $this->admin_cluster = DB::table('cluster')->where('clustername', '=', 'admin')->first();
                 
         $this->entity_payload = array();
         $this->entity_payload['name'] = 'Deep Blue';
@@ -142,15 +143,14 @@ class ReservationTest extends TestCase
      */
     public function testCreateAmenity()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $response = $this->call(
             'PUT',
             'test/amenities/test_amenity',
-            $this->amenity_payload,
+            array(),
             array(),
             ReservationTest::$headers,
-            array(),
-            false
+            json_encode($this->amenity_payload)
         );
         $this->assertEquals($response->getStatusCode(), 200);
         $this->assertNotNull(json_decode($response->getContent()));
@@ -165,16 +165,15 @@ class ReservationTest extends TestCase
      */
     public function testCreateAmenityAdmin()
     {
-        Auth::loginUsingId($this->admin_user->id);
+        Auth::loginUsingId($this->admin_cluster->id);
         $payload = $this->amenity_payload;
         $response = $this->call(
             'PUT',
             'test/amenities/admin_amenity',
-            $payload,
+            array(),
             array(),
             ReservationTest::$headers,
-            array(),
-            false
+            json_encode($payload)
         );
         $content = $response->getContent();
         $this->assertEquals($response->getStatusCode(), 200);
@@ -191,17 +190,16 @@ class ReservationTest extends TestCase
      */
     public function testCreateAmenityInexistentCustomer()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->amenity_payload;
         try{
             $response = $this->call(
                 'PUT',
                 'unknown/amenities/amenity',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
-                false
+                json_encode($payload)
             );
             Auth::logout();
         }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
@@ -219,17 +217,16 @@ class ReservationTest extends TestCase
      */
     public function testCreateAmenityWrongCustomer()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->amenity_payload;
         try{
             $response = $this->call(
                 'PUT',
                 'wrong/amenities/wrong_amenity',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
-                false
+                json_encode($payload)
             );
             Auth::logout();
         }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
@@ -251,15 +248,13 @@ class ReservationTest extends TestCase
         $response = $this->call(
             'PUT',
             'test/amenities/wrong_amenity',
-            $this->amenity_payload,
+            array(),
             array(),
             ReservationTest::$headers,
-            array(),
-            false
+            json_encode($this->amenity_payload)
         );
         $this->assertEquals($response->getStatusCode(), 401);
     }
-
 
     /**
      *
@@ -271,18 +266,17 @@ class ReservationTest extends TestCase
     public function testCreateMalformedAmenity()
     {
         $caught = false;
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->amenity_payload;
         $payload['description'] = '';
         try {
             $response = $this->call(
                 'PUT',
                 'test/amenities/test_amenity',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
-                false
+                json_encode($payload)
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
             $caught = true; 
@@ -295,11 +289,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/amenities/test_amenity',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
-                false
+                json_encode($payload)
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
             $caught = true; 
@@ -312,11 +305,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/amenities/test_amenity',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
-                false
+                json_encode($payload)
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
             $caught = true; 
@@ -385,15 +377,15 @@ class ReservationTest extends TestCase
      */
     public function testGetAmenity()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->amenity_payload;
         $response = $this->call(
             'PUT',
             'test/amenities/get_amenity',
-            $payload,
+            array(),
             array(),
             ReservationTest::$headers,
-            array(),
+            json_encode($payload),
             false
         );
         $this->assertEquals($response->getStatusCode(), 200);
@@ -476,15 +468,15 @@ class ReservationTest extends TestCase
      */
     public function testDeleteAmenity()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->amenity_payload;
         $response = $this->call(
             'PUT',
             'test/amenities/to_delete',
-            $payload,
+            array(),
             array(),
             ReservationTest::$headers,
-            array(),
+            json_encode($payload),
             false
         );
         $content = $response->getContent();
@@ -517,7 +509,7 @@ class ReservationTest extends TestCase
      */
     public function testDeleteAmenityWrongCustomer()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         try{
             $response = $this->call(
                 'DELETE',
@@ -544,7 +536,7 @@ class ReservationTest extends TestCase
      */
     public function testDeleteNonExistentAmenity()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         try{
             $response = $this->call(
                 'DELETE',
@@ -572,17 +564,17 @@ class ReservationTest extends TestCase
      */
     public function testCreateEntity()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->entity_payload;
         $payload['name'] = 'create_thing';
         $payload['body']['name'] = 'create_thing';
         $response = $this->call(
             'PUT',
             'test/things/create_thing',
-            $payload,
+            array(),
             array(),
             ReservationTest::$headers,
-            array(),
+            json_encode($payload),
             false
         );
         $content = $response->getContent();
@@ -600,17 +592,17 @@ class ReservationTest extends TestCase
      */
     public function testCreateEntityAdmin()
     {
-        Auth::loginUsingId($this->admin_user->id);
+        Auth::loginUsingId($this->admin_cluster->id);
         $payload = $this->entity_payload;
         $payload['name'] = 'create_admin_thing';
         $payload['body']['name'] = 'create_admin_thing';
         $response = $this->call(
             'PUT',
             'test/things/create_admin_thing',
-            $payload,
+            array(),
             array(),
             ReservationTest::$headers,
-            array(),
+            json_encode($payload),
             false
         );
         $content = $response->getContent();
@@ -630,16 +622,16 @@ class ReservationTest extends TestCase
      */
     public function testCreateEntityWrongCustomer()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->entity_payload;
         try{
             $response = $this->call(
                 'PUT',
                 'test2/things/new_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
             Auth::logout();
@@ -658,17 +650,17 @@ class ReservationTest extends TestCase
      */
     public function testUpdateExistingEntity()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->entity_payload;
-        $payload['name'] = 'existing_entity';
-        $payload['body']['name'] = 'existing_entity';
+        $payload['name'] = 'existing_thing';
+        $payload['body']['name'] = 'existing_thing';
         $response = $this->call(
             'PUT',
             'test/things/existing_thing',
-            $payload,
+            array(),
             array(),
             ReservationTest::$headers,
-            array(),
+            json_encode($payload),
             false
         );
         $content = $response->getContent();
@@ -679,10 +671,10 @@ class ReservationTest extends TestCase
         $response = $this->call(
             'PUT',
             'test/things/existing_thing',
-            $payload,
+            array(),
             array(),
             ReservationTest::$headers,
-            array(),
+            json_encode($payload),
             false
         );
         $content = $response->getContent();
@@ -703,7 +695,7 @@ class ReservationTest extends TestCase
     {
         $caught = false;
 
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         
         $payload = $this->entity_payload;
         $payload['type'] = '';
@@ -711,16 +703,16 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
             $caught = true; 
         }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        if(!$caught) throw new Exception("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
 
 
         $payload = $this->entity_payload;
@@ -729,10 +721,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -747,10 +739,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -765,10 +757,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -783,10 +775,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -801,10 +793,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -819,10 +811,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -837,10 +829,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -855,10 +847,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -873,10 +865,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -891,10 +883,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -909,10 +901,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -927,10 +919,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -945,10 +937,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -963,10 +955,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -982,10 +974,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1000,10 +992,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1018,10 +1010,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1036,10 +1028,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1054,10 +1046,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1072,10 +1064,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1090,10 +1082,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1115,10 +1107,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1130,13 +1122,13 @@ class ReservationTest extends TestCase
         $payload = $this->entity_payload;
         $payload['body']['location']['map'] = null;
         try{
-            $response = $this->call(
+           $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1151,10 +1143,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1169,10 +1161,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1187,10 +1179,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1205,10 +1197,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1223,10 +1215,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1241,10 +1233,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1259,10 +1251,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1277,10 +1269,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1295,10 +1287,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1313,10 +1305,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1331,10 +1323,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1349,10 +1341,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'PUT',
                 'test/things/missing_thing',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1373,7 +1365,7 @@ class ReservationTest extends TestCase
     public function testGetEntities()
     {   
         
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
 
         $response = $this->call(
             'GET',
@@ -1403,7 +1395,7 @@ class ReservationTest extends TestCase
      */
     public function testGetEntity()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         
         $payload = $this->entity_payload;
         $payload['name'] = 'get_thing';
@@ -1412,10 +1404,10 @@ class ReservationTest extends TestCase
         $response = $this->call(
             'PUT',
             'test/things/get_thing',
-            $payload,
+            array(),
             array(),
             ReservationTest::$headers,
-            array(),
+            json_encode($payload),
             false
         );
 
@@ -1429,7 +1421,7 @@ class ReservationTest extends TestCase
         $response = $this->call(
             'GET',
             'test/things/get_thing',
-            $payload,
+            array(),
             array(),
             ReservationTest::$headers,
             array(),
@@ -1501,7 +1493,7 @@ class ReservationTest extends TestCase
      */
     public function testCreateReservation()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
         
         $payload = $this->entity_payload;
         $payload['name'] = 'reservation_thing';
@@ -1521,10 +1513,10 @@ class ReservationTest extends TestCase
         $response = $this->call(
             'PUT',
             'test/things/reservation_thing',
-            $payload,
+            array(),
             array(),
             ReservationTest::$headers,
-            array(),
+            json_encode($payload),
             false
         );
 
@@ -1542,10 +1534,10 @@ class ReservationTest extends TestCase
         $response = $this->call(
             'POST',
             'test/reservations',
-            $payload,
+            array(),
             array(),
             ReservationTest::$headers,
-            array(),
+            json_encode($payload),
             false
         );
         
@@ -1565,7 +1557,7 @@ class ReservationTest extends TestCase
      */
     public function testCreateReservationAdmin()
     {
-        Auth::loginUsingId($this->admin_user->id);
+        Auth::loginUsingId($this->admin_cluster->id);
 
         $payload = $this->entity_payload;
         $payload['name'] = 'admin_reservation_thing';
@@ -1585,10 +1577,10 @@ class ReservationTest extends TestCase
         $response = $this->call(
             'PUT',
             'test/things/admin_reservation_thing',
-            $payload,
+            array(),
             array(),
             ReservationTest::$headers,
-            array(),
+            json_encode($payload),
             false
         );
 
@@ -1607,13 +1599,12 @@ class ReservationTest extends TestCase
         $response = $this->call(
             'POST',
             'test/reservations',
-            $payload,
+            array(),
             array(),
             ReservationTest::$headers,
-            array(),
+            json_encode($payload),
             false
-        );
-        
+        );        
         $content = $response->getContent();
         $data = json_decode($content);
         $this->assertEquals($response->getStatusCode(), 200);
@@ -1631,7 +1622,7 @@ class ReservationTest extends TestCase
      */
     public function testCreateReservationWrongCustomer()
     {
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
 
         $payload = $this->reservation_payload;
         $payload['time']['from'] = time();
@@ -1644,10 +1635,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test2/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
             Auth::logout();
@@ -1667,7 +1658,7 @@ class ReservationTest extends TestCase
     {
         $caught = false;
 
-        Auth::loginUsingId($this->test_user->id);
+        Auth::loginUsingId($this->test_cluster->id);
 
         $this->reservation_payload['entity'] = 'reservation_entity';
         $this->reservation_payload['type'] = 'room';
@@ -1678,10 +1669,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
             Auth::logout();
@@ -1698,10 +1689,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
             Auth::logout();
@@ -1718,10 +1709,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
             Auth::logout();
@@ -1738,10 +1729,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
             Auth::logout();
@@ -1758,10 +1749,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1777,10 +1768,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1796,10 +1787,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1815,10 +1806,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1834,10 +1825,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1853,10 +1844,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1872,10 +1863,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1892,10 +1883,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1911,10 +1902,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1930,10 +1921,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1949,10 +1940,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1968,10 +1959,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -1987,10 +1978,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
@@ -2006,10 +1997,10 @@ class ReservationTest extends TestCase
             $response = $this->call(
                 'POST',
                 'test/reservations',
-                $payload,
+                array(),
                 array(),
                 ReservationTest::$headers,
-                array(),
+                json_encode($payload),
                 false
             );
         }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){

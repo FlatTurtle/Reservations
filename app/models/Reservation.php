@@ -73,4 +73,9 @@ class Reservation extends Eloquent {
         return $this->hasOne('entity');
     }
 
+
+    public function getDates()
+    {
+        return array('created_at', 'updated_at', 'from', 'to');
+    }
 }

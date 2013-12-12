@@ -25,7 +25,7 @@
     </p>
     <dl>
       <dt id='api-root'>
-        <a href='/'>GET /{customername}/things</a>
+        <a href='/'>GET /{clustername}/things</a>
         <span class="label">Accept JSON</span>
       </dt>
       <br />
@@ -33,46 +33,49 @@
       <dd>
 <pre class='terminal'>
 [{
-    "name": "Deep Blue",
-    "price": {"amount" : "0.5", "grouping" : "hourly", currency" : "EUR"}, 
-    "type": "meetingroom"
-    "opening_hours": [
-        {
-            "opens" : ["09:00", "13:00"],
-            "closes" : ["12:00", "17:00"],
-            "dayOfWeek" : 1,
-            "validFrom" : 1382202015,
-            "validThrough" : 1382202015
-        }
-    ],
-    "description" : "Deep Blue is located near the start-up garage.",
-    "location" : {
-        "map" : {
-            "img" : "http://foo.bar/map.png",
-            "reference" : "DB"
-        },
-        "floor" : 1,
-        "building_name" : "main"
-    },
-    "contact" : "http://foo.bar/vcard.vcf",
-    "support" : "http://foo.bar/vcard.vcf",
-    "amenities" : {
-        "http://reservation.{hostname}/{customername}/amenities/wifi" : {
-            "label" : "WiFi Deep Blue"
-        }, 
-        "http://reservation.{hostname}/{customername}/amenities/phone": {
-            "label": "phone",
-            "number" : "+32 ..."
-        },
-        "http://reservation.{hostname}/{customername}/amenities/whiteboard" : { 
-        }
-    }
+    "type" : "room",
+    "body" : {
+      "name": "Deep Blue",
+      "price": {"hourly" : "5", "daily": 50, "currency" : "EUR"}, 
+      "type": "room"
+      "opening_hours": [
+          {
+              "opens" : ["09:00", "13:00"],
+              "closes" : ["12:00", "17:00"],
+              "dayOfWeek" : 1,
+              "validFrom" : 1382202015,
+              "validThrough" : 1382202015
+          }
+      ],
+      "description" : "Deep Blue is located near the start-up garage.",
+      "location" : {
+          "map" : {
+              "img" : "http://foo.bar/map.png",
+              "reference" : "DB"
+          },
+          "floor" : 1,
+          "building_name" : "main"
+      },
+      "contact" : "http://foo.bar/vcard.vcf",
+      "support" : "http://foo.bar/vcard.vcf",
+      "amenities" : {
+          "http://reservation.{hostname}/{clustername}/amenities/wifi" : {
+              "label" : "WiFi Deep Blue"
+          }, 
+          "http://reservation.{hostname}/{clustername}/amenities/phone": {
+              "label": "phone",
+              "number" : "+32 ..."
+          },
+          "http://reservation.{hostname}/{clustername}/amenities/whiteboard" : { 
+          }
+      }
+  }
 }]
 </pre>
       </dd>
 
       <dt id='api-put-entity'>
-        <a href='/'>PUT /{customername}/things/{entity_name}</a>
+        <a href='/'>PUT /{clustername}/things/{thing_name}</a>
         <span class="label">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>
@@ -81,38 +84,44 @@
       <dd>
 <pre class='terminal'>
 {
-    "name": "Deep Blue",
-    "price": {"amount" : "0.5", "grouping" : "hourly", currency" : "EUR"}, 
-    "type": "meetingroom"
-    "opening_hours": [
-        {
-            "opens" : ["09:00", "13:00"],
-            "closes" : ["12:00", "17:00"],
-            "dayOfWeek" : 1,
-            "validFrom" : 1382202015,
-            "validThrough" : 1382202015
-        }
-    ],
-    "description" : "Deep Blue is located near the start-up garage.",
-    "location" : {
-        "map" : {
-            "img" : "http://foo.bar/map.png",
-            "reference" : "DB"
+    "type": "room",
+    "body": {
+        "name": "room 3",
+        "price": {
+            "amount": "0.5",
+            "grouping": "hourly",
+            "currency": "EUR"
         },
-        "floor" : 1,
-        "building_name" : "main"
-    },
-    "contact" : "http://foo.bar/vcard.vcf",
-    "support" : "http://foo.bar/vcard.vcf",
-    "amenities" : {
-        "http://reservation.{hostname}/{customername}/amenities/wifi" : {
-            "label" : "WiFi Deep Blue"
-        }, 
-        "http://reservation.{hostname}/{customername}/amenities/phone": {
-            "label": "phone",
-            "number" : "+32 ..."
+        "type": "room",
+        "opening_hours": [
+            {
+                "opens": ["09:00", "13:00"],
+                "closes": ["12:00", "17:00"],
+                "dayOfWeek": 1,
+                "validFrom": 1382202015,
+                "validThrough": 1382202015
+            }
+        ],
+        "description": "DeepBlueislocatednearthestart-upgarage.",
+        "location": {
+            "map": {
+                "img": "http: //foo.bar/map.png",
+                "reference": "DB"
+            },
+            "floor": 1,
+            "building_name": "main"
         },
-        "http://reservation.{hostname}/{customername}/amenities/whiteboard" : { 
+        "contact": "http: //foo.bar/vcard.vcf",
+        "support": "http: //foo.bar/vcard.vcf",
+        "amenities": {
+            "http: //reservation.[hostname]/[clustername]/amenities/wifi": {
+                "label": "WiFiDeepBlue"
+            },
+            "http: //reservation.[hostname]/[clustername]/amenities/phone": {
+                "label": "phone",
+                "number": "+32..."
+            },
+            "http: //reservation.[hostname]/[clustername]/amenities/whiteboard": {}
         }
     }
 }
@@ -120,7 +129,7 @@
       </dd>
 
       <dt id='api-get-reservations'>
-        <a href='/api/status.json'>GET /{customer_name}/reservations</a>
+        <a href='/api/status.json'>GET /{clustername}/reservations</a>
         <span class="label">Accept JSON</span>
       </dt>
       <br />
@@ -128,12 +137,12 @@
       <dd>
 <pre class='terminal'>
 [{
-"thing" : "http://reservation.{hostname}/{customername}/DB",
+"thing" : "http://reservation.{hostname}/{clustername}/DB",
 "type": "meetingroom",
 "time" : {
-    "from" : "2013-09-26T12:00Z", //iso8601
+    "from" : "2013-09-26T12:00Z",
     "to"      :  "2013-09-26T14:00Z"
- },   
+ },
  "comment" : "Last time I booked a room there was not enough water in the room, can someone please check?",
  "customer" : {
     "mail" : "pieter@flatturtle.com" , "company" : "http://FlatTurtle.com"
@@ -144,7 +153,7 @@
 </pre>
       </dd>
       <dt id='api-post-reservation'>
-        <a href='/'>POST /{customer_name}/reservations</a>
+        <a href='/'>POST /{clustername}/reservations</a>
         <span class="label">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>
@@ -153,7 +162,7 @@
       <dd>
 <pre class='terminal'>
 {
-"thing" : "http://reservation.{hostname}/{customername}/things/DB",
+"thing" : "http://reservation.{hostname}/{clustername}/things/DB",
 "type": "meetingroom",
 "time" : {
     "from" : "2013-09-26T12:00Z", //iso8601
@@ -169,7 +178,7 @@
 </pre>
       </dd>
       <dt id='api-delete-reservation'>
-        <a href='/api/last-message.json'>DELETE /{customer_name}/reservations/{id}</a>
+        <a href='/api/last-message.json'>DELETE /{clustername}/reservations/{id}</a>
         <span class="label">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>
@@ -181,7 +190,7 @@
 </pre>
       </dd>
       <dt id='api-get-amenities'>
-        <a href='/api/messages.json'>GET /{customer_name}/amenities</a>
+        <a href='/api/messages.json'>GET /{clustername}/amenities</a>
         <span class="label">Accept JSON</span>
       </dt>
       <br />
@@ -205,7 +214,7 @@
       </dd>
 
       <dt id='api-get-amenity'>
-        <a href='/messages.json'>GET /{customer_name}/amenities/{amenity}</a>
+        <a href='/messages.json'>GET /{clustername}/amenities/{amenity}</a>
         <span class="label">Accept JSON</span>
       </dt>
       <br />
@@ -223,7 +232,7 @@
       </dd>
 
       <dt id='api-put-amenity'>
-        <a href='/messages.json'>PUT /{customer_name}/amenities/{amenity}</a>
+        <a href='/messages.json'>PUT /{clustername}/amenities/{amenity}</a>
         <span class="label">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>
@@ -242,7 +251,7 @@
       </dd>
 
     <dt id='api-put-amenity'>
-        <a href='/messages.json'>DELETE /{customer_name}/amenities/{amenity}</a>
+        <a href='/messages.json'>DELETE /{clustername}/amenities/{amenity}</a>
         <span class="label">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>

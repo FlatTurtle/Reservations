@@ -33,54 +33,94 @@ class ReservationController extends Controller
      * Return a list of reservations that the user has made for the current day.
      * Day can be change by providing a 'day' as GET parameter.
      *
-     * @param user_name : the user's name
+     * @param clustername : the cluster's name
      * @return 
      */ 
-    public function getReservations($user_name)
+    public function getReservations($clustername)
     {
-        $user = User::where('username', '=', $user_name)->first();
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
 
-        if (isset($user)) {
+        if (isset($cluster)) {
             /*  Announce value is json encoded in db so we first retrieve 
                 reservations from db, decode announce json and return 
                 reservations to the user */
-            if (Input::get('day')!=null) {
-                $day = strtotime(Input::get('day'));    
-                $_reservations = Reservation::where('user_id', '=', $user->id)
-                ->where('from', '>=', $day)
-                ->where('from', '<=', $day)
-                ->get()
-                ->toArray();
-            }else{
-                $_reservations = Reservation::where('user_id', '=', $user->id)->get()->toArray();
-            }
+            if (Input::get('day')!=null)
+                $from = strtotime(Input::get('day'));
+            else
+                $from = mktime(0,0,0);
+
+            $to = $from+(60*60*24);
+            $_reservations = DB::select(
+                  'select * from reservation where user_id = ? 
+                  AND UNIX_TIMESTAMP(`from`) > ? 
+                  AND UNIX_TIMESTAMP(`to`) < ?', 
+                  array($cluster->id, $from, $to));
+
             //FIXME : return entity name instead of id ?
             $reservations = array();
             foreach($_reservations as $reservation){
-                $reservation['announce'] = json_decode($reservation['announce']);
+                $reservation->announce = json_decode($reservation->announce);
                 array_push($reservations, $reservation);
             }
             return Response::json($reservations);
 
         }else{
-          App::abort(404, 'user not found');
+          App::abort(404, 'cluster not found');
         }
     }
 
     /**
      * Return a the reservation that has id $id.
-     * @param user_name : the user's name
+     * @param clustername : the cluster's name
      * @param id : the id of the reservation to be deleted
      */
-    public function getReservation($user_name, $id)
+    public function getReservation($clustername, $id)
     {
-        $user = User::where('username', '=', $user_name)->first();
-        if (isset($user)) {
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
+        if (isset($cluster)) {
             $reservation = Reservation::find($id);
             if(isset($reservation)) {
                 return Response::json($reservation);
             } else {
                 App::abort(404, 'Reservation not found.');
+            }
+        } else {
+            App::abort(404, 'cluster not found');
+        }
+    }
+
+    /**
+     * Return a the reservation that has id $id.
+     * @param clustername : the user's name
+     * @param name : the thing's name
+     */
+    public function getReservationsByThing($clustername, $name)
+    {
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
+        if (isset($cluster)) {
+            $thing = Entity::where('user_id', '=', $cluster->user->id)->where('name', '=', $name)->first();
+            if (isset($thing)) {
+
+              if (Input::get('day')!=null)
+                $from = strtotime(Input::get('day'));
+              else
+                  $from = mktime(0,0,0);
+              $to = $from+(60*60*24);
+
+              $_reservations = DB::select(
+                  'select * from reservation where user_id = ?
+                  AND entity_id = ? 
+                  AND UNIX_TIMESTAMP(`from`) > ? 
+                  AND UNIX_TIMESTAMP(`to`) < ?', 
+                  array($cluster->user->id, $thing->id, $from, $to));
+              $reservations = array();
+              foreach($_reservations as $reservation){
+                $reservation->announce = json_decode($reservation->announce);
+                array_push($reservations, $reservation);
+              }
+              return Response::json($reservations);
+            } else{
+              App::abort(404, 'Thing not found');
             }
         } else {
             App::abort(404, 'user not found');
@@ -158,16 +198,15 @@ class ReservationController extends Controller
 
     /**
      * Create a new reservation for a authenticated user.
-     * @param $user_name : user's name from url.
+     * @param $clustername : cluster's name from url.
      *
      */
-    public function createReservation($user_name){
+    public function createReservation($clustername){
 
-        
-        $user = User::where('username', '=', $user_name)->first();
-        if(isset($user)){
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
+        if(isset($cluster)){
 
-            if(!strcmp($user_name, Auth::user()->username) || Auth::user()->isAdmin()){
+            if(!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
                 
                 Validator::extend('type', function($attribute, $value, $parameters)
                                   {
@@ -204,7 +243,7 @@ class ReservationController extends Controller
 
             
                 $reservation_validator = Validator::make(
-                    Input::all(),
+                    Input::json()->all(),
                     array(
                         'entity' => 'required',
                         'type' => 'required|type',
@@ -218,14 +257,14 @@ class ReservationController extends Controller
 
                 if(!$reservation_validator->fails()){
 
-                    $entity = Entity::where('name', '=', Input::get('entity'))
-                        ->where('type', '=', Input::get('type'))
-                        ->where('user_id', '=', $user->id)->first();
+                    $entity = Entity::where('name', '=', Input::json()->get('entity'))
+                        ->where('type', '=', Input::json()->get('type'))
+                        ->where('user_id', '=', $cluster->user->id)->first();
                                         
                     if(!isset($entity)){
                         App::abort(404, "Entity not found");
                     }else{
-                        $time = Input::get('time');
+                        $time = Input::json()->get('time');
                         if($this->isAvailable(json_decode($entity->body)->opening_hours, $time)){
 
                             //FIXME
@@ -241,11 +280,11 @@ class ReservationController extends Controller
                                     array(
                                         'from' => $from,
                                         'to' => $to,
-                                        'subject' => Input::get('subject'),
-                                        'comment' => Input::get('comment'),
-                                        'announce' => json_encode(Input::get('announce')),
+                                        'subject' => Input::json()->get('subject'),
+                                        'comment' => Input::json()->get('comment'),
+                                        'announce' => json_encode(Input::json()->get('announce')),
                                         'entity_id' => $entity->id,
-                                        'user_id' => $user->id,
+                                        'user_id' => $cluster->user->id,
                                     )
                                 );
                             }
@@ -263,27 +302,22 @@ class ReservationController extends Controller
                 App::abort(403, "You are not allowed to make reservations for another user");
             }
         }else{
-            App::abort(404, 'user not found');
+            App::abort(404, 'cluster not found');
         }
     }
 
     /**
      * Create a new reservation for a authenticated user.
-     * @param $user_name : user's name from url.
+     * @param $clustername : cluster's name from url.
      *
      */
-    public function updateReservation($user_name, $id){
+    public function updateReservation($clustername, $id){
 
         
-        $user = User::where('username', '=', $user_name)->first();
-        if(isset($user)){
-
-            /* we pass the basicauth so we can compare 
-               this username with the url {user_name}*/
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
+        if(isset($cluster)){
                         
-            $username = Request::header('php-auth-user');
-            $client = User::where('username', '=', $username)->first();
-            if(!strcmp($user_name, $username) || $client->isAdmin()){
+            if(!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
                 
                 Validator::extend('type', function($attribute, $value, $parameters)
                                   {
@@ -320,7 +354,7 @@ class ReservationController extends Controller
 
             
                 $reservation_validator = Validator::make(
-                    Input::all(),
+                    Input::json()->all(),
                     array(
                         'entity' => 'required',
                         'type' => 'required|type',
@@ -334,14 +368,14 @@ class ReservationController extends Controller
 
                 if(!$reservation_validator->fails()){
 
-                    $entity = Entity::where('name', '=', Input::get('entity'))
-                        ->where('type', '=', Input::get('type'))
-                        ->where('user_id', '=', $user->id)->first();
+                    $entity = Entity::where('name', '=', Input::json()->get('entity'))
+                        ->where('type', '=', Input::json()->get('type'))
+                        ->where('user_id', '=', $cluster->user->id)->first();
                                         
                     if(!isset($entity)){
                         App::abort(404, "Entity not found");
                     }else{
-                        $time = Input::get('time');
+                        $time = Input::json()->get('time');
                         if($this->isAvailable(json_decode($entity->body)->opening_hours, $time)){
 
                             //FIXME
@@ -353,11 +387,11 @@ class ReservationController extends Controller
                             if($reservation->exists){
                                 $reservation->from = $from;
                                 $reservation->to = $to;
-                                $reservation->subject = Input::get('subject');
-                                $reservation->comment = Input::get('comment');
-                                $reservation->announce = json_encode(Input::get('announce'));
+                                $reservation->subject = Input::json()->get('subject');
+                                $reservation->comment = Input::json()->get('comment');
+                                $reservation->announce = json_encode(Input::json()->get('announce'));
                                 $reservation->entity_id = $entity->id;
-                                $reservation->user_id = $user->id;
+                                $reservation->user_id = $cluster->user->id;
                                 return $reservation->save();
                             }
                                                         
@@ -375,20 +409,20 @@ class ReservationController extends Controller
                 App::abort(403, "You are not allowed to make reservations for another user");
             }
         }else{
-            App::abort(404, 'user not found');
+            App::abort(404, 'cluster not found');
         }
     }
 
     /**
      * Cancel the reservation with id $id by deleting it from database.
-     * @param $user_name : the user's name
+     * @param $clustername : the cluster's name
      * @param $id : the reservation's id
      */
-    public function deleteReservation($user_name, $id) {
+    public function deleteReservation($clustername, $id) {
         
-        $user = User::where('username', '=', $user_name)->first();
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
 
-        if(isset($user)){
+        if(isset($cluster)){
                 
             $reservation = Reservation::find($id);
 
@@ -398,7 +432,7 @@ class ReservationController extends Controller
                 App::abort(404, 'Reservation not found');
                         
         }else{
-            App::abort(404, 'user not found');
+            App::abort(404, 'cluster not found');
         }
     }
 }
