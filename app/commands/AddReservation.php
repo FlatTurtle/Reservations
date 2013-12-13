@@ -50,10 +50,10 @@ class AddReservation extends Command {
         $available = false;
 
         foreach ($opening_hours as $opening_hour) {
-            if ($from < $opening_hour->validFrom) {
+            if ($from < strtotime($opening_hour->validFrom)) {
                 return false;
             }
-            if ($to > $opening_hour->validThrough) {
+            if ($to > strtotime($opening_hour->validThrough)) {
                 return false;
             }
 
@@ -109,6 +109,11 @@ class AddReservation extends Command {
 
         //get things available for reservation and display them
         $things = Entity::where('type', '!=', 'amenity')->where('user_id', '=', $user->id)->get();
+        if (!count($things)) {
+            $this->comment("There is nothing to be reserved.");
+            return;
+        }
+
         foreach($things as $thing) {
             $this->info("{$thing->name} [{$thing->id}]");
         }
