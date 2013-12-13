@@ -323,6 +323,13 @@ class EntityController extends Controller {
                         return true;
                     }
                 );
+
+                $content = Request::instance()->getContent(); 
+                if (empty($content)) 
+                  App::abort(400, 'Payload is null');
+                if (Input::json() == null)
+                  App::abort(400, "JSON payload is invalid.");
+                
                 $room_validator = Validator::make(
                     Input::json()->all(),
                     array(
@@ -439,8 +446,6 @@ class EntityController extends Controller {
                                 foreach ($value['properties'] as $property) {
                                     $this->_validateProperty($property);
                                 }
-
-
                             } else {
                                 $this->sendErrorMessage($schema_validator);
                             }
@@ -450,6 +455,12 @@ class EntityController extends Controller {
                         return true;
                     }
                 );
+
+                $content = Request::instance()->getContent(); 
+                if (empty($content)) 
+                  App::abort(400, 'Payload is null.');
+                if (Input::json() == null)
+                  App::abort(400, "JSON payload is invalid.");
 
                 $amenity_validator = Validator::make(
                     Input::json()->all(),

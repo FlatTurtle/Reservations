@@ -235,7 +235,12 @@ class ReservationController extends Controller
                                       return true;
                                   });
 
-            
+                $content = Request::instance()->getContent(); 
+                if (empty($content)) 
+                  App::abort(400, 'Payload is null.');
+                if (Input::json() == null)
+                  App::abort(400, "JSON payload is invalid.");
+
                 $reservation_validator = Validator::make(
                     Input::json()->all(),
                     array(
@@ -342,7 +347,12 @@ class ReservationController extends Controller
                                       return true;
                                   });
 
-            
+                $content = Request::instance()->getContent(); 
+                if (empty($content)) 
+                  App::abort(400, 'Payload is null.');
+                if (Input::json() == null)
+                  App::abort(400, "JSON payload is invalid.");
+
                 $reservation_validator = Validator::make(
                     Input::json()->all(),
                     array(

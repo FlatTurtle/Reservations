@@ -175,8 +175,8 @@ class AddThing extends Command {
         	array_push(
         		$opening_hours,
         		array(
-        			'validFrom' => $valid_from,
-        			'validThrough' => $valid_through,
+        			'validFrom' => date('c', $valid_from),
+        			'validThrough' => date('c', $valid_through),
         			'dayOfWeek' => $day,
         			'opens' => $opens,
         			'closes' => $closes
@@ -323,7 +323,7 @@ class AddThing extends Command {
         $body['contact'] = $contact;
         $body['support'] = $support;
         $body['amenities'] = $_amenities;
-		$thing->body = json_encode($body);
+		    $thing->body = json_encode($body);
         $thing->save();
         $this->info("Thing successfully saved");
 	}

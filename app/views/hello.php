@@ -43,8 +43,8 @@
               "opens" : ["09:00", "13:00"],
               "closes" : ["12:00", "17:00"],
               "dayOfWeek" : 1,
-              "validFrom" : 1382202015,
-              "validThrough" : 1382202015
+              "validFrom" : "2013-09-26T12:00Z",
+              "validThrough" : "2013-09-26T12:00Z" 
           }
       ],
       "description" : "Deep Blue is located near the start-up garage.",
@@ -94,8 +94,8 @@
                 "opens": ["09:00", "13:00"],
                 "closes": ["12:00", "17:00"],
                 "dayOfWeek": 1,
-                "validFrom": 1382202015,
-                "validThrough": 1382202015
+                "validFrom": "2013-09-26T12:00Z",
+                "validThrough": "2013-09-26T12:00Z"
             }
         ],
         "description": "DeepBlueislocatednearthestart-upgarage.",
