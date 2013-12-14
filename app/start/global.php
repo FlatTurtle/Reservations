@@ -15,6 +15,7 @@ ClassLoader::addDirectories(array(
 
         app_path().'/commands',
         app_path().'/providers',
+        app_path().'/validators',
         app_path().'/controllers',
         app_path().'/models',
         app_path().'/database/seeds',
@@ -70,6 +71,14 @@ App::down(function()
         return Response::make("Be right back!", 503);
 });
 
+Validator::extend('hours', 'EntityValidator@validateHours');
+Validator::extend('opening_hours', 'EntityValidator@validateOpeningHours');
+Validator::extend('price', 'EntityValidator@validatePrice');
+Validator::extend('map', 'EntityValidator@validateMap');
+Validator::extend('location', 'EntityValidator@validateLocation');
+Validator::extend('amenities', 'EntityValidator@validateAmenities');
+Validator::extend('body', 'EntityValidator@validateBody');
+Validator::extend('time', 'ReservationValidator@validateTime');
 /*
 |--------------------------------------------------------------------------
 | Require The Filters File
