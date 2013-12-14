@@ -11,7 +11,64 @@
 class ReservationController extends Controller
 {
 
+     /**
+     * Verify if a room is available by checking its $opening_hours
+     * agains the $reservation_time.
+     * @param opening_hours : the room's opening hours
+     * @param reservation_time : the reservation's time (from & to)
+     */
+      private function isAvailable($opening_hours, $reservation_time)
+      {
 
+          $from = strtotime($reservation_time['from']);
+          $to = strtotime($reservation_time['to']);
+          $available = false;
+          foreach ($opening_hours as $opening_hour) {
+              if ($from < strtotime($opening_hour->validFrom)) {
+                  return false;
+              }
+              if ($to > strtotime($opening_hour->validThrough)) {
+                  return false;
+              }
+
+              /* 
+               * We do not support reservation that goes on multiple days,
+               * if a user wants to book an entity on multiple days he had to
+               * do reservations for each day
+               */
+
+              //compare dayOfWeek with the day value of $from and $to
+              if ($opening_hour->dayOfWeek == date('N', $from)
+                  && $opening_hour->dayOfWeek == date('N', $to)
+              ) {
+                  $i=0;
+                  foreach (array_combine($opening_hour->opens, $opening_hour->closes) 
+                    as $open => $close) {
+                      /* open an close values are formatted as H:m and dayOfWeek 
+                          is the same so we compare timestamp between $from, $to,
+                          $open and $close and the same day. */
+                      if (strtotime(date('Y-m-d H:m', $from)) >=
+                          strtotime(date('Y-m-d', $from) . $open)
+                      )
+                      $i++;
+                      if (
+                        strtotime(date('Y-m-d H:m', $from)) < strtotime(date('Y-m-d', $from) . $close)
+                      )
+                          $i--;
+                      if (
+                        strtotime(date('Y-m-d H:m', $to)) > strtotime(date('Y-m-d', $to) . $open)
+                      )
+                          $i++;
+                      if (
+                        strtotime(date('Y-m-d H:m', $to)) <= strtotime(date('Y-m-d', $to) . $close)
+                      )
+                      $i--;
+                  }
+                  if (!$i) $available=true;
+              }
+          }
+          return $available;
+      }
     /**
      * This function throw an error 400 and provide error messages
      * from validator $validator in JSON.
@@ -129,72 +186,7 @@ class ReservationController extends Controller
 
         
 
-    /**
-     * Verify if a room is available by checking its $opening_hours
-     * agains the $reservation_time.
-     * @param opening_hours : the room's opening hours
-     * @param reservation_time : the reservation's time (from & to)
-     */
-    private function isAvailable($opening_hours, $reservation_time)
-    {
-
-        $from = strtotime($reservation_time['from']);
-        $to = strtotime($reservation_time['to']);
-        $available = false;
-        foreach ($opening_hours as $opening_hour) {
-            if ($from < strtotime($opening_hour->validFrom)) {
-                return false;
-            }
-            if ($to > strtotime($opening_hour->validThrough)) {
-                return false;
-            }
-
-            /* 
-             * We do not support reservation that goes on multiple days,
-             * if a user wants to book an entity on multiple days he had to
-             * do reservations for each day
-             */
-
-            //compare dayOfWeek with the day value of $from and $to
-            if ($opening_hour->dayOfWeek == date('N', $from)
-                && $opening_hour->dayOfWeek == date('N', $to)
-            ) {
-                $i=0;
-                foreach (array_combine($opening_hour->opens, $opening_hour->closes) 
-                  as $open => $close) {
-                    /* open an close values are formatted as H:m and dayOfWeek 
-                        is the same so we compare timestamp between $from, $to,
-                        $open and $close and the same day. */
-                    if (strtotime(date('Y-m-d H:m', $from)) >=
-                        strtotime(date('Y-m-d', $from) . $open)
-                    )
-                    $i++;
-                    if (
-                      strtotime(date('Y-m-d H:m', $from)) < strtotime(date('Y-m-d', $from) . $close)
-                    )
-                        $i--;
-                    if (
-                      strtotime(date('Y-m-d H:m', $to)) > strtotime(date('Y-m-d', $to) . $open)
-                    )
-                        $i++;
-                    if (
-                      strtotime(date('Y-m-d H:m', $to)) <= strtotime(date('Y-m-d', $to) . $close)
-                    )
-                    $i--;
-                }
-                if (!$i) $available=true;
-            }
-        }
-        return $available;
-    }
-
-    /**
-     * Check if a date is a valid ISO8601 formatted date.
-     * @param $date : the date to check
-     */
-    private function isValidISO8601($date) {
-        return preg_match('/^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/', $date) > 0 ;
-    }
+    
 
     /**
      * Create a new reservation for a authenticated user.
@@ -207,33 +199,6 @@ class ReservationController extends Controller
         if(isset($cluster)){
 
             if(!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
-                
-                Validator::extend('time', function($attribute, $value, $parameters)
-                {
-                    if(!isset($value['from']) || !isset($value['to']))
-                        return false;
-                    //check against ISO8601 regex
-                    if(!(preg_match('/^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/', $value['from']) > 0))
-                        return false;
-                    if(!(preg_match('/^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/', $value['to']) > 0))
-                        return false;
-                    $from=strtotime($value['from']);
-                    $to=strtotime($value['to']);
-                    $now = time();
-                    $span = (int) Config::get('app.reservation_time_span');
-
-                    if(!$from || !$to)
-                        return false;
-                    if($from < $now - $span)
-                        return false;
-                    if ($to < $now - $span)
-                        return false;
-                    if ($to < $from)
-                        return false;
-                    if (($to-$from) < $span)
-                        return false;
-                    return true;
-                });
 
                 $content = Request::instance()->getContent(); 
                 if (empty($content)) 
