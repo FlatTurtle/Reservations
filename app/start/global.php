@@ -96,8 +96,22 @@ require app_path().'/filters.php';
 Route::filter('auth.basic', function()
 {
     Config::set('auth.model', 'Cluster');
-    return Auth::basic('clustername');
+    Auth::basic('clustername');
+    if (Auth::guest()) {
+        return Response::json(array(
+              "success" => 0,
+              "errors" => array(
+                array(
+                  "code" => 401,
+                  "type" => "Invalid credentials",
+                  "message" => "The credentials you provided are invalid."
+                )
+              )
+            ), 401);
+    }
+    return;
 });
+
 
 
 use Hautelook\Phpass\PasswordHash;
