@@ -15,6 +15,7 @@ ClassLoader::addDirectories(array(
 
         app_path().'/commands',
         app_path().'/providers',
+        app_path().'/validators',
         app_path().'/controllers',
         app_path().'/models',
         app_path().'/database/seeds',
@@ -70,6 +71,15 @@ App::down(function()
         return Response::make("Be right back!", 503);
 });
 
+Validator::extend('schema_type', 'EntityValidator@validateSchemaType');
+Validator::extend('hours', 'EntityValidator@validateHours');
+Validator::extend('opening_hours', 'EntityValidator@validateOpeningHours');
+Validator::extend('price', 'EntityValidator@validatePrice');
+Validator::extend('map', 'EntityValidator@validateMap');
+Validator::extend('location', 'EntityValidator@validateLocation');
+Validator::extend('amenities', 'EntityValidator@validateAmenities');
+Validator::extend('body', 'EntityValidator@validateBody');
+Validator::extend('time', 'ReservationValidator@validateTime');
 /*
 |--------------------------------------------------------------------------
 | Require The Filters File
@@ -85,24 +95,32 @@ require app_path().'/filters.php';
 
 Route::filter('auth.basic', function()
 {
-    Config::set('auth.model', 'User');
-    return Auth::basic('username');
+    Config::set('auth.model', 'Cluster');
+    Auth::basic('clustername');
+    if (Auth::guest()) {
+        return Response::json(array(
+              "success" => 0,
+              "errors" => array(
+                array(
+                  "code" => 401,
+                  "type" => "Invalid credentials",
+                  "message" => "The credentials you provided are invalid."
+                )
+              )
+            ), 401);
+    }
+    return;
 });
 
-Route::filter('auth.basic.once', function()
-{
-    Config::set('auth.model', 'User');
-    return Auth::onceBasic('username');
-});
+
 
 use Hautelook\Phpass\PasswordHash;
 use Illuminate\Auth\Guard;
-use Illuminate\Session\Store;
-Auth::extend('flatturtle_phpass', function()
+Auth::extend('flatturtle_phpass', function($app)
 {
     $hasher = new PasswordHash(8,false);
     return new Guard(
-        new FlatTurtleUserProvider($hasher, 'User'),
-        $this->app['session.store']  
+        new FlatTurtleClusterProvider($hasher, 'Cluster'),
+        $app['session.store']
     );
 });

@@ -11,7 +11,65 @@
 class ReservationController extends Controller
 {
 
+     /**
+     * Verify if a room is available by checking its $opening_hours
+     * agains the $reservation_time.
+     * @param opening_hours : the room's opening hours
+     * @param reservation_time : the reservation's time (from & to)
+     */
+      private function isAvailable($opening_hours, $reservation_time)
+      {
 
+          $from = strtotime($reservation_time['from']);
+          $to = strtotime($reservation_time['to']);
+          $available = false;
+          foreach ($opening_hours as $opening_hour) {
+              if ($from < strtotime($opening_hour->validFrom)) {
+                  return false;
+              }
+              if ($to > strtotime($opening_hour->validThrough)) {
+                  return false;
+              }
+
+              /* 
+               * We do not support reservation that goes on multiple days,
+               * if a user wants to book an entity on multiple days he had to
+               * do reservations for each day
+               */
+
+              //compare dayOfWeek with the day value of $from and $to
+              if ($opening_hour->dayOfWeek == date('N', $from)
+                  && $opening_hour->dayOfWeek == date('N', $to)
+              ) {
+                  $i=0;
+                  foreach (array_combine($opening_hour->opens, $opening_hour->closes) 
+                    as $open => $close) {
+                      /* open an close values are formatted as H:m and dayOfWeek 
+                          is the same so we compare timestamp between $from, $to,
+                          $open and $close and the same day. */
+                      if (strtotime(date('Y-m-d H:m', $from)) >=
+                          strtotime(date('Y-m-d', $from) . $open)
+                      )
+                      $i++;
+                      if (
+                        strtotime(date('Y-m-d H:m', $from)) < strtotime(date('Y-m-d', $from) . $close)
+                      )
+                          $i--;
+                      if (
+                        strtotime(date('Y-m-d H:m', $to)) > strtotime(date('Y-m-d', $to) . $open)
+                      )
+                      $i++;
+                      if (
+                        strtotime(date('Y-m-d H:m', $to)) <= strtotime(date('Y-m-d', $to) . $close)
+                      )
+                      $i--;
+                      if (!$i) $available=true;
+                  }
+                  
+              }
+          }
+          return $available;
+      }
     /**
      * This function throw an error 400 and provide error messages
      * from validator $validator in JSON.
@@ -19,195 +77,172 @@ class ReservationController extends Controller
      * @param validator : a Laravel validator
      * @return
      */
-    private function _sendErrorMessage($validator)
+    private function _sendValidationErrorMessage($validator)
     {
+        $s = array("success" => 0, "errors" => array());
         $messages = $validator->messages();
-        $s = "JSON does not validate. Violations:\n";
         foreach ($messages->all() as $message) {
-            $s .= "$message\n";
+            array_push($s["errors"], array("code" => 400, "type" => "ValidationError", "message" => $message));
         }
-        App::abort(400, $s);
+        App::abort(400, json_encode($s));
+    }
+
+    private function _sendErrorMessage($code, $type, $message) {
+        App::abort(404, 
+          json_encode(
+            array(
+              "success" => 0,
+              "errors" => array(
+                array(
+                  "code" => $code,
+                  "type" => $type,
+                  "message" => $message
+                )
+              )
+            )
+          )
+        );
     }
 
     /**
      * Return a list of reservations that the user has made for the current day.
      * Day can be change by providing a 'day' as GET parameter.
      *
-     * @param user_name : the user's name
+     * @param clustername : the cluster's name
      * @return 
      */ 
-    public function getReservations($user_name)
+    public function getReservations($clustername)
     {
-        $user = User::where('username', '=', $user_name)->first();
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
 
-        if (isset($user)) {
+        if (isset($cluster)) {
             /*  Announce value is json encoded in db so we first retrieve 
                 reservations from db, decode announce json and return 
                 reservations to the user */
-            if (Input::get('day')!=null) {
-                $day = strtotime(Input::get('day'));    
-                $_reservations = Reservation::where('user_id', '=', $user->id)
-                ->where('from', '>=', $day)
-                ->where('from', '<=', $day)
-                ->get()
-                ->toArray();
-            }else{
-                $_reservations = Reservation::where('user_id', '=', $user->id)->get()->toArray();
-            }
+            if (Input::get('day')!=null)
+                $from = strtotime(Input::get('day'));
+            else
+                $from = mktime(0,0,0);
+
+            $to = $from+(60*60*24);
+            $_reservations = DB::select(
+                  'select * from reservation where user_id = ? 
+                  AND UNIX_TIMESTAMP(`from`) >= ? 
+                  AND UNIX_TIMESTAMP(`to`) <= ?', 
+                  array($cluster->user->id, $from, $to));
+
             //FIXME : return entity name instead of id ?
             $reservations = array();
             foreach($_reservations as $reservation){
-                $reservation['announce'] = json_decode($reservation['announce']);
+                $reservation->from = date('c', strtotime($reservation->from));
+                $reservation->to = date('c', strtotime($reservation->to));
+                $reservation->announce = json_decode($reservation->announce);
                 array_push($reservations, $reservation);
             }
             return Response::json($reservations);
 
         }else{
-          App::abort(404, 'user not found');
+          $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found");
         }
     }
 
     /**
      * Return a the reservation that has id $id.
-     * @param user_name : the user's name
+     * @param clustername : the cluster's name
      * @param id : the id of the reservation to be deleted
      */
-    public function getReservation($user_name, $id)
+    public function getReservation($clustername, $id)
     {
-        $user = User::where('username', '=', $user_name)->first();
-        if (isset($user)) {
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
+        if (isset($cluster)) {
             $reservation = Reservation::find($id);
             if(isset($reservation)) {
+                $reservation->from = date('c', strtotime($reservation->from));
+                $reservation->to = date('c', strtotime($reservation->to));
                 return Response::json($reservation);
             } else {
-                App::abort(404, 'Reservation not found.');
+              $this->_sendErrorMessage(404, "Reservation.NotFound", "Reservation not found");
             }
         } else {
-            App::abort(404, 'user not found');
+          $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found");
+        }
+    }
+
+    /**
+     * Return a the reservation that has id $id.
+     * @param clustername : the user's name
+     * @param name : the thing's name
+     */
+    public function getReservationsByThing($clustername, $name)
+    {
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
+        if (isset($cluster)) {
+            $thing = Entity::where('user_id', '=', $cluster->user->id)->where('name', '=', $name)->first();
+            if (isset($thing)) {
+
+              if (Input::get('day')!=null)
+                $from = strtotime(Input::get('day'));
+              else
+                  $from = mktime(0,0,0);
+              $to = $from+(60*60*24);
+
+              $_reservations = DB::select(
+                  'select * from reservation where user_id = ?
+                  AND entity_id = ? 
+                  AND UNIX_TIMESTAMP(`from`) > ? 
+                  AND UNIX_TIMESTAMP(`to`) < ?', 
+                  array($cluster->user->id, $thing->id, $from, $to));
+              $reservations = array();
+              foreach($_reservations as $reservation){
+                $reservation->from = date('c', strtotime($reservation->from));
+                $reservation->to = date('c', strtotime($reservation->to));
+                $reservation->announce = json_decode($reservation->announce);
+                array_push($reservations, $reservation);
+              }
+              return Response::json($reservations);
+            } else{
+              $this->_sendErrorMessage(404, "Thing.NotFound", "Thing not found");
+            }
+        } else {
+            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found");
         }
     }
 
         
 
-    /**
-     * Verify if a room is available by checking its $opening_hours
-     * agains the $reservation_time.
-     * @param opening_hours : the room's opening hours
-     * @param reservation_time : the reservation's time (from & to)
-     */
-    private function isAvailable($opening_hours, $reservation_time)
-    {
-
-        $from = strtotime($reservation_time['from']);
-        $to = strtotime($reservation_time['to']);
-        $available = false;
-        foreach ($opening_hours as $opening_hour) {
-            if ($from < strtotime($opening_hour->validFrom)) {
-                return false;
-            }
-            if ($to > strtotime($opening_hour->validThrough)) {
-                return false;
-            }
-
-            /* 
-             * We do not support reservation that goes on multiple days,
-             * if a user wants to book an entity on multiple days he had to
-             * do reservations for each day
-             */
-
-            //compare dayOfWeek with the day value of $from and $to
-            if ($opening_hour->dayOfWeek == date('N', $from)
-                && $opening_hour->dayOfWeek == date('N', $to)
-            ) {
-                $i=0;
-                foreach (array_combine($opening_hour->opens, $opening_hour->closes) 
-                  as $open => $close) {
-                    /* open an close values are formatted as H:m and dayOfWeek 
-                        is the same so we compare timestamp between $from, $to,
-                        $open and $close and the same day. */
-                    if (strtotime(date('Y-m-d H:m', $from)) >=
-                        strtotime(date('Y-m-d', $from) . $open)
-                    )
-                    $i++;
-                    if (
-                      strtotime(date('Y-m-d H:m', $from)) < strtotime(date('Y-m-d', $from) . $close)
-                    )
-                        $i--;
-                    if (
-                      strtotime(date('Y-m-d H:m', $to)) > strtotime(date('Y-m-d', $to) . $open)
-                    )
-                        $i++;
-                    if (
-                      strtotime(date('Y-m-d H:m', $to)) <= strtotime(date('Y-m-d', $to) . $close)
-                    )
-                    $i--;
-                }
-                if (!$i) $available=true;
-            }
-        }
-        return $available;
-    }
-
-    /**
-     * Check if a date is a valid ISO8601 formatted date.
-     * @param $date : the date to check
-     */
-    private function isValidISO8601($date) {
-        return preg_match('/^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/', $date) > 0 ;
-    }
+    
 
     /**
      * Create a new reservation for a authenticated user.
-     * @param $user_name : user's name from url.
+     * @param $clustername : cluster's name from url.
      *
      */
-    public function createReservation($user_name){
+    public function createReservation($clustername){
 
-        
-        $user = User::where('username', '=', $user_name)->first();
-        if(isset($user)){
+        $content = Request::instance()->getContent(); 
+        if (empty($content)) 
+          $this->_sendErrorMessage(400, "Payload.Null", "Received payload is empty.");
+        if (Input::json() == null)
+          $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
 
-            if(!strcmp($user_name, Auth::user()->username) || Auth::user()->isAdmin()){
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
+        if(isset($cluster)){
+
+            if(!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
                 
-                Validator::extend('type', function($attribute, $value, $parameters)
-                                  {
-                                      $types = array('room', 'amenity');
-                                      return in_array($value, $types);
-                                  });
+                
 
-                Validator::extend('time', function($attribute, $value, $parameters)
-                                  {
-                                      if(!isset($value['from']) || !isset($value['to']))
-                                          return false;
-                                      //check against ISO8601 regex
-                                      if(!$this->isValidISO8601($value['from']))
-                                          return false;
-                                      if(!$this->isValidISO8601($value['to']))
-                                          return false;
-                                      $from=strtotime($value['from']);
-                                      $to=strtotime($value['to']);
-                                      $now = time();
-                                      $span = (int) Config::get('app.reservation_time_span');
+                $thing_uri = Input::json()->get('thing');
+                $thing_name = explode('/', $thing_uri);
+                $thing_name = $thing_name[count($thing_name)-1];
+                $thing_uri = str_replace($thing_name, '', $thing_uri); 
+                Input::json()->set('thing', $thing_uri);
 
-                                      if(!$from || !$to)
-                                          return false;
-                                      if($from < $now - $span)
-                                          return false;
-                                      if ($to < $now - $span)
-                                          return false;
-                                      if ($to < $from)
-                                          return false;
-                                      if (($to-$from) < $span)
-                                          return false;
-                                      return true;
-                                  });
-
-            
                 $reservation_validator = Validator::make(
-                    Input::all(),
+                    Input::json()->all(),
                     array(
-                        'entity' => 'required',
-                        'type' => 'required|type',
+                        'thing' => 'required|url',
+                        'type' => 'required',
                         'time' => 'required|time',
                         'comment' => 'required',
                         'subject' => 'required',
@@ -218,112 +253,97 @@ class ReservationController extends Controller
 
                 if(!$reservation_validator->fails()){
 
-                    $entity = Entity::where('name', '=', Input::get('entity'))
-                        ->where('type', '=', Input::get('type'))
-                        ->where('user_id', '=', $user->id)->first();
+                    $thing = Entity::where('name', '=', $thing_name)
+                        ->where('type', '=', Input::json()->get('type'))
+                        ->where('user_id', '=', $cluster->user->id)->first();
                                         
-                    if(!isset($entity)){
-                        App::abort(404, "Entity not found");
+                    if(!isset($thing)){
+                        $this->_sendErrorMessage(404, "Thing.NotFound", "Thing not found.");
                     }else{
-                        $time = Input::get('time');
-                        if($this->isAvailable(json_decode($entity->body)->opening_hours, $time)){
+                        $time = Input::json()->get('time');
+                        if($this->isAvailable(json_decode($thing->body)->opening_hours, $time)){
 
-                            //FIXME
-                            $from = date("U",strtotime($time['from']));
-                            $to = date("U",strtotime($time['to']));
+                            //timestamps are UTC so we convert dates to UTC timezone
 
-                            $reservation = Reservation::where('from', '>=', $from)->where('to', '<=', $to)->where('entity_id', '=', $entity->id)->first();
+                            $from = new DateTime($time['from']);
+                            $to = new DateTime($time['to']);
 
-                            if(isset($reservation)){
-                                App::abort(400, 'The entity is already reserved at that time');
+                            $reservation = DB::select(
+                              'select * from reservation where user_id = ?
+                              AND entity_id = ? 
+                              AND ((
+                                ? BETWEEN UNIX_TIMESTAMP(`from`)+60 AND UNIX_TIMESTAMP(`to`)-60
+                              )
+                              OR (
+                                ? BETWEEN UNIX_TIMESTAMP(`from`)+60 AND UNIX_TIMESTAMP(`to`)-60
+                              )
+                              OR (
+                                ? = UNIX_TIMESTAMP(`from`) AND ? = UNIX_TIMESTAMP(`to`)
+                              )
+                            )
+                            ', 
+                            array($cluster->user->id, $thing->id, $from->getTimestamp(), $to->getTimestamp(), $from->getTimestamp(), $to->getTimestamp()));
+
+                            if(!empty($reservation)){
+                                $this->_sendErrorMessage(404, "Thing.AlreadyReserved", "The thing is already reserved at that time.");
                             }else{
                                 return Reservation::create(
                                     array(
                                         'from' => $from,
                                         'to' => $to,
-                                        'subject' => Input::get('subject'),
-                                        'comment' => Input::get('comment'),
-                                        'announce' => json_encode(Input::get('announce')),
-                                        'entity_id' => $entity->id,
-                                        'user_id' => $user->id,
+                                        'subject' => Input::json()->get('subject'),
+                                        'comment' => Input::json()->get('comment'),
+                                        'announce' => json_encode(Input::json()->get('announce')),
+                                        'entity_id' => $thing->id,
+                                        'user_id' => $cluster->user->id,
                                     )
                                 );
                             }
                         }else{
-                            App::abort(400, 'The entity is not available at that time');
-                        }
-                                                
+                          $this->_sendErrorMessage(404, "Thing.Unavailable", "The thing is unavailable at that time.");
+                        }                      
                     }
                 }else{
-                    $this->_sendErrorMessage($reservation_validator);
+                    $this->_sendValidationErrorMessage($reservation_validator);
                 }
-                                
-                                
             }else{
-                App::abort(403, "You are not allowed to make reservations for another user");
+                $this->_sendErrorMessage(403, "WriteAccessForbiden", "You can't make reservations on behalf of another user.");
             }
         }else{
-            App::abort(404, 'user not found');
+            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 
     /**
      * Create a new reservation for a authenticated user.
-     * @param $user_name : user's name from url.
+     * @param $clustername : cluster's name from url.
      *
      */
-    public function updateReservation($user_name, $id){
+    public function updateReservation($clustername, $id){
 
         
-        $user = User::where('username', '=', $user_name)->first();
-        if(isset($user)){
-
-            /* we pass the basicauth so we can compare 
-               this username with the url {user_name}*/
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
+        if(isset($cluster)){
                         
-            $username = Request::header('php-auth-user');
-            $client = User::where('username', '=', $username)->first();
-            if(!strcmp($user_name, $username) || $client->isAdmin()){
+            if(!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
                 
-                Validator::extend('type', function($attribute, $value, $parameters)
-                                  {
-                                      $types = array('room', 'amenity');
-                                      return in_array($value, $types);
-                                  });
+                $content = Request::instance()->getContent(); 
+                if (empty($content)) 
+                  $this->_sendErrorMessage(400, "Payload.Null", "Received payload is empty.");
+                if (Input::json() == null)
+                  $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
 
-                Validator::extend('time', function($attribute, $value, $parameters)
-                                  {
-                                      if(!isset($value['from']) || !isset($value['to']))
-                                          return false;
-                                      //check against ISO8601 regex
-                                      if(!$this->isValidISO8601($value['from']))
-                                          return false;
-                                      if(!$this->isValidISO8601($value['to']))
-                                          return false;
+                $thing_uri = Input::json()->get('thing');
+                $thing_name = explode('/', $thing_uri);
+                $thing_name = $thing_name[count($thing_name)-1];
+                $thing_uri = str_replace($thing_name, '', $thing_uri); 
+                Input::json()->set('thing', $thing_uri);
 
-                                      $from=strtotime($value['from']);
-                                      $to=strtotime($value['to']);
-
-                                      if(!$from || !$to)
-                                          return false;
-                
-                                      if($from < (time()-Config::get('app.reservation_time_span')))
-                                          return false;
-                                      if ($to < (time() - Config::get('app.reservation_time_span')))
-                                          return false;
-                                      if ($to < $from)
-                                          return false;
-                                      if (($to-$from) < Config::get('app.reservation_time_span'))
-                                          return false;
-                                      return true;
-                                  });
-
-            
                 $reservation_validator = Validator::make(
-                    Input::all(),
+                    Input::json()->all(),
                     array(
-                        'entity' => 'required',
-                        'type' => 'required|type',
+                        'thing' => 'required|url',
+                        'type' => 'required',
                         'time' => 'required|time',
                         'comment' => 'required',
                         'subject' => 'required',
@@ -331,74 +351,95 @@ class ReservationController extends Controller
                     )
                 );
 
-
                 if(!$reservation_validator->fails()){
 
-                    $entity = Entity::where('name', '=', Input::get('entity'))
-                        ->where('type', '=', Input::get('type'))
-                        ->where('user_id', '=', $user->id)->first();
+                    $entity_name = explode('/', Input::json()->get('thing'));
+                    $entity_name = $entity_name[count($entity_name)-1];
+
+                    $entity = Entity::where('name', '=', $entity_name)
+                        ->where('type', '=', Input::json()->get('type'))
+                        ->where('user_id', '=', $cluster->user->id)->first();
                                         
                     if(!isset($entity)){
-                        App::abort(404, "Entity not found");
+                        $this->_sendErrorMessage(404, "Thing.NotFound", "Thing not found.");
                     }else{
-                        $time = Input::get('time');
-                        if($this->isAvailable(json_decode($entity->body)->opening_hours, $time)){
+                        $reservation = Reservation::find($id);
+                        if($reservation->exists){
+                          $time = Input::json()->get('time');
+                          if($this->isAvailable(json_decode($entity->body)->opening_hours, $time)){
+                            //timestamps are UTC so we convert dates to UTC timezone
+                            $from = new DateTime($time['from']);
+                            $to = new DateTime($time['to']); 
+                            $from->setTimezone(new DateTimeZone('UTC'));
+                            $to->setTimezone(new DateTimeZone('UTC'));
 
-                            //FIXME
-                            $from = date("U",strtotime($time['from']));
-                            $to = date("U",strtotime($time['to']));
+                            $reservation = DB::select(
+                              'select * from reservation where user_id = ?
+                              AND entity_id = ? 
+                              AND ((
+                                ? BETWEEN UNIX_TIMESTAMP(`from`)+60 AND UNIX_TIMESTAMP(`to`)-60
+                              )
+                              OR (
+                                ? BETWEEN UNIX_TIMESTAMP(`from`)+60 AND UNIX_TIMESTAMP(`to`)-60
+                              )
+                              OR (
+                                ? = UNIX_TIMESTAMP(`from`) AND ? = UNIX_TIMESTAMP(`to`)
+                              )
+                            )
+                            ', 
+                            array($cluster->user->id, $thing->id, $from->getTimestamp(), $to->getTimestamp(), $from->getTimestamp(), $to->getTimestamp()));
 
-                            $reservation = Reservation::find($id);
-
-                            if($reservation->exists){
-                                $reservation->from = $from;
-                                $reservation->to = $to;
-                                $reservation->subject = Input::get('subject');
-                                $reservation->comment = Input::get('comment');
-                                $reservation->announce = json_encode(Input::get('announce'));
-                                $reservation->entity_id = $entity->id;
-                                $reservation->user_id = $user->id;
-                                return $reservation->save();
+                            if(!empty($reservation)){
+                                $this->_sendErrorMessage(404, "Thing.AlreadyReserved", "The thing is already reserved at that time.");
+                            }else{
+                                  $reservation->from = $from;
+                                  $reservation->to = $to;
+                                  $reservation->subject = Input::json()->get('subject');
+                                  $reservation->comment = Input::json()->get('comment');
+                                  $reservation->announce = json_encode(Input::json()->get('announce'));
+                                  $reservation->entity_id = $entity->id;
+                                  $reservation->user_id = $cluster->user->id;
+                                  return $reservation->save();
                             }
-                                                        
+                            
                         }else{
-                            App::abort(400, 'The entity is not available at that time');
+                            $this->_sendErrorMessage(404, "Thing.Unavailable", "The thing is unavailable at that time.");
                         }
-                                                
+                      }
                     }
                 }else{
-                    $this->_sendErrorMessage($reservation_validator);
+                    $this->_sendValidationErrorMessage($reservation_validator);
                 }
                                 
                                 
             }else{
-                App::abort(403, "You are not allowed to make reservations for another user");
+                $this->_sendErrorMessage(403, "WriteAccessForbiden", "You can't make reservations on behalf of another user.");
             }
         }else{
-            App::abort(404, 'user not found');
+            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 
     /**
      * Cancel the reservation with id $id by deleting it from database.
-     * @param $user_name : the user's name
+     * @param $clustername : the cluster's name
      * @param $id : the reservation's id
      */
-    public function deleteReservation($user_name, $id) {
+    public function deleteReservation($clustername, $id) {
         
-        $user = User::where('username', '=', $user_name)->first();
+        $cluster = Cluster::where('clustername', '=', $clustername)->first();
 
-        if(isset($user)){
+        if(isset($cluster)){
                 
             $reservation = Reservation::find($id);
 
             if(isset($reservation))
                 $reservation->delete();
             else
-                App::abort(404, 'Reservation not found');
+                $this->_sendErrorMessage(404, "Reservation.NotFound", "Reservation not found.");
                         
         }else{
-            App::abort(404, 'user not found');
+            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 }

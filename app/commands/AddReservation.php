@@ -1,9 +1,11 @@
 <?php
+date_default_timezone_set('UTC');
+
 
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
-
+use Carbon\Carbon;
 /**
  * Artisan CLI extension to create reservations
  *
@@ -50,10 +52,10 @@ class AddReservation extends Command {
         $available = false;
 
         foreach ($opening_hours as $opening_hour) {
-            if ($from < $opening_hour->validFrom) {
+            if ($from < strtotime($opening_hour->validFrom)) {
                 return false;
             }
-            if ($to > $opening_hour->validThrough) {
+            if ($to > strtotime($opening_hour->validThrough)) {
                 return false;
             }
 
@@ -67,22 +69,27 @@ class AddReservation extends Command {
             if ($opening_hour->dayOfWeek == date('N', $from)
                 && $opening_hour->dayOfWeek == date('N', $to)
             ) {
-                $i=0;
+                
                 foreach (array_combine($opening_hour->opens, $opening_hour->closes) 
                   as $open => $close) {
+                    $i=0;
                     /* open an close values are formatted as H:m and dayOfWeek 
                         is the same so we compare timestamp between $from, $to,
                         $open and $close and the same day. */
-                    if (strtotime(date('Y-m-d H:m', $from)) >= strtotime(date('Y-m-d', $from) . $open))
+                    if (strtotime(date('Y-m-d H:m', $from)) >= strtotime(date('Y-m-d', $from) . $open)) {
                         $i++;
-                    if (strtotime(date('Y-m-d H:m', $from)) < strtotime(date('Y-m-d', $from) . $close))
+                    }
+                    if (strtotime(date('Y-m-d H:m', $from)) < strtotime(date('Y-m-d', $from) . $close)) {
                         $i--;
-                    if (strtotime(date('Y-m-d H:m', $to)) > strtotime(date('Y-m-d', $to) . $open))
+                    }
+                    if (strtotime(date('Y-m-d H:m', $to)) > strtotime(date('Y-m-d', $to) . $open)) {
                         $i++;
-                    if (strtotime(date('Y-m-d H:m', $to)) <= strtotime(date('Y-m-d', $to) . $close))
+                    }
+                    if (strtotime(date('Y-m-d H:m', $to)) <= strtotime(date('Y-m-d', $to) . $close)) {
                         $i--;
+                    }
+                    if (!$i) $available=true;
                 }
-                if (!$i) $available=true;
             }
         }
         return $available;
@@ -104,6 +111,11 @@ class AddReservation extends Command {
 
         //get things available for reservation and display them
         $things = Entity::where('type', '!=', 'amenity')->where('user_id', '=', $user->id)->get();
+        if (!count($things)) {
+            $this->comment("There is nothing to be reserved.");
+            return;
+        }
+
         foreach($things as $thing) {
             $this->info("{$thing->name} [{$thing->id}]");
         }
@@ -114,9 +126,11 @@ class AddReservation extends Command {
             if(empty($thing_id))
                 $this->comment("Your thing id is invalid");
             else {
-                foreach($things as $thing) {
-                    if ($thing->id == $thing_id)
+                for($i = 0; $i < count($things); $i++) {
+                    if ($things[$i]->id == $thing_id) {
                         $present = true;
+                        $thing = $things[$i];
+                    }
                 }
                 if(!$present)
                     $this->comment("Your thing id is invalid");
@@ -139,8 +153,9 @@ class AddReservation extends Command {
         } while(empty($comment));
 
         //get reservation's timing
+        
         do {
-
+            $available = 1;
             do {
                 $valid = true;
                 $from = strtotime($this->ask("From (d-m-Y H:m) : "));
@@ -167,14 +182,17 @@ class AddReservation extends Command {
                 }
                 $thing_body = json_decode($thing->body);
             } while(!$valid);
-            if(!$this->isAvailable($thing_body->opening_hours, array('from' => $from, 'to' => $to)))
+
+            if(!$this->isAvailable($thing_body->opening_hours, array('from' => $from, 'to' => $to))) {
+                $available = 0;
                 $this->comment('The thing is not available at that time');
-        } while(!$this->isAvailable($thing_body->opening_hours, array('from' => $from, 'to' => $to)));
+            }
+        } while(!$available);
         
         //TODO(qkaiser) : verify if room is available
 
         // get reservation's announcement
-        $announce = $this->ask("Announce (names separated by a comma) : ");
+        $announce = explode(",", $this->ask("Announce (names separated by a comma) : "));
         
         // create reservation object and save it to database
         $reservation = new Reservation;
@@ -182,10 +200,11 @@ class AddReservation extends Command {
         $reservation->entity_id = $thing_id;
         $reservation->subject = $subject;
         $reservation->comment = $comment;
-        $reservation->from = date('c', $from);
-        $reservation->to = date('c', $to);
-        if(($announce = explode(",", $announce)) != null)
-            $reservation->announce = json_encode($announce);
+        $reservation->from = $from;
+        $reservation->to = $to;
+        if(!count($announce[0]))
+            $announce = array();
+        $reservation->announce = json_encode($announce);
         $reservation->save();
         $this->info("Reservation successfully saved");
         return;

@@ -12,7 +12,7 @@ use Hautelook\Phpass\PasswordHash;
  *
  *
  */
-class FlatTurtleUserProvider extends EloquentUserProvider
+class FlatTurtleClusterProvider extends EloquentUserProvider
 {
 
     /**

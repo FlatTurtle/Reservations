@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('UTC');
 
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
@@ -115,9 +116,9 @@ class AddThing extends Command {
         while($add) {
         	do {
         		$day = $this->ask("\t\tDay of week : ");
-        		if($day < 1 || $day > 8)
+        		if($day < 1 || $day > 7)
         			$this->comment("\t\tYour day must be an integer between 1 and 8.");	
-        	} while($day < 1 || $day > 8);
+        	} while($day < 1 || $day > 7);
 
             do {
             	do {
@@ -175,8 +176,8 @@ class AddThing extends Command {
         	array_push(
         		$opening_hours,
         		array(
-        			'validFrom' => $valid_from,
-        			'validThrough' => $valid_through,
+        			'validFrom' => date('c', $valid_from),
+        			'validThrough' => date('c', $valid_through),
         			'dayOfWeek' => $day,
         			'opens' => $opens,
         			'closes' => $closes
@@ -323,7 +324,7 @@ class AddThing extends Command {
         $body['contact'] = $contact;
         $body['support'] = $support;
         $body['amenities'] = $_amenities;
-		$thing->body = json_encode($body);
+		    $thing->body = json_encode($body);
         $thing->save();
         $this->info("Thing successfully saved");
 	}
