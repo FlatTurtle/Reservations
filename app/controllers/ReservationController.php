@@ -247,8 +247,8 @@ class ReservationController extends Controller
                             $reservation = DB::select(
                               'select * from reservation where user_id = ?
                               AND entity_id = ? 
-                              AND `from` >= ? 
-                              AND `to` <= ?', 
+                              AND `from` > ? 
+                              AND `to` < ?', 
                               array($cluster->user->id, $thing->id, $from, $to));
 
                             print_r($reservation);
@@ -298,33 +298,6 @@ class ReservationController extends Controller
                         
             if(!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
                 
-                Validator::extend('time', function($attribute, $value, $parameters)
-                                  {
-                                      if(!isset($value['from']) || !isset($value['to']))
-                                          return false;
-                                      //check against ISO8601 regex
-                                      if(!$this->isValidISO8601($value['from']))
-                                          return false;
-                                      if(!$this->isValidISO8601($value['to']))
-                                          return false;
-
-                                      $from=strtotime($value['from']);
-                                      $to=strtotime($value['to']);
-
-                                      if(!$from || !$to)
-                                          return false;
-                
-                                      if($from < (time()-Config::get('app.reservation_time_span')))
-                                          return false;
-                                      if ($to < (time() - Config::get('app.reservation_time_span')))
-                                          return false;
-                                      if ($to < $from)
-                                          return false;
-                                      if (($to-$from) < Config::get('app.reservation_time_span'))
-                                          return false;
-                                      return true;
-                                  });
-
                 $content = Request::instance()->getContent(); 
                 if (empty($content)) 
                   App::abort(400, 'Payload is null.');
@@ -343,7 +316,6 @@ class ReservationController extends Controller
                     )
                 );
 
-
                 if(!$reservation_validator->fails()){
 
                     $entity_name = explode('/', Input::json()->get('thing'));
@@ -359,9 +331,8 @@ class ReservationController extends Controller
                         $time = Input::json()->get('time');
                         if($this->isAvailable(json_decode($entity->body)->opening_hours, $time)){
 
-                            //FIXME
-                            $from = date("U",strtotime($time['from']));
-                            $to = date("U",strtotime($time['to']));
+                            $from = strtotime($time['from']);
+                            $to = strtotime($time['to']);
 
                             $reservation = Reservation::find($id);
 
