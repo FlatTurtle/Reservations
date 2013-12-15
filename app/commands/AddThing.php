@@ -115,9 +115,9 @@ class AddThing extends Command {
         while($add) {
         	do {
         		$day = $this->ask("\t\tDay of week : ");
-        		if($day < 1 || $day > 8)
+        		if($day < 1 || $day > 7)
         			$this->comment("\t\tYour day must be an integer between 1 and 8.");	
-        	} while($day < 1 || $day > 8);
+        	} while($day < 1 || $day > 7);
 
             do {
             	do {
