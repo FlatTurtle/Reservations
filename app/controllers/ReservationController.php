@@ -229,14 +229,12 @@ class ReservationController extends Controller
         if(isset($cluster)){
 
             if(!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
-                
-                
 
-                $thing_uri = Input::json()->get('thing');
-                $thing_name = explode('/', $thing_uri);
-                $thing_name = $thing_name[count($thing_name)-1];
-                $thing_uri = str_replace($thing_name, '', $thing_uri); 
-                Input::json()->set('thing', $thing_uri);
+                $content = Request::instance()->getContent(); 
+                if (empty($content)) 
+                  App::abort(400, 'Payload is null.');
+                if (Input::json() == null)
+                  App::abort(400, "JSON payload is invalid.");
 
                 $reservation_validator = Validator::make(
                     Input::json()->all(),
