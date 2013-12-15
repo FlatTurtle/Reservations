@@ -109,13 +109,15 @@ class ReservationController extends Controller
             $to = $from+(60*60*24);
             $_reservations = DB::select(
                   'select * from reservation where user_id = ? 
-                  AND UNIX_TIMESTAMP(`from`) > ? 
-                  AND UNIX_TIMESTAMP(`to`) < ?', 
-                  array($cluster->id, $from, $to));
+                  AND UNIX_TIMESTAMP(`from`) >= ? 
+                  AND UNIX_TIMESTAMP(`to`) <= ?', 
+                  array($cluster->user->id, $from, $to));
 
             //FIXME : return entity name instead of id ?
             $reservations = array();
             foreach($_reservations as $reservation){
+                $reservation->from = date('c', strtotime($reservation->from));
+                $reservation->to = date('c', strtotime($reservation->to));
                 $reservation->announce = json_decode($reservation->announce);
                 array_push($reservations, $reservation);
             }
@@ -137,6 +139,8 @@ class ReservationController extends Controller
         if (isset($cluster)) {
             $reservation = Reservation::find($id);
             if(isset($reservation)) {
+                $reservation->from = date('c', strtotime($reservation->from));
+                $reservation->to = date('c', strtotime($reservation->to));
                 return Response::json($reservation);
             } else {
                 App::abort(404, 'Reservation not found.');
@@ -172,6 +176,8 @@ class ReservationController extends Controller
                   array($cluster->user->id, $thing->id, $from, $to));
               $reservations = array();
               foreach($_reservations as $reservation){
+                $reservation->from = date('c', strtotime($reservation->from));
+                $reservation->to = date('c', strtotime($reservation->to));
                 $reservation->announce = json_decode($reservation->announce);
                 array_push($reservations, $reservation);
               }
@@ -223,24 +229,31 @@ class ReservationController extends Controller
 
                     $entity_name = explode('/', Input::json()->get('thing'));
                     $entity_name = $entity_name[count($entity_name)-1];
-                    $entity = Entity::where('name', '=', $entity_name)
+                    $thing = Entity::where('name', '=', $entity_name)
                         ->where('type', '=', Input::json()->get('type'))
                         ->where('user_id', '=', $cluster->user->id)->first();
                                         
-                    if(!isset($entity)){
+                    if(!isset($thing)){
                         App::abort(404, "Entity not found");
                     }else{
                         $time = Input::json()->get('time');
-                        if($this->isAvailable(json_decode($entity->body)->opening_hours, $time)){
+                        if($this->isAvailable(json_decode($thing->body)->opening_hours, $time)){
 
-                            //FIXME
-                            $from = date("U",strtotime($time['from']));
-                            $to = date("U",strtotime($time['to']));
+                
+                            $from = strtotime($time['from']);
+                            $to = strtotime($time['to']);
 
-                            $reservation = Reservation::where('from', '>=', $from)->where('to', '<=', $to)->where('entity_id', '=', $entity->id)->first();
 
-                            if(isset($reservation)){
-                                App::abort(400, 'The entity is already reserved at that time');
+                            $reservation = DB::select(
+                              'select * from reservation where user_id = ?
+                              AND entity_id = ? 
+                              AND `from` >= ? 
+                              AND `to` <= ?', 
+                              array($cluster->user->id, $thing->id, $from, $to));
+
+                            print_r($reservation);
+                            if(!empty($reservation)){
+                                App::abort(400, 'The thing is already reserved at that time');
                             }else{
                                 return Reservation::create(
                                     array(
@@ -249,7 +262,7 @@ class ReservationController extends Controller
                                         'subject' => Input::json()->get('subject'),
                                         'comment' => Input::json()->get('comment'),
                                         'announce' => json_encode(Input::json()->get('announce')),
-                                        'entity_id' => $entity->id,
+                                        'entity_id' => $thing->id,
                                         'user_id' => $cluster->user->id,
                                     )
                                 );
