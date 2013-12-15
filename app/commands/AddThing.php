@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('UTC');
 
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;

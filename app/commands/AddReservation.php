@@ -1,9 +1,11 @@
 <?php
+date_default_timezone_set('UTC');
+
 
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
-
+use Carbon\Carbon;
 /**
  * Artisan CLI extension to create reservations
  *
@@ -190,7 +192,7 @@ class AddReservation extends Command {
         //TODO(qkaiser) : verify if room is available
 
         // get reservation's announcement
-        $announce = $this->ask("Announce (names separated by a comma) : ");
+        $announce = explode(",", $this->ask("Announce (names separated by a comma) : "));
         
         // create reservation object and save it to database
         $reservation = new Reservation;
@@ -200,10 +202,9 @@ class AddReservation extends Command {
         $reservation->comment = $comment;
         $reservation->from = $from;
         $reservation->to = $to;
-        if(($announce = explode(",", $announce)) != null) 
-            $reservation->announce = json_encode($announce);
-
-
+        if(!count($announce[0]))
+            $announce = array();
+        $reservation->announce = json_encode($announce);
         $reservation->save();
         $this->info("Reservation successfully saved");
         return;

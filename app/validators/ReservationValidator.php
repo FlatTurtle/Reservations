@@ -2,7 +2,7 @@
 class ReservationValidator {
 
      
-
+      
       /**
        * Check if a date is a valid ISO8601 formatted date.
        * @param $date : the date to check

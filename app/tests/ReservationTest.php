@@ -117,9 +117,9 @@ class ReservationTest extends TestCase
         $this->reservation_payload 
             = array();
         $this->reservation_payload['thing'] 
-            = null;
+            = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_thing';
         $this->reservation_payload['type'] 
-            = null;
+            = 'room';
         $this->reservation_payload['time'] 
             = array();
         $this->reservation_payload['time']['from'] 
@@ -1686,8 +1686,7 @@ class ReservationTest extends TestCase
             ReservationTest::$headers,
             json_encode($payload),
             false
-        );
-        
+        );        
         $content = $response->getContent();
         $data = json_decode($content);
         $this->assertEquals($response->getStatusCode(), 200);
@@ -2214,37 +2213,6 @@ class ReservationTest extends TestCase
     }
 
     
-    //TODO : work on times to check validation
-    /*public function testCreateAlreadyBookedReservation()
-    {
-        $payload = $this->entity_payload;
-        ReservationTest::$headers = array('Accept' => 'application/json');
-        $options = array('auth' => array('test', 'test'));
-
-        $request = Requests::put(Config::get('app.url'). '/test/already_booked_entity', ReservationTest::$headers, $payload, $options);
-        $this->assertEquals($request->status_code, 200);
-
-        $payload = $this->reservation_payload;
-        $payload['entity'] = 'already_booked_entity';
-        $payload['type'] = 'room';
-        $payload['time']['from'] = time()+(60*60);
-        $payload['time']['to'] = $payload['time']['from'] + (60*60*2);
-
-        $request = Requests::post(Config::get('app.url'). '/test/reservation', ReservationTest::$headers, $payload, $options);
-        $this->assertEquals($request->status_code, 200);
-
-        $request = Requests::post(Config::get('app.url'). '/test/reservation', ReservationTest::$headers, $payload, $options);
-        $this->assertEquals($request->status_code, 400);
-
-
-
-    }
-
-    public function testCreateReservationOnUnavailableEntity()
-    {
-
-    }*/
-
     /**
      *
      * @group reservation

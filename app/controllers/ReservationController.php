@@ -58,13 +58,14 @@ class ReservationController extends Controller
                       if (
                         strtotime(date('Y-m-d H:m', $to)) > strtotime(date('Y-m-d', $to) . $open)
                       )
-                          $i++;
+                      $i++;
                       if (
                         strtotime(date('Y-m-d H:m', $to)) <= strtotime(date('Y-m-d', $to) . $close)
                       )
                       $i--;
+                      if (!$i) $available=true;
                   }
-                  if (!$i) $available=true;
+                  
               }
           }
           return $available;
@@ -212,6 +213,12 @@ class ReservationController extends Controller
                 if (Input::json() == null)
                   App::abort(400, "JSON payload is invalid.");
 
+                $thing_uri = Input::json()->get('thing');
+                $thing_name = explode('/', $thing_uri);
+                $thing_name = $thing_name[count($thing_name)-1];
+                $thing_uri = str_replace($thing_name, '', $thing_uri); 
+                Input::json()->set('thing', $thing_uri);
+
                 $reservation_validator = Validator::make(
                     Input::json()->all(),
                     array(
@@ -227,9 +234,7 @@ class ReservationController extends Controller
 
                 if(!$reservation_validator->fails()){
 
-                    $entity_name = explode('/', Input::json()->get('thing'));
-                    $entity_name = $entity_name[count($entity_name)-1];
-                    $thing = Entity::where('name', '=', $entity_name)
+                    $thing = Entity::where('name', '=', $thing_name)
                         ->where('type', '=', Input::json()->get('type'))
                         ->where('user_id', '=', $cluster->user->id)->first();
                                         
@@ -239,19 +244,27 @@ class ReservationController extends Controller
                         $time = Input::json()->get('time');
                         if($this->isAvailable(json_decode($thing->body)->opening_hours, $time)){
 
-                
-                            $from = strtotime($time['from']);
-                            $to = strtotime($time['to']);
+                            //timestamps are UTC so we convert dates to UTC timezone
 
+                            $from = new DateTime($time['from']);
+                            $to = new DateTime($time['to']);
 
                             $reservation = DB::select(
                               'select * from reservation where user_id = ?
                               AND entity_id = ? 
-                              AND `from` > ? 
-                              AND `to` < ?', 
-                              array($cluster->user->id, $thing->id, $from, $to));
+                              AND ((
+                                ? BETWEEN UNIX_TIMESTAMP(`from`)+60 AND UNIX_TIMESTAMP(`to`)-60
+                              )
+                              OR (
+                                ? BETWEEN UNIX_TIMESTAMP(`from`)+60 AND UNIX_TIMESTAMP(`to`)-60
+                              )
+                              OR (
+                                ? = UNIX_TIMESTAMP(`from`) AND ? = UNIX_TIMESTAMP(`to`)
+                              )
+                            )
+                            ', 
+                            array($cluster->user->id, $thing->id, $from->getTimestamp(), $to->getTimestamp(), $from->getTimestamp(), $to->getTimestamp()));
 
-                            print_r($reservation);
                             if(!empty($reservation)){
                                 App::abort(400, 'The thing is already reserved at that time');
                             }else{
@@ -304,6 +317,12 @@ class ReservationController extends Controller
                 if (Input::json() == null)
                   App::abort(400, "JSON payload is invalid.");
 
+                $thing_uri = Input::json()->get('thing');
+                $thing_name = explode('/', $thing_uri);
+                $thing_name = $thing_name[count($thing_name)-1];
+                $thing_uri = str_replace($thing_name, '', $thing_uri); 
+                Input::json()->set('thing', $thing_uri);
+
                 $reservation_validator = Validator::make(
                     Input::json()->all(),
                     array(
@@ -328,29 +347,49 @@ class ReservationController extends Controller
                     if(!isset($entity)){
                         App::abort(404, "Entity not found");
                     }else{
-                        $time = Input::json()->get('time');
-                        if($this->isAvailable(json_decode($entity->body)->opening_hours, $time)){
+                        $reservation = Reservation::find($id);
+                        if($reservation->exists){
+                          $time = Input::json()->get('time');
+                          if($this->isAvailable(json_decode($entity->body)->opening_hours, $time)){
+                            //timestamps are UTC so we convert dates to UTC timezone
+                            $from = new DateTime($time['from']);
+                            $to = new DateTime($time['to']); 
+                            $from->setTimezone(new DateTimeZone('UTC'));
+                            $to->setTimezone(new DateTimeZone('UTC'));
 
-                            $from = strtotime($time['from']);
-                            $to = strtotime($time['to']);
+                            $reservation = DB::select(
+                              'select * from reservation where user_id = ?
+                              AND entity_id = ? 
+                              AND ((
+                                ? BETWEEN UNIX_TIMESTAMP(`from`)+60 AND UNIX_TIMESTAMP(`to`)-60
+                              )
+                              OR (
+                                ? BETWEEN UNIX_TIMESTAMP(`from`)+60 AND UNIX_TIMESTAMP(`to`)-60
+                              )
+                              OR (
+                                ? = UNIX_TIMESTAMP(`from`) AND ? = UNIX_TIMESTAMP(`to`)
+                              )
+                            )
+                            ', 
+                            array($cluster->user->id, $thing->id, $from->getTimestamp(), $to->getTimestamp(), $from->getTimestamp(), $to->getTimestamp()));
 
-                            $reservation = Reservation::find($id);
-
-                            if($reservation->exists){
-                                $reservation->from = $from;
-                                $reservation->to = $to;
-                                $reservation->subject = Input::json()->get('subject');
-                                $reservation->comment = Input::json()->get('comment');
-                                $reservation->announce = json_encode(Input::json()->get('announce'));
-                                $reservation->entity_id = $entity->id;
-                                $reservation->user_id = $cluster->user->id;
-                                return $reservation->save();
+                            if(!empty($reservation)){
+                                App::abort(400, 'The thing is already reserved at that time');
+                            }else{
+                                  $reservation->from = $from;
+                                  $reservation->to = $to;
+                                  $reservation->subject = Input::json()->get('subject');
+                                  $reservation->comment = Input::json()->get('comment');
+                                  $reservation->announce = json_encode(Input::json()->get('announce'));
+                                  $reservation->entity_id = $entity->id;
+                                  $reservation->user_id = $cluster->user->id;
+                                  return $reservation->save();
                             }
-                                                        
+                            
                         }else{
                             App::abort(400, 'The entity is not available at that time');
                         }
-                                                
+                      }
                     }
                 }else{
                     $this->_sendErrorMessage($reservation_validator);
