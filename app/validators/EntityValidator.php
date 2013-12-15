@@ -28,6 +28,13 @@ class EntityValidator {
         return true;
     }
 
+    public function validateSchemaType ($attribute, $value, $parameters)
+    {
+      $supported_types = array('array', 'boolean', 'integer', 'number', 
+                                         'null', 'object', 'string');
+      return in_array($value, $supported_types);
+    }
+
     public function validateOpeningHours($attribute, $value, $parameters)
     {
         $now = date("Y-m-d h:m:s", time());

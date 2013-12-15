@@ -8,6 +8,40 @@ class EntityController extends Controller {
    
     
     /**
+     * This function throw an error 400 and provide error messages
+     * from validator $validator in JSON.
+     *
+     * @param validator : a Laravel validator
+     * @return
+     */
+    private function _sendValidationErrorMessage($validator)
+    {
+        $s = array("success" => 0, "errors" => array());
+        $messages = $validator->messages();
+        foreach ($messages->all() as $message) {
+            array_push($s["errors"], array("code" => 400, "type" => "ValidationError", "message" => $message));
+        }
+        App::abort(400, json_encode($s));
+    }
+
+    private function _sendErrorMessage($code, $type, $message) {
+        App::abort(404, 
+          json_encode(
+            array(
+              "success" => 0,
+              "errors" => array(
+                array(
+                  "code" => $code,
+                  "type" => $type,
+                  "message" => $message
+                )
+              )
+            )
+          )
+        );
+    }
+
+    /**
      * Retrieve and return all entities that the user can book.
      * @param $clustername : cluster's name from url.
      *
@@ -37,7 +71,7 @@ class EntityController extends Controller {
             return Response::json($entities);
                         
         } else {
-            App::abort(404, 'user not found');
+            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 
@@ -68,7 +102,7 @@ class EntityController extends Controller {
             return Response::json($amenities);
             
         } else {
-            App::abort(404, 'user not found');
+            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 
@@ -98,7 +132,7 @@ class EntityController extends Controller {
             }
             
         } else {
-            App::abort(404, 'user not found');
+            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 
@@ -127,7 +161,7 @@ class EntityController extends Controller {
             }
             
         } else {
-            App::abort(404, 'user not found');
+            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 
@@ -147,9 +181,9 @@ class EntityController extends Controller {
                 
                 $content = Request::instance()->getContent(); 
                 if (empty($content)) 
-                  App::abort(400, 'Payload is null');
+                  $this->_sendErrorMessage(400, "Payload.Null", "Received payload is empty.");
                 if (Input::json() == null)
-                  App::abort(400, "JSON payload is invalid.");
+                  $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
                 
                 $room_validator = Validator::make(
                     Input::json()->all(),
@@ -173,7 +207,7 @@ class EntityController extends Controller {
                             return Response::json(
                                 array(
                                   'success' => true,
-                                  'message' => 'Entity successfully updated'
+                                  'message' => 'Entity successfully updated.'
                                 )
                             );
                     } else {
@@ -188,19 +222,14 @@ class EntityController extends Controller {
                         );
                     }
                 } else {
-                    $messages = $room_validator->messages();
-                    $s = "JSON does not validate. Violations:\n";
-                    foreach ($messages->all() as $message) {
-                        $s .= "$message\n";
-                    }
-                    App::abort(400, $s);
+                    $this->_sendValidationErrorMessage($room_validator);
                 } 
                 
             } else {
-                App::abort(403, "You can't modify entities from another user");
+                App::abort(403, "You can't modify entities from another user.");
             }
         } else {
-            App::abort(404, 'user not found');
+            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }   
     }
 
@@ -228,15 +257,13 @@ class EntityController extends Controller {
      */
     public function createAmenity($clustername, $name) {
 
-        Validator::extend(
-            'schema_type',
-            function ($attribute, $value, $parameters)
-            {
-                $supported_types = array('array', 'boolean', 'integer', 'number', 
-                                         'null', 'object', 'string');
-                return in_array($value, $supported_types);
-            }
-        );
+        $content = Request::instance()->getContent(); 
+        if (empty($content)) 
+            $this->_sendErrorMessage(400, "Payload.Null", "Received payload is empty.");
+        if (Input::json() == null)
+            $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
+
+        
 
         
         $cluster = Cluster::where('clustername', '=', $clustername)->first();
@@ -282,11 +309,7 @@ class EntityController extends Controller {
                     }
                 );
 
-                $content = Request::instance()->getContent(); 
-                if (empty($content)) 
-                  App::abort(400, 'Payload is null.');
-                if (Input::json() == null)
-                  App::abort(400, "JSON payload is invalid.");
+                
 
                 $amenity_validator = Validator::make(
                     Input::json()->all(),
@@ -316,13 +339,10 @@ class EntityController extends Controller {
                     $this->sendErrorMessage($amenity_validator);
                 }
             } else {
-                App::abort(
-                    403, 
-                    "You are not allowed to modify amenities from another user"
-                );
+                $this->_sendErrorMessage(403, "WriteAccessForbiden", "You can't create amenities on behalf of another user.");
             }
         } else {
-            App::abort(404, 'User not found');
+            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }               
     }
 
@@ -354,19 +374,16 @@ class EntityController extends Controller {
                             )
                         );
                     else
-                        App::abort(500, 'An error occured while deleting amenity.');
+                        $this->_sendErrorMessage(500, "Amenity.Unknown", "An error occured while deleting the amenity.");
                 else
-                    App::abort(404, 'Amenity not found');
+                    $this->_sendErrorMessage(404, "Amenity.NotFound", "Amenity not found.");
                     
             } else {
-                App::abort(
-                    403, 
-                    "You're not allowed to delete amenities from another user"
-                );
+                $this->_sendErrorMessage(403, "DeleteAccessForbiden", "You can't delete amenities from another user.");
             }
             
         } else {
-            App::abort(404, 'user not found');
+            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 }
