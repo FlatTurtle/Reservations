@@ -120,6 +120,8 @@ class ReservationTest extends TestCase
             = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_thing';
         $this->reservation_payload['type'] 
             = 'room';
+        $this->reservation_payload['customer'] 
+            = array('email' => 'john.doe@flattturle.com', 'company' => 'http://flatturtle.com');
         $this->reservation_payload['time'] 
             = array();
         $this->reservation_payload['time']['from'] 
@@ -1659,6 +1661,112 @@ class ReservationTest extends TestCase
             false
         );
         $this->assertEquals($response->getStatusCode(), 400);
+
+        $payload = $this->reservation_payload;
+        $payload['customer'] = null;
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+
+        $payload = $this->reservation_payload;
+        $payload['customer'] = array();
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+
+        $payload = $this->reservation_payload;
+        $payload['customer'] = '';
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+
+        $payload = $this->reservation_payload;
+        $payload['customer']['email'] = null;
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+
+        $payload = $this->reservation_payload;
+        $payload['customer']['email'] = '';
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+
+        $payload = $this->reservation_payload;
+        $payload['customer']['email'] = 'not an email';
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+
+
+        $payload = $this->reservation_payload;
+        $payload['customer']['company'] = null;
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+
+        $payload = $this->reservation_payload;
+        $payload['customer']['company'] = '';
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+
 
         $payload = $this->reservation_payload;
         $payload['time'] = null;

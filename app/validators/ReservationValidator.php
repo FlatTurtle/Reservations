@@ -38,4 +38,20 @@ class ReservationValidator {
           return true;
       }
 
+      public function validateCustomer($attribute, $value, $parameters) {
+
+        $customer_validator = Validator::make(
+                $value,
+                array(
+                  'email' => 'required|email',
+                  'company' => 'required'
+                )
+        );
+        if($customer_validator->fails())
+          return false;
+        else
+          return true;
+
+      }
+
     }
