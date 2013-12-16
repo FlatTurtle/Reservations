@@ -133,6 +133,7 @@ class ReservationController extends Controller
                 $reservation->from = date('c', strtotime($reservation->from));
                 $reservation->to = date('c', strtotime($reservation->to));
                 $reservation->announce = json_decode($reservation->announce);
+                $reservation->customer = array('username' => $cluster->user->username);
                 array_push($reservations, $reservation);
             }
             return Response::json($reservations);
@@ -155,6 +156,7 @@ class ReservationController extends Controller
             if(isset($reservation)) {
                 $reservation->from = date('c', strtotime($reservation->from));
                 $reservation->to = date('c', strtotime($reservation->to));
+                $reservation->customer = array('username' => $cluster->user->username);
                 return Response::json($reservation);
             } else {
               return $this->_sendErrorMessage(404, "Reservation.NotFound", "Reservation not found");
@@ -193,6 +195,7 @@ class ReservationController extends Controller
                 $reservation->from = date('c', strtotime($reservation->from));
                 $reservation->to = date('c', strtotime($reservation->to));
                 $reservation->announce = json_decode($reservation->announce);
+                $reservation->customer = array('username' => $cluster->user->username);
                 array_push($reservations, $reservation);
               }
               return Response::json($reservations);
