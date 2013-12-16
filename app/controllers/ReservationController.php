@@ -84,24 +84,20 @@ class ReservationController extends Controller
         foreach ($messages->all() as $message) {
             array_push($s["errors"], array("code" => 400, "type" => "ValidationError", "message" => $message));
         }
-        App::abort(400, json_encode($s));
+        return Response::json($s, 400);
     }
 
     private function _sendErrorMessage($code, $type, $message) {
-        App::abort(404, 
-          json_encode(
+        return Response::json(array(
+          "success" => 0,
+          "errors" => array(
             array(
-              "success" => 0,
-              "errors" => array(
-                array(
-                  "code" => $code,
-                  "type" => $type,
-                  "message" => $message
-                )
-              )
+              "code" => $code,
+              "type" => $type,
+              "message" => $message
             )
           )
-        );
+        ), $code);
     }
 
     /**
@@ -142,7 +138,7 @@ class ReservationController extends Controller
             return Response::json($reservations);
 
         }else{
-          $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found");
+          return $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found");
         }
     }
 
@@ -161,10 +157,10 @@ class ReservationController extends Controller
                 $reservation->to = date('c', strtotime($reservation->to));
                 return Response::json($reservation);
             } else {
-              $this->_sendErrorMessage(404, "Reservation.NotFound", "Reservation not found");
+              return $this->_sendErrorMessage(404, "Reservation.NotFound", "Reservation not found");
             }
         } else {
-          $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found");
+          return $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found");
         }
     }
 
@@ -201,10 +197,10 @@ class ReservationController extends Controller
               }
               return Response::json($reservations);
             } else{
-              $this->_sendErrorMessage(404, "Thing.NotFound", "Thing not found");
+              return $this->_sendErrorMessage(404, "Thing.NotFound", "Thing not found");
             }
         } else {
-            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found");
+            return $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found");
         }
     }
 
@@ -221,9 +217,9 @@ class ReservationController extends Controller
 
         $content = Request::instance()->getContent(); 
         if (empty($content)) 
-          $this->_sendErrorMessage(400, "Payload.Null", "Received payload is empty.");
+          return $this->_sendErrorMessage(400, "Payload.Null", "Received payload is empty.");
         if (Input::json() == null)
-          $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
+          return $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
 
         $cluster = Cluster::where('clustername', '=', $clustername)->first();
         if(isset($cluster)){
@@ -256,7 +252,7 @@ class ReservationController extends Controller
                         ->where('user_id', '=', $cluster->user->id)->first();
                                         
                     if(!isset($thing)){
-                        $this->_sendErrorMessage(404, "Thing.NotFound", "Thing not found.");
+                        return $this->_sendErrorMessage(404, "Thing.NotFound", "Thing not found.");
                     }else{
                         $time = Input::json()->get('time');
                         if($this->isAvailable(json_decode($thing->body)->opening_hours, $time)){
@@ -283,7 +279,7 @@ class ReservationController extends Controller
                             array($cluster->user->id, $thing->id, $from->getTimestamp(), $to->getTimestamp(), $from->getTimestamp(), $to->getTimestamp()));
 
                             if(!empty($reservation)){
-                                $this->_sendErrorMessage(404, "Thing.AlreadyReserved", "The thing is already reserved at that time.");
+                                return $this->_sendErrorMessage(404, "Thing.AlreadyReserved", "The thing is already reserved at that time.");
                             }else{
                                 return Reservation::create(
                                     array(
@@ -298,17 +294,17 @@ class ReservationController extends Controller
                                 );
                             }
                         }else{
-                          $this->_sendErrorMessage(404, "Thing.Unavailable", "The thing is unavailable at that time.");
+                          return $this->_sendErrorMessage(404, "Thing.Unavailable", "The thing is unavailable at that time.");
                         }                      
                     }
                 }else{
-                    $this->_sendValidationErrorMessage($reservation_validator);
+                    return $this->_sendValidationErrorMessage($reservation_validator);
                 }
             }else{
-                $this->_sendErrorMessage(403, "WriteAccessForbiden", "You can't make reservations on behalf of another user.");
+                return $this->_sendErrorMessage(403, "WriteAccessForbiden", "You can't make reservations on behalf of another user.");
             }
         }else{
-            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
+            return $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 
@@ -327,9 +323,9 @@ class ReservationController extends Controller
                 
                 $content = Request::instance()->getContent(); 
                 if (empty($content)) 
-                  $this->_sendErrorMessage(400, "Payload.Null", "Received payload is empty.");
+                  return $this->_sendErrorMessage(400, "Payload.Null", "Received payload is empty.");
                 if (Input::json() == null)
-                  $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
+                  return $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
 
                 $thing_uri = Input::json()->get('thing');
                 $thing_name = explode('/', $thing_uri);
@@ -359,7 +355,7 @@ class ReservationController extends Controller
                         ->where('user_id', '=', $cluster->user->id)->first();
                                         
                     if(!isset($entity)){
-                        $this->_sendErrorMessage(404, "Thing.NotFound", "Thing not found.");
+                        return $this->_sendErrorMessage(404, "Thing.NotFound", "Thing not found.");
                     }else{
                         $reservation = Reservation::find($id);
                         if($reservation->exists){
@@ -388,7 +384,7 @@ class ReservationController extends Controller
                             array($cluster->user->id, $thing->id, $from->getTimestamp(), $to->getTimestamp(), $from->getTimestamp(), $to->getTimestamp()));
 
                             if(!empty($reservation)){
-                                $this->_sendErrorMessage(404, "Thing.AlreadyReserved", "The thing is already reserved at that time.");
+                                return $this->_sendErrorMessage(404, "Thing.AlreadyReserved", "The thing is already reserved at that time.");
                             }else{
                                   $reservation->from = $from;
                                   $reservation->to = $to;
@@ -401,20 +397,20 @@ class ReservationController extends Controller
                             }
                             
                         }else{
-                            $this->_sendErrorMessage(404, "Thing.Unavailable", "The thing is unavailable at that time.");
+                            return $this->_sendErrorMessage(404, "Thing.Unavailable", "The thing is unavailable at that time.");
                         }
                       }
                     }
                 }else{
-                    $this->_sendValidationErrorMessage($reservation_validator);
+                    return $this->_sendValidationErrorMessage($reservation_validator);
                 }
                                 
                                 
             }else{
-                $this->_sendErrorMessage(403, "WriteAccessForbiden", "You can't make reservations on behalf of another user.");
+                return $this->_sendErrorMessage(403, "WriteAccessForbiden", "You can't make reservations on behalf of another user.");
             }
         }else{
-            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
+            return $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 
@@ -434,10 +430,10 @@ class ReservationController extends Controller
             if(isset($reservation))
                 $reservation->delete();
             else
-                $this->_sendErrorMessage(404, "Reservation.NotFound", "Reservation not found.");
+                return $this->_sendErrorMessage(404, "Reservation.NotFound", "Reservation not found.");
                         
         }else{
-            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
+            return $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 }

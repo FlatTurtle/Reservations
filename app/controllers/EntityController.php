@@ -21,24 +21,20 @@ class EntityController extends Controller {
         foreach ($messages->all() as $message) {
             array_push($s["errors"], array("code" => 400, "type" => "ValidationError", "message" => $message));
         }
-        App::abort(400, json_encode($s));
+        return Response::json($s, 400);
     }
 
     private function _sendErrorMessage($code, $type, $message) {
-        App::abort(404, 
-          json_encode(
+        return Response::json(array(
+          "success" => 0,
+          "errors" => array(
             array(
-              "success" => 0,
-              "errors" => array(
-                array(
-                  "code" => $code,
-                  "type" => $type,
-                  "message" => $message
-                )
-              )
+              "code" => $code,
+              "type" => $type,
+              "message" => $message
             )
           )
-        );
+        ), $code);
     }
 
     /**
@@ -71,7 +67,7 @@ class EntityController extends Controller {
             return Response::json($entities);
                         
         } else {
-            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
+            return $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 
@@ -102,7 +98,7 @@ class EntityController extends Controller {
             return Response::json($amenities);
             
         } else {
-            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
+            return $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 
@@ -124,7 +120,7 @@ class EntityController extends Controller {
             )->first();
 
             if (!isset($amenity)) {
-                App::abort(404, 'Amenity not found');
+                return $this->_sendErrorMessage(404, "Amenity.NotFound", "Amenity not found.");
             } else {
                 $d = json_decode($amenity->body);
                 $d->id = $amenity->id;
@@ -132,7 +128,7 @@ class EntityController extends Controller {
             }
             
         } else {
-            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
+            return $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 
@@ -153,7 +149,7 @@ class EntityController extends Controller {
                 ->where('name', '=', $name)
                 ->first();
             if (!isset($entity)) {
-                App::abort(404, 'Entity not found');
+                return $this->_sendErrorMessage(404, "Thing.NotFound", "Thing not found.");
             } else {
                 $d = json_decode($entity->body);
                 $d->id = $entity->id;
@@ -161,7 +157,7 @@ class EntityController extends Controller {
             }
             
         } else {
-            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
+            return $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 
@@ -178,12 +174,11 @@ class EntityController extends Controller {
 
             if (!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()) {
 
-                
                 $content = Request::instance()->getContent(); 
                 if (empty($content)) 
-                  $this->_sendErrorMessage(400, "Payload.Null", "Received payload is empty.");
+                  return $this->_sendErrorMessage(400, "Payload.Null", "Received payload is empty.");
                 if (Input::json() == null)
-                  $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
+                  return $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
                 
                 $room_validator = Validator::make(
                     Input::json()->all(),
@@ -207,7 +202,7 @@ class EntityController extends Controller {
                             return Response::json(
                                 array(
                                   'success' => true,
-                                  'message' => 'Entity successfully updated.'
+                                  'message' => 'Thing successfully updated.'
                                 )
                             );
                     } else {
@@ -222,33 +217,16 @@ class EntityController extends Controller {
                         );
                     }
                 } else {
-                    $this->_sendValidationErrorMessage($room_validator);
+                    return $this->_sendValidationErrorMessage($room_validator);
                 } 
-                
             } else {
-                App::abort(403, "You can't modify entities from another user.");
+                return $this->_sendErrorMessage(403, "WriteAccessForbiden", "You can't create things on behalf of another user.");
             }
         } else {
-            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
+            return $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }   
     }
 
-
-    private function _validateProperty($property) {
-
-        $property_validator
-            = Validator::make(
-                $property,
-                array(
-                  'description' => 'required',
-                  'type' => 'required|schema_type'
-                )
-            );
-        if($property_validator->fails())
-            $this->sendErrorMessage($property_validator);
-        if(isset($property['properties']))
-            $this->_validateProperty($property['properties']);
-    }
     /**
      * Create a new amenity.
      * @param $clustername : cluster's name from the url
@@ -259,9 +237,9 @@ class EntityController extends Controller {
 
         $content = Request::instance()->getContent(); 
         if (empty($content)) 
-            $this->_sendErrorMessage(400, "Payload.Null", "Received payload is empty.");
+            return $this->_sendErrorMessage(400, "Payload.Null", "Received payload is empty.");
         if (Input::json() == null)
-            $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
+            return $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
 
         
 
@@ -272,45 +250,6 @@ class EntityController extends Controller {
             if (!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()) {
                 /* This Validator verify that the schema value is a valid json-schema
                    definition. */
-                Validator::extend(
-                    'schema',
-                    function ($attribute, $value, $parameters)
-                    {
-                        $json = json_encode($value);
-                        if ($json != null) {
-          
-                            $schema_validator = Validator::make(
-                                $value,
-                                array(
-                                  '$schema' => 'required|url',
-                                  'title' => 'required',
-                                  'description' => 'required',
-                                  'type' => 'required|schema_type',
-                                  'properties' => 'required',
-                                  'required' => 'required'
-                                )
-                            );
-                            if (!$schema_validator->fails()) {
-              
-                                foreach ($value['required'] as $required) {
-                                    if(!isset($value['properties'][$required]))
-                                        return false;
-                                }
-                                foreach ($value['properties'] as $property) {
-                                    $this->_validateProperty($property);
-                                }
-                            } else {
-                                $this->sendErrorMessage($schema_validator);
-                            }
-                        } else {
-                            return false;
-                        }
-                        return true;
-                    }
-                );
-
-                
-
                 $amenity_validator = Validator::make(
                     Input::json()->all(),
                     array(
@@ -336,13 +275,13 @@ class EntityController extends Controller {
                         );
                     }
                 } else {
-                    $this->sendErrorMessage($amenity_validator);
+                    return $this->_sendValidationErrorMessage($amenity_validator);
                 }
             } else {
-                $this->_sendErrorMessage(403, "WriteAccessForbiden", "You can't create amenities on behalf of another user.");
+                return $this->_sendErrorMessage(403, "WriteAccessForbiden", "You can't create amenities on behalf of another user.");
             }
         } else {
-            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
+            return $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }               
     }
 
@@ -374,16 +313,16 @@ class EntityController extends Controller {
                             )
                         );
                     else
-                        $this->_sendErrorMessage(500, "Amenity.Unknown", "An error occured while deleting the amenity.");
+                        return $this->_sendErrorMessage(500, "Amenity.Unknown", "An error occured while deleting the amenity.");
                 else
-                    $this->_sendErrorMessage(404, "Amenity.NotFound", "Amenity not found.");
+                    return $this->_sendErrorMessage(404, "Amenity.NotFound", "Amenity not found.");
                     
             } else {
-                $this->_sendErrorMessage(403, "DeleteAccessForbiden", "You can't delete amenities from another user.");
+                return $this->_sendErrorMessage(403, "DeleteAccessForbiden", "You can't delete amenities from another user.");
             }
             
         } else {
-            $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
+            return $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found.");
         }
     }
 }
