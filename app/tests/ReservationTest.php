@@ -192,20 +192,16 @@ class ReservationTest extends TestCase
     {
         Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->amenity_payload;
-        try{
-            $response = $this->call(
-                'PUT',
-                'unknown/amenities/amenity',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload)
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
-            return;
-        }
-        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+        $response = $this->call(
+            'PUT',
+            'unknown/amenities/amenity',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload)
+        );
+        $this->assertEquals($response->getStatusCode(), 404);
+        Auth::logout();
     }
 
     /**
@@ -219,20 +215,16 @@ class ReservationTest extends TestCase
     {
         Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->amenity_payload;
-        try{
-            $response = $this->call(
-                'PUT',
-                'wrong/amenities/wrong_amenity',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload)
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
-            return;
-        }
-        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+        $response = $this->call(
+            'PUT',
+            'wrong/amenities/wrong_amenity',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload)
+        );
+        $this->assertEquals($response->getStatusCode(), 404);
+        Auth::logout();
     }
 
     /**
@@ -265,55 +257,48 @@ class ReservationTest extends TestCase
      */
     public function testCreateMalformedAmenity()
     {
-        $caught = false;
         Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->amenity_payload;
         $payload['description'] = '';
-        try {
-            $response = $this->call(
-                'PUT',
-                'test/amenities/test_amenity',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload)
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        
+        $response = $this->call(
+            'PUT',
+            'test/amenities/test_amenity',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->amenity_payload;
         $payload['description'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/amenities/test_amenity',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload)
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        
+        $response = $this->call(
+            'PUT',
+            'test/amenities/test_amenity',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->amenity_payload;
         $payload['schema'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/amenities/test_amenity',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload)
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        
+        $response = $this->call(
+            'PUT',
+            'test/amenities/test_amenity',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
         Auth::logout();
     }
 
@@ -352,20 +337,16 @@ class ReservationTest extends TestCase
      */
     public function testGetAmenitiesWrongCustomer()
     {   
-        try{
-            $response = $this->call(
-                'GET',
-                'wrong/amenities',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                array(),
-                false
-            );  
-        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
-            return;
-        }
-        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+        $response = $this->call(
+            'GET',
+            'wrong/amenities',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );  
+        $this->assertEquals($response->getStatusCode(), 404);
     }
 
     /**
@@ -417,20 +398,16 @@ class ReservationTest extends TestCase
      */
     public function testGetAmenitiesNonExistentCustomer()
     {
-        try{
-            $response = $this->call(
-                'GET',
-                'unknown/amenities',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                array(),
-                false
-            ); 
-        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
-            return;
-        }
-        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+        $response = $this->call(
+            'GET',
+            'unknown/amenities',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 404);
     }
 
     /**
@@ -442,20 +419,17 @@ class ReservationTest extends TestCase
      */
     public function testGetNonExistentAmenity()
     {
-        try{
-            $response = $this->call(
-                'GET',
-                'test/amenities/inexistent',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                array(),
-                false
-            ); 
-        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
-            return;
-        }
-        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+        
+        $response = $this->call(
+            'GET',
+            'test/amenities/inexistent',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 404);
     }
 
 
@@ -510,21 +484,17 @@ class ReservationTest extends TestCase
     public function testDeleteAmenityWrongCustomer()
     {
         Auth::loginUsingId($this->test_cluster->id);
-        try{
-            $response = $this->call(
-                'DELETE',
-                'test2/amenities/test_amenity',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                array(),
-                false
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            return;
-        }
-        $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        $response = $this->call(
+            'DELETE',
+            'test2/amenities/test_amenity',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 404);
+        Auth::logout();
     }
 
     /**
@@ -537,21 +507,17 @@ class ReservationTest extends TestCase
     public function testDeleteNonExistentAmenity()
     {
         Auth::loginUsingId($this->test_cluster->id);
-        try{
-            $response = $this->call(
-                'DELETE',
-                'test/amenities/inexistent',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                array(),
-                false
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
-            return;
-        }        
-        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+        $response = $this->call(
+            'DELETE',
+            'test/amenities/inexistent',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 404);
+        Auth::logout();
     }
 
 
@@ -624,21 +590,17 @@ class ReservationTest extends TestCase
     {
         Auth::loginUsingId($this->test_cluster->id);
         $payload = $this->entity_payload;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test2/things/new_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-                return;
-        }
-        $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        $response = $this->call(
+            'PUT',
+            'test2/things/new_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 404);
+        Auth::logout();
     }
 
     /**
@@ -649,26 +611,22 @@ class ReservationTest extends TestCase
      *
      */
     public function testCreateEntityMalformedJson()
-    {
-        try {
-            Auth::loginUsingId($this->test_cluster->id);
-            $payload = $this->entity_payload;
-            $payload['name'] = 'malformedjson_thing';
-            $payload['body']['name'] = 'malformedjson_thing';
-            $response = $this->call(
-                'PUT',
-                'test/things/malformedjson_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                '{"this" : {"is" : "malformed"}',
-                false
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) throw new Exception("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+    {    
+        Auth::loginUsingId($this->test_cluster->id);
+        $payload = $this->entity_payload;
+        $payload['name'] = 'malformedjson_thing';
+        $payload['body']['name'] = 'malformedjson_thing';
+        $response = $this->call(
+            'PUT',
+            'test/things/malformedjson_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            '{"this" : {"is" : "malformed"}',
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+        Auth::logout();
     }
 
     /**
@@ -680,22 +638,18 @@ class ReservationTest extends TestCase
      */
     public function testCreateEntityEmptyPayload()
     {
-        try {
-            Auth::loginUsingId($this->test_cluster->id);
-            $response = $this->call(
-                'PUT',
-                'test/things/emptypayload_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                '',
-                false
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) throw new Exception("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        Auth::loginUsingId($this->test_cluster->id);
+        $response = $this->call(
+            'PUT',
+            'test/things/emptypayload_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            '',
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+        Auth::logout();
     }
 
     /**
@@ -751,40 +705,37 @@ class ReservationTest extends TestCase
      */
     public function testUpdateEntityEmptyPayload()
     {
-        try {
-            Auth::loginUsingId($this->test_cluster->id);
-            $payload = $this->entity_payload;
-            $payload['name'] = 'updateemptypayload_thing';
-            $payload['body']['name'] = 'updateemptypayload_thing';
-            $response = $this->call(
-                'PUT',
-                'test/things/updateemptypayload_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-            $content = $response->getContent();
-            $data = json_decode($content);
-            $this->assertEquals($response->getStatusCode(), 200);
-            $this->assertJson($content);
+        
+        Auth::loginUsingId($this->test_cluster->id);
+        $payload = $this->entity_payload;
+        $payload['name'] = 'updateemptypayload_thing';
+        $payload['body']['name'] = 'updateemptypayload_thing';
+        $response = $this->call(
+            'PUT',
+            'test/things/updateemptypayload_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
 
 
-            $response = $this->call(
-                'PUT',
-                'test/things/updateemptypayload_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                '',
-                false
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) throw new Exception("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        $response = $this->call(
+            'PUT',
+            'test/things/updateemptypayload_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            '',
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+        Auth::logout();
     }
 
     /**
@@ -796,40 +747,37 @@ class ReservationTest extends TestCase
      */
     public function testUpdateEntityMalformedJson()
     {
-        try {
-            Auth::loginUsingId($this->test_cluster->id);
-            $payload = $this->entity_payload;
-            $payload['name'] = 'updatemalformedjson_thing';
-            $payload['body']['name'] = 'updatemalformedjson_thing';
-            $response = $this->call(
-                'PUT',
-                'test/things/updatemalformedjson_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-            $content = $response->getContent();
-            $data = json_decode($content);
-            $this->assertEquals($response->getStatusCode(), 200);
-            $this->assertJson($content);
+        
+        Auth::loginUsingId($this->test_cluster->id);
+        $payload = $this->entity_payload;
+        $payload['name'] = 'updatemalformedjson_thing';
+        $payload['body']['name'] = 'updatemalformedjson_thing';
+        $response = $this->call(
+            'PUT',
+            'test/things/updatemalformedjson_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
 
 
-            $response = $this->call(
-                'PUT',
-                'test/things/updatemalformedjson_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                '{"this" : {"is" : "malformed"}',
-                false
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) throw new Exception("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        $response = $this->call(
+            'PUT',
+            'test/things/updatemalformedjson_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            '{"this" : {"is" : "malformed"}',
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+        Auth::logout();
     }
     /**
      *
@@ -840,665 +788,486 @@ class ReservationTest extends TestCase
      */
     public function testCreateEntityMissingParameters()
     {
-        $caught = false;
-
         Auth::loginUsingId($this->test_cluster->id);
         
         $payload = $this->entity_payload;
         $payload['type'] = '';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) throw new Exception("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
 
-
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+        
         $payload = $this->entity_payload;
         $payload['type'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body'] = '';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['type'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['type'] = '';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['location'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['price'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['contact'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['contact'] = '';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['contact'] = 'not a url';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['support'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['support'] = '';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['support'] = 'not a url';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['opening_hours'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         unset($payload['body']['price']['daily']);
         unset($payload['body']['price']['hourly']);
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['price']['daily'] = -1;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['price']['currency'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['price']['currency'] = '';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
         
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['price']['currency'] = 'pokethunes';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
-
-        $payload = $this->entity_payload;
-        $payload['body']['opening_hours'] = array();
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['opening_hours'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
-
-        $payload = $this->entity_payload;
-        $payload['body']['opening_hours'] = array();
-        $opening_hour = array();
-        $opening_hours['opens'] = array('09:00', '13:00');
-        $opening_hours['closes'] = array('12:00', '17:00');
-        $opening_hours['dayOfWeek'] = 1;
-        $opening_hours['validFrom'] = date("Y-m-d h:m:s", time()+60*60*24);
-        $opening_hours['validThrough'] =  date("Y-m-d h:m:s", time()+(365*24*60*60));
-        array_push($this->entity_payload['body']['opening_hours'], $opening_hours);
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
 
         $payload = $this->entity_payload;
         $payload['body']['location']['map'] = null;
-        try{
-           $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+       $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['location']['map'] = '';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['location']['floor'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['location']['floor'] = '';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['location']['floor'] = 'not an int';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['location']['building_name'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['location']['building_name'] = '';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+    
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['location']['map']['img'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+    
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['location']['map']['img'] = '';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['location']['map']['img'] = 'not a url';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['location']['map']['reference'] = null;
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['location']['map']['reference'] = '';
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->entity_payload;
         $payload['body']['amenities'] = array('unknown amenities');
-        try{
-            $response = $this->call(
-                'PUT',
-                'test/things/missing_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true; 
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
         
+        $response = $this->call(
+            'PUT',
+            'test/things/missing_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+
         Auth::logout();
     }
 
@@ -1590,20 +1359,16 @@ class ReservationTest extends TestCase
      */
     public function testGetEntityWrongCustomer()
     {
-        try{ 
-            $response = $this->call(
-                'GET',
-                'wrong/things/get_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                array(),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
-            return;
-        }
-        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+        $response = $this->call(
+            'GET',
+            'wrong/things/get_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 404);
     }
 
     /** 
@@ -1615,20 +1380,16 @@ class ReservationTest extends TestCase
      */
     public function testGetNonExistentEntity()
     { 
-        try{ 
-            $response = $this->call(
-                'GET',
-                'test/things/unknown_thing',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                array(),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
-            return;
-        }
-        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+        $response = $this->call(
+            'GET',
+            'test/things/unknown_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 404);
     }
 
     /**
@@ -1777,21 +1538,17 @@ class ReservationTest extends TestCase
         $payload['thing'] = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_thing';
         $payload['type'] = 'room';
 
-        try{
-            $response = $this->call(
-                'POST',
-                'test2/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            return;
-        }
-        $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        $response = $this->call(
+            'POST',
+            'test2/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 404);
+        Auth::logout();
     }
 
     /**
@@ -1802,25 +1559,18 @@ class ReservationTest extends TestCase
      */
     public function testCreateReservationInvalidJson()
     {
-        $caught = false;
-
         Auth::loginUsingId($this->test_cluster->id);
-
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                '"{this" : { "is" : "malformed"}',
-                false
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            '"{this" : { "is" : "malformed"}',
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+        Auth::logout();
     }
 
     /**
@@ -1831,24 +1581,18 @@ class ReservationTest extends TestCase
      */
     public function testCreateReservationEmptyPayload()
     {
-        $caught = false;
-
         Auth::loginUsingId($this->test_cluster->id);
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                '',
-                false
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            '',
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+        Auth::logout();
     }
     /**
      *
@@ -1858,357 +1602,264 @@ class ReservationTest extends TestCase
      */
     public function testCreateReservationMissingParameters()
     {
-        $caught = false;
-
         Auth::loginUsingId($this->test_cluster->id);
 
         $payload = $this->reservation_payload;
         $payload['type'] = 'room';
         $payload['thing'] = '';
 
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);        
 
         $payload = $this->reservation_payload;
         $payload['thing'] = null;
-
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+        
 
         $payload = $this->reservation_payload;
         $payload['type'] = '';
-
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-                $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+           
 
         $payload = $this->reservation_payload;
         $payload['type'] = null;
-
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-            Auth::logout();
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-                $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->reservation_payload;
         $payload['time'] = null;
-
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->reservation_payload;
         $payload['time']['from'] = null;
 
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
-
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+        
         $payload = $this->reservation_payload;
         $payload['time']['from'] = -1;
 
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
         
         $payload = $this->reservation_payload;
         $payload['time']['from'] = time()-1;
         
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
         
         $payload = $this->reservation_payload;
         $payload['time']['to'] = null;
         
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
         
         $payload = $this->reservation_payload;
         $payload['time']['to'] = -1;
         
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
         
         $payload = $this->reservation_payload;
         $payload['time']['to'] = time()-1;
         
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
         
         $payload = $this->reservation_payload;
         $payload['time']['to'] = time();
         $payload['time']['from'] = $payload['time']['to'] - 1;
         
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->reservation_payload;
         $payload['comment'] = '';
         
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
-        
         $payload = $this->reservation_payload;
         $payload['comment'] = null;
         
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
 
-        
         $payload = $this->reservation_payload;
         $payload['subject'] = '';
         
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
         
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+
+
         $payload = $this->reservation_payload;
         $payload['subject'] = null;
         
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
         
         $payload = $this->reservation_payload;
         $payload['announce'] = null;
         
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
-
         
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+
         $payload = $this->reservation_payload;
         $payload['announce'] = '';
         
-        try{
-            $response = $this->call(
-                'POST',
-                'test/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                json_encode($payload),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\HttpException $e){
-            $caught = true;
-        }
-        if(!$caught) $this->raise("Symfony\Component\HttpKernel\Exception\HttpException not raised.");
         
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 400);
+
         Auth::logout();
     }
 
@@ -2332,20 +1983,16 @@ class ReservationTest extends TestCase
      */
     public function testGetReservationWrongCustomer()
     { 
-        try{
-            $response = $this->call(
-                'GET',
-                'wrong/reservations',
-                array(),
-                array(),
-                ReservationTest::$headers,
-                array(),
-                false
-            );
-        }catch(Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e){
-            return;
-        }
-        $this->raise("Symfony\Component\HttpKernel\Exception\NotFoundHttpException not raised.");
+        $response = $this->call(
+            'GET',
+            'wrong/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            array(),
+            false
+        );
+        $this->assertEquals($response->getStatusCode(), 404);
     }
 }
 

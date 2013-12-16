@@ -3,21 +3,7 @@
 
 class EntityValidator {
 
-    /**
-     * This function throw an error 400 and provide error messages
-     * from validator $validator in JSON.
-     * @param $validator : a Laravel validator
-     */
-    private function sendErrorMessage($validator){
-
-        $messages = $validator->messages();
-        $s = "JSON does not validate. Violations:\n";
-        foreach ($messages->all() as $message) {
-            $s .= "$message\n";
-        }
-        App::abort(400, $s);
-    }
-
+    
     public function validateHours($attribute, $value, $parameters)
     {
         foreach($value as $hour) {
@@ -28,13 +14,62 @@ class EntityValidator {
         return true;
     }
 
+    private function _validateProperty($property) {
+
+        $property_validator
+            = Validator::make(
+                $property,
+                array(
+                  'description' => 'required',
+                  'type' => 'required|schema_type'
+                )
+            );
+        if($property_validator->fails())
+            return $this->_sendErrorMessage($property_validator);
+        if(isset($property['properties']))
+            return $this->_validateProperty($property['properties']);
+    }
+    
+    public function validateSchema($attribute, $value, $parameters)
+    {
+        $json = json_encode($value);
+        if ($json != null) {
+
+            $schema_validator = Validator::make(
+                $value,
+                array(
+                  '$schema' => 'required|url',
+                  'title' => 'required',
+                  'description' => 'required',
+                  'type' => 'required|schema_type',
+                  'properties' => 'required',
+                  'required' => 'required'
+                )
+            );
+            if (!$schema_validator->fails()) {
+
+                foreach ($value['required'] as $required) {
+                    if(!isset($value['properties'][$required]))
+                        return false;
+                }
+                foreach ($value['properties'] as $property) {
+                    $this->_validateProperty($property);
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+        return true;
+    }
+
     public function validateSchemaType ($attribute, $value, $parameters)
     {
       $supported_types = array('array', 'boolean', 'integer', 'number', 
                                          'null', 'object', 'string');
       return in_array($value, $supported_types);
     }
-
     public function validateOpeningHours($attribute, $value, $parameters)
     {
         $now = date("Y-m-d h:m:s", time());
@@ -50,7 +85,7 @@ class EntityValidator {
                 )
             );
             if ($opening_hour_validator->fails())
-                $this->sendErrorMessage($opening_hour_validator);
+                return false;
         }
         return true;
     }
@@ -114,7 +149,7 @@ class EntityValidator {
             )
         );
         if ($map_validator->fails())
-            $this->sendErrorMessage($map_validator);
+            return false;
         return true;
     }
 
@@ -129,7 +164,7 @@ class EntityValidator {
             )
         );
         if ($location_validator->fails())
-            $this->sendErrorMessage($location_validator);
+            return false;
         return true;
     }
 
@@ -166,7 +201,7 @@ class EntityValidator {
             )
         );
         if($body_validator->fails())
-            $this->sendErrorMessage($body_validator);
+            return false;
         return true;
     }
 }

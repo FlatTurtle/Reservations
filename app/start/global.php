@@ -71,6 +71,7 @@ App::down(function()
         return Response::make("Be right back!", 503);
 });
 
+Validator::extend('schema', 'EntityValidator@validateSchema');
 Validator::extend('schema_type', 'EntityValidator@validateSchemaType');
 Validator::extend('hours', 'EntityValidator@validateHours');
 Validator::extend('opening_hours', 'EntityValidator@validateOpeningHours');
