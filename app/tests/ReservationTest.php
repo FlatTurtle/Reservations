@@ -1773,34 +1773,6 @@ class ReservationTest extends TestCase
         $this->assertEquals($response->getStatusCode(), 400);
 
         $payload = $this->reservation_payload;
-        $payload['comment'] = '';
-        
-        $response = $this->call(
-            'POST',
-            'test/reservations',
-            array(),
-            array(),
-            ReservationTest::$headers,
-            json_encode($payload),
-            false
-        );
-        $this->assertEquals($response->getStatusCode(), 400);
-
-        $payload = $this->reservation_payload;
-        $payload['comment'] = null;
-        
-        $response = $this->call(
-            'POST',
-            'test/reservations',
-            array(),
-            array(),
-            ReservationTest::$headers,
-            json_encode($payload),
-            false
-        );
-        $this->assertEquals($response->getStatusCode(), 400);
-
-        $payload = $this->reservation_payload;
         $payload['subject'] = '';
         
         
