@@ -243,7 +243,6 @@ class ReservationController extends Controller
                         'thing' => 'required|url',
                         'type' => 'required',
                         'time' => 'required|time',
-                        'comment' => 'required',
                         'subject' => 'required',
                         'announce' => 'required'
                     )
@@ -344,7 +343,6 @@ class ReservationController extends Controller
                         'thing' => 'required|url',
                         'type' => 'required',
                         'time' => 'required|time',
-                        'comment' => 'required',
                         'subject' => 'required',
                         'announce' => 'required'
                     )
