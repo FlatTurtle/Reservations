@@ -10,7 +10,7 @@ class Reservation extends Eloquent {
      */
     protected $table = 'reservation';
 
-    protected $fillable = array('id', 'from', 'to', 'subject', 'comment', 'announce', 'user_id', 'entity_id');
+    protected $fillable = array('id', 'from', 'to', 'subject', 'comment', 'announce', 'customer', 'user_id', 'entity_id');
     /**
      * Simple primary key
      * @var int
@@ -50,6 +50,12 @@ class Reservation extends Eloquent {
      * @var array
      */
     private $announce;
+
+    /**
+     * Customer that made the reservation. Needed for billing
+     *
+     */
+    private $customer;
 
 
     /**

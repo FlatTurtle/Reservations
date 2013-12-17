@@ -25,6 +25,7 @@ class CreateReservationTable extends Migration {
 			$table->string('subject');
 			$table->text('comment');
 			$table->text('announce');
+			$table->text('customer');
 			$table->integer('user_id');
 			$table->integer('entity_id');
 			//TODO : find a way to add foreign keys correctly

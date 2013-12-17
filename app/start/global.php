@@ -81,6 +81,7 @@ Validator::extend('location', 'EntityValidator@validateLocation');
 Validator::extend('amenities', 'EntityValidator@validateAmenities');
 Validator::extend('body', 'EntityValidator@validateBody');
 Validator::extend('time', 'ReservationValidator@validateTime');
+Validator::extend('customer', 'ReservationValidator@validateCustomer');
 /*
 |--------------------------------------------------------------------------
 | Require The Filters File

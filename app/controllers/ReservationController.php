@@ -133,6 +133,7 @@ class ReservationController extends Controller
                 $reservation->from = date('c', strtotime($reservation->from));
                 $reservation->to = date('c', strtotime($reservation->to));
                 $reservation->announce = json_decode($reservation->announce);
+                $reservation->customer = json_decode($reservation->customer);
                 array_push($reservations, $reservation);
             }
             return Response::json($reservations);
@@ -155,6 +156,7 @@ class ReservationController extends Controller
             if(isset($reservation)) {
                 $reservation->from = date('c', strtotime($reservation->from));
                 $reservation->to = date('c', strtotime($reservation->to));
+                $reservation->customer = json_decode($reservation->customer);
                 return Response::json($reservation);
             } else {
               return $this->_sendErrorMessage(404, "Reservation.NotFound", "Reservation not found");
@@ -193,6 +195,7 @@ class ReservationController extends Controller
                 $reservation->from = date('c', strtotime($reservation->from));
                 $reservation->to = date('c', strtotime($reservation->to));
                 $reservation->announce = json_decode($reservation->announce);
+                $reservation->customer = json_decode($reservation->customer);
                 array_push($reservations, $reservation);
               }
               return Response::json($reservations);
@@ -238,9 +241,9 @@ class ReservationController extends Controller
                         'thing' => 'required|url',
                         'type' => 'required',
                         'time' => 'required|time',
-                        'comment' => 'required',
                         'subject' => 'required',
-                        'announce' => 'required'
+                        'announce' => 'required',
+                        'customer' => 'required|customer'
                     )
                 );
 
@@ -288,6 +291,7 @@ class ReservationController extends Controller
                                         'subject' => Input::json()->get('subject'),
                                         'comment' => Input::json()->get('comment'),
                                         'announce' => json_encode(Input::json()->get('announce')),
+                                        'customer' => json_encode(Input::json()->get('customer')),
                                         'entity_id' => $thing->id,
                                         'user_id' => $cluster->user->id,
                                     )
@@ -339,9 +343,9 @@ class ReservationController extends Controller
                         'thing' => 'required|url',
                         'type' => 'required',
                         'time' => 'required|time',
-                        'comment' => 'required',
                         'subject' => 'required',
-                        'announce' => 'required'
+                        'announce' => 'required',
+                        'customer' => 'required|customer'
                     )
                 );
 
@@ -391,6 +395,7 @@ class ReservationController extends Controller
                                   $reservation->subject = Input::json()->get('subject');
                                   $reservation->comment = Input::json()->get('comment');
                                   $reservation->announce = json_encode(Input::json()->get('announce'));
+                                  $reservation->customer = json_encode(Input::json()->get('customer'));
                                   $reservation->entity_id = $entity->id;
                                   $reservation->user_id = $cluster->user->id;
                                   return $reservation->save();
