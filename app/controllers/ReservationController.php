@@ -44,12 +44,12 @@ class ReservationController extends Controller
                   $i=0;
                   $from_t = new DateTime();
                   $from_t->setTimestamp($from);
-                  $from_open_t = $from_t;
-                  $from_close_t = $from_t;
+                  $from_open_t = clone $from_t;
+                  $from_close_t = clone $from_t;
                   $to_t = new DateTime();
                   $to_t->setTimestamp($to);
-                  $to_open_t = $to_t;
-                  $to_close_t = $to_t;
+                  $to_open_t = clone $to_t;
+                  $to_close_t = clone $to_t;
 
                   foreach (array_combine($opening_hour->opens, $opening_hour->closes) 
                     as $open => $close) {
