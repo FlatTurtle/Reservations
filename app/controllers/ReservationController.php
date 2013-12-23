@@ -288,41 +288,21 @@ class ReservationController extends Controller
                             $from->setTimezone(new DateTimeZone('UTC'));
                             $to->setTimezone(new DateTimeZone('UTC'));
 
-                            // the two first conditions are to select overlapping reservations
-                            // the four others are here to allow reservations to start on an other reservation's ending time (and vice-versa) 
-                            $reservation = DB::select(
-                              'SELECT * FROM reservation WHERE user_id = ?
-                              AND entity_id = ? 
-                              AND ((
-                                ? <= UNIX_TIMESTAMP(`to`)
-                              )
-                              AND (
-                                ? >= UNIX_TIMESTAMP(`from`)
-                              )
-                              AND (
-                                ? <> UNIX_TIMESTAMP(`from`)
-                              )
-                              AND (
-                                ? <> UNIX_TIMESTAMP(`to`)
-                              )
-                              AND (
-                                ? <> UNIX_TIMESTAMP(`from`)
-                              )
-                              AND (
-                                ? <> UNIX_TIMESTAMP(`to`)
-                              )
-                            )
-                            ', 
-                            array(
-                              $cluster->user->id, 
-                              $thing->id, 
-                              $from->getTimestamp(),
-                              $to->getTimestamp(),
-                              $from->getTimestamp(),
-                              $to->getTimestamp(),
-                              $to->getTimestamp(),
-                              $from->getTimestamp())
-                            );
+                            $reservation = DB::table('reservation')
+                                ->where('user_id', '=', $cluster->user->id)
+                                ->where('entity_id', '=', $thing->id)
+                                ->where(function($query) use($from, $to){
+                                    $query->where(function($inner_query) use($from, $to){
+                                        $inner_query->where('from', '>=', $from)
+                                            ->where('from', '<', $to);
+                                    })->orwhere(function($inner_query) use($from, $to){
+                                        $inner_query->where('to', '>', $from)
+                                            ->where('to', '<=', $to);
+                                    })->orwhere(function($inner_query) use($from, $to){
+                                        $inner_query->where('from', '<=', $from)
+                                            ->where('to', '>=', $to);
+                                    });
+                            })->get();
 
                             if(!empty($reservation)){
                                 return $this->_sendErrorMessage(404, "Thing.AlreadyReserved", "The thing is already reserved at that time.");
@@ -414,39 +394,21 @@ class ReservationController extends Controller
                             $from->setTimezone(new DateTimeZone('UTC'));
                             $to->setTimezone(new DateTimeZone('UTC'));
 
-                            $reservation = DB::select(
-                              'SELECT * FROM reservation WHERE user_id = ?
-                              AND entity_id = ? 
-                              AND ((
-                                ? <= UNIX_TIMESTAMP(`to`)
-                              )
-                              AND (
-                                ? >= UNIX_TIMESTAMP(`from`)
-                              )
-                              AND (
-                                ? <> UNIX_TIMESTAMP(`from`)
-                              )
-                              AND (
-                                ? <> UNIX_TIMESTAMP(`to`)
-                              )
-                              AND (
-                                ? <> UNIX_TIMESTAMP(`from`)
-                              )
-                              AND (
-                                ? <> UNIX_TIMESTAMP(`to`)
-                              )
-                            )
-                            ', 
-                            array(
-                              $cluster->user->id, 
-                              $thing->id, 
-                              $from->getTimestamp(),
-                              $to->getTimestamp(),
-                              $from->getTimestamp(),
-                              $to->getTimestamp(),
-                              $to->getTimestamp(),
-                              $from->getTimestamp())
-                            );
+                              $reservation = DB::table('reservation')
+                                  ->where('user_id', '=', $cluster->user->id)
+                                  ->where('entity_id', '=', $entity->id)
+                                  ->where(function($query) use($from, $to){
+                                  $query->where(function($inner_query) use($from, $to){
+                                      $inner_query->where('from', '>=', $from)
+                                          ->where('from', '<', $to);
+                                  })->orwhere(function($inner_query) use($from, $to){
+                                      $inner_query->where('to', '>', $from)
+                                          ->where('to', '<=', $to);
+                                  })->orwhere(function($inner_query) use($from, $to){
+                                      $inner_query->where('from', '<=', $from)
+                                          ->where('to', '>=', $to);
+                                  });
+                              })->get();
 
                             if(!empty($reservation)){
                                 return $this->_sendErrorMessage(404, "Thing.AlreadyReserved", "The thing is already reserved at that time.");
