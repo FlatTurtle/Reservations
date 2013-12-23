@@ -141,7 +141,7 @@
  },
  "comment" : "Last time I booked a room there was not enough water in the room, can someone please check?",
  "customer" : {
-    "username" : "pieter"
+    "email" : "user@domain.com", "company" : "companyname"
   },
  "subject" : "Board meeting",
  "announce" : ["Jan Janssens", "Yeri Tiete"], // For on screen announcements
@@ -163,7 +163,10 @@
 "time" : {
     "from" : "2013-09-26T12:00Z", //iso8601
     "to"      :  "2013-09-26T14:00Z"
- },   
+ },
+ "customer" : {
+    "email" : "user@domain.com", "company" : "companyname"
+ },
  "comment" : "Last time I booked a room there was not enough water in the room, can someone please check?",
  "subject" : "Board meeting",
  "announce" : ["Jan Janssens", "Yeri Tiete"], // For on screen announcements
