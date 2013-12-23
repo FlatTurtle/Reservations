@@ -1987,6 +1987,292 @@ class ReservationTest extends TestCase
     /**
      *
      * @group reservation
+     * @group create
+     * @return null
+     *
+     */
+    public function testCreateReservationTime()
+    {
+        Auth::loginUsingId($this->test_cluster->id);
+        
+        $payload = $this->entity_payload;
+        $payload['name'] = 'reservation_time_thing';
+        $payload['body']['name'] = 'reservation_time_thing';
+        $payload['body']['opening_hours'] = array();
+
+        for($i=1; $i <= 7; $i++){
+            $opening_hours = array();
+            $opening_hours['opens'] = array('10:00');
+            $opening_hours['closes'] = array('17:00');
+            $opening_hours['dayOfWeek'] = $i;
+            $opening_hours['validFrom'] = date("c", time()-365*24*60*60);
+            $opening_hours['validThrough'] =  date("c", time()+(365*24*60*60));
+            array_push($payload['body']['opening_hours'], $opening_hours);
+        }
+
+        $response = $this->call(
+            'PUT',
+            'test/things/reservation_time_thing',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );
+
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+
+
+        /***
+            Reservation with time before validFrom value
+        ***/
+
+        $payload = $this->reservation_payload;
+        $payload['thing'] = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_time_thing';
+        $payload['type'] = 'room';
+        $from = time()-2*365*24*60*60;
+        $payload['time']['from'] = date("c", $from);
+        $payload['time']['to'] = date("c", $from+(60*60));
+        
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );        
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertJson($content);
+
+        /***
+            Reservation with time after validThrough value
+        ***/
+
+        $payload = $this->reservation_payload;
+        $payload['thing'] = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_time_thing';
+        $payload['type'] = 'room';
+        $to = time()+2*365*24*60*60;
+        $payload['time']['from'] = date("c", $from);
+        $payload['time']['to'] = date("c", $from+(60*60));
+        
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );        
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertJson($content);
+
+        /***
+            Reservation starting on thing opening
+        ***/
+
+        $payload = $this->reservation_payload;
+        $payload['thing'] = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_time_thing';
+        $payload['type'] = 'room';
+        $payload['time']['from'] = date('c', mktime(10, 0, 0, date('m'), date('d')+1, date('Y')));
+        $payload['time']['to'] = date('c', mktime(11, 0, 0, date('m'), date('d')+1, date('Y')));
+        
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );        
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+
+
+        /***
+            Reservation ending on thing closing
+        ***/
+
+        $payload = $this->reservation_payload;
+        $payload['thing'] = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_time_thing';
+        $payload['type'] = 'room';
+        $payload['time']['from'] = date('c', mktime(16, 0, 0, date('m'), date('d')+1, date('Y')));
+        $payload['time']['to'] = date('c', mktime(17, 0, 0, date('m'), date('d')+1, date('Y')));
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );        
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+
+
+        /***
+            Reservation made between the two previous one, starting at the ending time of the previous one and 
+            ending at the starting time of the next one.
+        ***/
+
+        $payload = $this->reservation_payload;
+        $payload['thing'] = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_time_thing';
+        $payload['type'] = 'room';
+        $payload['time']['from'] = date('c', mktime(11, 0, 0, date('m'), date('d')+1, date('Y')));
+        $payload['time']['to'] = date('c', mktime(16, 0, 0, date('m'), date('d')+1, date('Y')));
+        
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );        
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertJson($content);
+
+        
+        /***
+            Reservation with time overlaping.
+        ***/
+        $payload = $this->reservation_payload;
+        $payload['thing'] = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_time_thing';
+        $payload['type'] = 'room';
+        $payload['time']['from'] = date('c', mktime(10, 30, 0, date('m'), date('d')+1, date('Y')));
+        $payload['time']['to'] = date('c', mktime(11, 30, date('m'), date('d')+1, date('Y')));
+        
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );        
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertJson($content);
+
+
+        /***
+            Reservation with time overlaping.
+        ***/
+        $payload = $this->reservation_payload;
+        $payload['thing'] = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_time_thing';
+        $payload['type'] = 'room';
+        $payload['time']['from'] = date('c', mktime(11, 0, 0, date('m'), date('d')+1, date('Y')));
+        $payload['time']['to'] = date('c', mktime(12, 0, 0, date('m'), date('d')+1, date('Y')));
+        
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );        
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertJson($content);
+
+
+        /***
+            Reservation with time overlaping.
+        ***/
+        $payload = $this->reservation_payload;
+        $payload['thing'] = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_time_thing';
+        $payload['type'] = 'room';
+        $payload['time']['from'] = date('c', mktime(13, 0, 0, date('m'), date('d')+1, date('Y')));
+        $payload['time']['to'] = date('c', mktime(14, 0, 0, date('m'), date('d')+1, date('Y')));
+        
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );        
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertJson($content);
+
+        /***
+            Reservation with time overlaping.
+        ***/
+        $payload = $this->reservation_payload;
+        $payload['thing'] = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_time_thing';
+        $payload['type'] = 'room';
+        $payload['time']['from'] = date('c', mktime(11, 0, 0, date('m'), date('d')+1, date('Y')));
+        $payload['time']['to'] = date('c', mktime(16, 0, 0, date('m'), date('d')+1, date('Y')));
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );        
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertJson($content);
+
+        /***
+            Reservation with time overlaping.
+        ***/
+        $payload = $this->reservation_payload;
+        $payload['thing'] = 'http://this.is.a.url/' . $this->test_cluster->clustername . '/things/reservation_time_thing';
+        $payload['type'] = 'room';
+        $payload['time']['from'] = date('c', mktime(14, 0, 0, date('m'), date('d')+1, date('Y')));
+        $payload['time']['to'] = date('c', mktime(18, 30, 0, date('m'), date('d')+1, date('Y')));
+        
+        $response = $this->call(
+            'POST',
+            'test/reservations',
+            array(),
+            array(),
+            ReservationTest::$headers,
+            json_encode($payload),
+            false
+        );        
+        $content = $response->getContent();
+        $data = json_decode($content);
+        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertJson($content);
+
+        Auth::logout();
+    }
+
+    /**
+     *
+     * @group reservation
      * @return null
      */
     public function testGetReservation()

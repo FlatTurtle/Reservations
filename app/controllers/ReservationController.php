@@ -42,27 +42,42 @@ class ReservationController extends Controller
                   && $opening_hour->dayOfWeek == date('N', $to)
               ) {
                   $i=0;
+                  $from_t = new DateTime();
+                  $from_t->setTimestamp($from);
+                  $from_open_t = clone $from_t;
+                  $from_close_t = clone $from_t;
+                  $to_t = new DateTime();
+                  $to_t->setTimestamp($to);
+                  $to_open_t = clone $to_t;
+                  $to_close_t = clone $to_t;
+
                   foreach (array_combine($opening_hour->opens, $opening_hour->closes) 
                     as $open => $close) {
-                      /* open an close values are formatted as H:m and dayOfWeek 
-                          is the same so we compare timestamp between $from, $to,
-                          $open and $close and the same day. */
-                      if (strtotime(date('Y-m-d H:m', $from)) >=
-                          strtotime(date('Y-m-d', $from) . $open)
-                      )
-                      $i++;
-                      if (
-                        strtotime(date('Y-m-d H:m', $from)) < strtotime(date('Y-m-d', $from) . $close)
-                      )
+                      
+                      //we parse hour time
+                      $open = explode(':', $open);
+                      $open_hours = intval($open[0]);
+                      $open_minutes = intval($open[1]);
+
+                      //we parse closing time
+                      $close = explode(':', $close);
+                      $close_hours = intval($close[0]);
+                      $close_minutes = intval($close[1]);
+
+                      //building opening and closing time for requested day
+                      $from_open_t->setTime($open_hours, $open_minutes);
+                      $from_close_t->setTime($close_hours, $close_minutes);
+                      $to_open_t->setTime($open_hours, $open_minutes);
+                      $to_close_t->setTime($close_hours, $close_minutes);
+
+                      if ($from_t >= $from_open_t)
+                        $i++;
+                      if ($from_t < $from_close_t)
                           $i--;
-                      if (
-                        strtotime(date('Y-m-d H:m', $to)) > strtotime(date('Y-m-d', $to) . $open)
-                      )
-                      $i++;
-                      if (
-                        strtotime(date('Y-m-d H:m', $to)) <= strtotime(date('Y-m-d', $to) . $close)
-                      )
-                      $i--;
+                      if ($to_t > $to_open_t)
+                        $i++; 
+                      if ($to_t <= $to_close_t)
+                        $i--;
                       if (!$i) $available=true;
                   }
                   
@@ -115,17 +130,20 @@ class ReservationController extends Controller
             /*  Announce value is json encoded in db so we first retrieve 
                 reservations from db, decode announce json and return 
                 reservations to the user */
-            if (Input::get('day')!=null)
-                $from = strtotime(Input::get('day'));
-            else
-                $from = mktime(0,0,0);
-
-            $to = $from+(60*60*24);
+            if (Input::get('day')!=null) {
+              $from = new DateTime(Input::get('day'));
+            }                
+            else {
+                $from = new DateTime();
+                $from->setTime(0,0);
+            }
+            $from->setTimezone(new DateTimeZone('UTC'));
+            
             $_reservations = DB::select(
                   'select * from reservation where user_id = ? 
                   AND UNIX_TIMESTAMP(`from`) >= ? 
                   AND UNIX_TIMESTAMP(`to`) <= ?', 
-                  array($cluster->user->id, $from, $to));
+                  array($cluster->user->id, $from->getTimestamp(), $from->getTimestamp()+(60*60*24)));
 
             //FIXME : return entity name instead of id ?
             $reservations = array();
@@ -178,18 +196,21 @@ class ReservationController extends Controller
             $thing = Entity::where('user_id', '=', $cluster->user->id)->where('name', '=', $name)->first();
             if (isset($thing)) {
 
-              if (Input::get('day')!=null)
-                $from = strtotime(Input::get('day'));
-              else
-                  $from = mktime(0,0,0);
-              $to = $from+(60*60*24);
+              if (Input::get('day')!=null) {
+                $from = new DateTime(Input::get('day'));
+              }                
+              else {
+                  $from = new DateTime();
+                  $from->setTime(0,0);
+              }
+              $from->setTimezone(new DateTimeZone('UTC'));
 
               $_reservations = DB::select(
                   'select * from reservation where user_id = ?
                   AND entity_id = ? 
                   AND UNIX_TIMESTAMP(`from`) > ? 
                   AND UNIX_TIMESTAMP(`to`) < ?', 
-                  array($cluster->user->id, $thing->id, $from, $to));
+                  array($cluster->user->id, $thing->id, $from->getTimestamp(), $from->getTimestamp()+(60*60*24)));
               $reservations = array();
               foreach($_reservations as $reservation){
                 $reservation->from = date('c', strtotime($reservation->from));
@@ -228,7 +249,6 @@ class ReservationController extends Controller
         if(isset($cluster)){
 
             if(!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
-
                 $thing_uri = Input::json()->get('thing');
                 $thing_name = explode('/', $thing_uri);
                 $thing_name = $thing_name[count($thing_name)-1];
@@ -264,30 +284,32 @@ class ReservationController extends Controller
 
                             $from = new DateTime($time['from']);
                             $to = new DateTime($time['to']);
+                            $from->setTimezone(new DateTimeZone('UTC'));
+                            $to->setTimezone(new DateTimeZone('UTC'));
 
-                            $reservation = DB::select(
-                              'select * from reservation where user_id = ?
-                              AND entity_id = ? 
-                              AND ((
-                                ? BETWEEN UNIX_TIMESTAMP(`from`)+60 AND UNIX_TIMESTAMP(`to`)-60
-                              )
-                              OR (
-                                ? BETWEEN UNIX_TIMESTAMP(`from`)+60 AND UNIX_TIMESTAMP(`to`)-60
-                              )
-                              OR (
-                                ? = UNIX_TIMESTAMP(`from`) AND ? = UNIX_TIMESTAMP(`to`)
-                              )
-                            )
-                            ', 
-                            array($cluster->user->id, $thing->id, $from->getTimestamp(), $to->getTimestamp(), $from->getTimestamp(), $to->getTimestamp()));
+                            $reservation = DB::table('reservation')
+                                ->where('user_id', '=', $cluster->user->id)
+                                ->where('entity_id', '=', $thing->id)
+                                ->where(function($query) use($from, $to){
+                                    $query->where(function($inner_query) use($from, $to){
+                                        $inner_query->where('from', '>=', $from)
+                                            ->where('from', '<', $to);
+                                    })->orwhere(function($inner_query) use($from, $to){
+                                        $inner_query->where('to', '>', $from)
+                                            ->where('to', '<=', $to);
+                                    })->orwhere(function($inner_query) use($from, $to){
+                                        $inner_query->where('from', '<=', $from)
+                                            ->where('to', '>=', $to);
+                                    });
+                            })->get();
 
                             if(!empty($reservation)){
                                 return $this->_sendErrorMessage(404, "Thing.AlreadyReserved", "The thing is already reserved at that time.");
                             }else{
                                 return Reservation::create(
                                     array(
-                                        'from' => $from,
-                                        'to' => $to,
+                                        'from' => $from->getTimestamp(),
+                                        'to' => $to->getTimestamp(),
                                         'subject' => Input::json()->get('subject'),
                                         'comment' => Input::json()->get('comment'),
                                         'announce' => json_encode(Input::json()->get('announce')),
@@ -371,27 +393,27 @@ class ReservationController extends Controller
                             $from->setTimezone(new DateTimeZone('UTC'));
                             $to->setTimezone(new DateTimeZone('UTC'));
 
-                            $reservation = DB::select(
-                              'select * from reservation where user_id = ?
-                              AND entity_id = ? 
-                              AND ((
-                                ? BETWEEN UNIX_TIMESTAMP(`from`)+60 AND UNIX_TIMESTAMP(`to`)-60
-                              )
-                              OR (
-                                ? BETWEEN UNIX_TIMESTAMP(`from`)+60 AND UNIX_TIMESTAMP(`to`)-60
-                              )
-                              OR (
-                                ? = UNIX_TIMESTAMP(`from`) AND ? = UNIX_TIMESTAMP(`to`)
-                              )
-                            )
-                            ', 
-                            array($cluster->user->id, $thing->id, $from->getTimestamp(), $to->getTimestamp(), $from->getTimestamp(), $to->getTimestamp()));
+                              $reservation = DB::table('reservation')
+                                  ->where('user_id', '=', $cluster->user->id)
+                                  ->where('entity_id', '=', $entity->id)
+                                  ->where(function($query) use($from, $to){
+                                  $query->where(function($inner_query) use($from, $to){
+                                      $inner_query->where('from', '>=', $from)
+                                          ->where('from', '<', $to);
+                                  })->orwhere(function($inner_query) use($from, $to){
+                                      $inner_query->where('to', '>', $from)
+                                          ->where('to', '<=', $to);
+                                  })->orwhere(function($inner_query) use($from, $to){
+                                      $inner_query->where('from', '<=', $from)
+                                          ->where('to', '>=', $to);
+                                  });
+                              })->get();
 
                             if(!empty($reservation)){
                                 return $this->_sendErrorMessage(404, "Thing.AlreadyReserved", "The thing is already reserved at that time.");
                             }else{
-                                  $reservation->from = $from;
-                                  $reservation->to = $to;
+                                  $reservation->from = $from->getTimestamp();
+                                  $reservation->to = $to->getTimestamp();
                                   $reservation->subject = Input::json()->get('subject');
                                   $reservation->comment = Input::json()->get('comment');
                                   $reservation->announce = json_encode(Input::json()->get('announce'));
