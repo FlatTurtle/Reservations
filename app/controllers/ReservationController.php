@@ -8,7 +8,7 @@
  * This class take care of everything related to reservations 
  * (create / update / delete).
  */
-class ReservationController extends Controller
+class ReservationController extends BaseController
 {
 
      /**
@@ -85,35 +85,7 @@ class ReservationController extends Controller
           }
           return $available;
       }
-    /**
-     * This function throw an error 400 and provide error messages
-     * from validator $validator in JSON.
-     *
-     * @param validator : a Laravel validator
-     * @return
-     */
-    private function _sendValidationErrorMessage($validator)
-    {
-        $s = array("success" => 0, "errors" => array());
-        $messages = $validator->messages();
-        foreach ($messages->all() as $message) {
-            array_push($s["errors"], array("code" => 400, "type" => "ValidationError", "message" => $message));
-        }
-        return Response::json($s, 400);
-    }
 
-    private function _sendErrorMessage($code, $type, $message) {
-        return Response::json(array(
-          "success" => 0,
-          "errors" => array(
-            array(
-              "code" => $code,
-              "type" => $type,
-              "message" => $message
-            )
-          )
-        ), $code);
-    }
 
     /**
      * Return a list of reservations that the user has made for the current day.
