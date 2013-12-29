@@ -16,6 +16,7 @@ ClassLoader::addDirectories(array(
         app_path().'/commands',
         app_path().'/providers',
         app_path().'/validators',
+        app_path().'/exceptions',
         app_path().'/controllers',
         app_path().'/models',
         app_path().'/database/seeds',
@@ -52,7 +53,20 @@ Log::useDailyFiles(storage_path().'/logs/'.$logFile);
 
 App::error(function(Exception $exception, $code)
 {
-        Log::error($exception);
+    Log::error($exception);
+});
+
+App::error(function(EntityNotFoundException $exception, $code){
+    return Response::json(array(
+        "success" => 0,
+        "errors" => array(
+            array(
+                "code" => $exception->getCode(),
+                "type" => $exception->getType(),
+                "message" => Lang::get("errors." . $exception->getType())
+            )
+        )
+    ), $exception->getCode());
 });
 
 /*

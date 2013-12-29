@@ -45,19 +45,4 @@ class BaseController extends Controller {
         ), $code);
     }
 
-    /**
-     * Gets the cluster if it exists
-     * returns an error if the cluster does not exist
-     *
-     * @param $cluster_name
-     */
-    public function getCluster($cluster_name){
-        $cluster = Cluster::where('clustername', '=', $cluster_name)->first();
-        if (isset($cluster)) {
-            return $cluster;
-        }else{
-            return $this->_sendErrorMessage(404, "Cluster.NotFound", "Cluster not found");
-        }
-    }
-
 }

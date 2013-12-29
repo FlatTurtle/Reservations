@@ -20,23 +20,21 @@ class Cluster extends Eloquent implements UserInterface {
     protected $hidden = array('password');
     protected $fillable = array('clustername');
 
-    private $reservations;
-
     public function reservations() {
         return $this->hasMany('Reservation');
     }
 
-    private $entities;
     public function entities() {
         return $this->hasMany('Entity');
     }
-    
-    private $user;
+
+    public function companies() {
+        return $this->hasMany('Company');
+    }
 
     public function user() {
         return $this->belongsTo('User');
     }
-
 
     /**
      * Get the unique identifier for the cluster.

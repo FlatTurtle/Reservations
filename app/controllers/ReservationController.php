@@ -94,9 +94,8 @@ class ReservationController extends BaseController
      * @param clustername : the cluster's name
      * @return 
      */ 
-    public function getReservations($clustername)
+    public function getReservations(Cluster $cluster)
     {
-        $cluster = $this->getCluster($clustername);
         /*  Announce value is json encoded in db so we first retrieve
             reservations from db, decode announce json and return
             reservations to the user */
@@ -133,9 +132,8 @@ class ReservationController extends BaseController
      * @param clustername : the cluster's name
      * @param id : the id of the reservation to be deleted
      */
-    public function getReservation($clustername, $id)
+    public function getReservation(Cluster $cluster, $id)
     {
-        $cluster = $this->getCluster($clustername);
         //TODO the cluster is not used. So as long as a valid cluster is given every reservation in the whole api can be returned
         $reservation = Reservation::find($id);
         if(isset($reservation)) {
@@ -154,9 +152,8 @@ class ReservationController extends BaseController
      * @param clustername : the user's name
      * @param name : the thing's name
      */
-    public function getReservationsByThing($clustername, $name)
+    public function getReservationsByThing(Cluster $cluster, $name)
     {
-        $cluster = $this->getCluster($clustername);
         $thing = Entity::where('user_id', '=', $cluster->user->id)->where('name', '=', $name)->first();
         if (isset($thing)) {
 
@@ -191,16 +188,12 @@ class ReservationController extends BaseController
         }
     }
 
-        
-
-    
-
     /**
      * Create a new reservation for a authenticated user.
      * @param $clustername : cluster's name from url.
      *
      */
-    public function createReservation($clustername){
+    public function createReservation(Cluster $cluster){
 
         $content = Request::instance()->getContent(); 
         if (empty($content)) 
@@ -208,9 +201,9 @@ class ReservationController extends BaseController
         if (Input::json() == null)
           return $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
 
-        $cluster = $this->getCluster($clustername);
 
-        if(!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
+
+        if(!strcmp($cluster->clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
 
             $thing_uri = Input::json()->get('thing');
             $thing_name = explode('/', $thing_uri);
@@ -299,10 +292,9 @@ class ReservationController extends BaseController
      * @param $clustername : cluster's name from url.
      *
      */
-    public function updateReservation($clustername, $id){
-        $cluster = $this->getCluster($clustername);
-                        
-        if(!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
+    public function updateReservation(Cluster $cluster, $id){
+
+        if(!strcmp($cluster->clustername, Auth::user()->clustername) || Auth::user()->isAdmin()){
 
             $content = Request::instance()->getContent();
             if (empty($content))
@@ -400,9 +392,7 @@ class ReservationController extends BaseController
      * @param $clustername : the cluster's name
      * @param $id : the reservation's id
      */
-    public function deleteReservation($clustername, $id) {
-        
-        $cluster = $this->getCluster($clustername);
+    public function deleteReservation(Cluster $cluster, $id) {
         //TODO cluster not used with a valid cluster anyone can delete any reservation
         $reservation = Reservation::find($id);
 

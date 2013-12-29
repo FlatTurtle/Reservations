@@ -11,9 +11,7 @@ class EntityController extends BaseController {
      * @param $clustername : cluster's name from url.
      *
      */
-    public function getEntities($clustername) {
-      
-        $cluster = $this->getCluster($clustername);
+    public function getEntities(Cluster $cluster){
 
         /* retrieve all entities from db and push their json bodies into an array
            that we return to the user as json */
@@ -39,10 +37,7 @@ class EntityController extends BaseController {
      * @param $clustername : cluster's name from url.
      *
      */
-    public function getAmenities($clustername) {
-        
-        $cluster = $this->getCluster($clustername);
-
+    public function getAmenities(Cluster $cluster) {
         /* retrieve all entities with type 'amenity'
            from db and push their json bodies into an array
            that we return to the user as json */
@@ -65,8 +60,7 @@ class EntityController extends BaseController {
      * @param $name : the amenity's name
      *
      */
-    public function getAmenityByName($clustername, $name) {
-        $cluster = $this->getCluster($clustername);
+    public function getAmenityByName(Cluster $cluster, $name) {
         $amenity = Entity::whereRaw(
             'user_id = ? and type = ? and name = ?',
             array($cluster->user->id, 'amenity', $name)
@@ -88,9 +82,7 @@ class EntityController extends BaseController {
      * @param $name : the entity's name
      *
      */
-    public function getEntityByName($clustername, $name) {
-
-        $cluster = $this->getCluster($clustername);
+    public function getEntityByName(Cluster $cluster, $name) {
         $entity = Entity::where('user_id', '=', $cluster->user->id)
             ->where('name', '=', $name)
             ->first();
@@ -110,11 +102,9 @@ class EntityController extends BaseController {
      * @param $name : the name of the entity to be created
      *
      */
-    public function createEntity($clustername, $name) {
+    public function createEntity(Cluster $cluster, $name) {
 
-        $cluster = $this->getCluster($clustername);
-
-        if (!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()) {
+        if (!strcmp($cluster->clustername, Auth::user()->clustername) || Auth::user()->isAdmin()) {
 
             $content = Request::instance()->getContent();
             if (empty($content))
@@ -172,7 +162,7 @@ class EntityController extends BaseController {
      * @param $name : the name of the amenity to be created
      *
      */
-    public function createAmenity($clustername, $name) {
+    public function createAmenity(Cluster $cluster, $name) {
 
         $content = Request::instance()->getContent(); 
         if (empty($content)){
@@ -181,10 +171,9 @@ class EntityController extends BaseController {
         if (Input::json() == null){
             return $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
         }
-        
-        $cluster = $this->getCluster($clustername);
+
             
-        if (!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()) {
+        if (!strcmp($cluster->clustername, Auth::user()->clustername) || Auth::user()->isAdmin()) {
             /* This Validator verify that the schema value is a valid json-schema
                definition. */
             $amenity_validator = Validator::make(
@@ -225,11 +214,9 @@ class EntityController extends BaseController {
      * @param $name : the name of the amenity to be deleted
      *
      */
-    public function deleteAmenity($clustername, $name) {
+    public function deleteAmenity(Cluster $cluster, $name) {
 
-        $cluster = $this->getCluster($clustername);
-
-        if (!strcmp($clustername, Auth::user()->clustername) || Auth::user()->isAdmin()) {
+        if (!strcmp($cluster->clustername, Auth::user()->clustername) || Auth::user()->isAdmin()) {
 
             $amenity = Entity::where('user_id', '=', $cluster->user->id)
                 ->where('type', '=', 'amenity')
