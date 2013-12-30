@@ -93,12 +93,21 @@ Route::group(array('before' => 'auth.basic'), function()
     );
 
     /*
-     *  POST http://reservation.hostname/{cluster_name}/companies/
+     *  PUT http://reservation.hostname/{cluster_name}/companies/
      *  creates a new company
      */
-    Route::post(
-        '/{cluster}/companies',
+    Route::put(
+        '/{cluster}/companies/{name}',
         array('uses' => 'CompanyController@createCompany')
+    );
+
+    /*
+     * DELETE http://reservation.hostname/{cluster_name}/companies/{company_name}
+     * deletes the given company
+     */
+    Route::delete(
+        '/{cluster}/companies/{name}',
+        array('uses' => 'CompanyController@deleteCompany')
     );
 });
 
@@ -200,3 +209,21 @@ Route::get(
     array('uses' => 'CustomerController@getCustomer')
 );
 
+
+/*
+ *  GET http://reservation.hostname/{cluster_name}/companies/
+ *  returns all the companies registered for that cluster
+ */
+Route::get(
+    '/{cluster}/companies',
+    array('uses' => 'CompanyController@getCompanies')
+);
+
+/*
+ *  GET http://reservation.hostname/{cluster_name}/companies/{id}
+ *  returns the company with the specific id if it exists in the cluster
+ */
+Route::get(
+    '/{cluster}/companies/{id}',
+    array('uses' => 'CompanyController@getCompany')
+);
