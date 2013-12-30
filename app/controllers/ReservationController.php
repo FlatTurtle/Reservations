@@ -245,18 +245,9 @@ class ReservationController extends BaseController
                         $reservation = DB::table('reservation')
                             ->where('user_id', '=', $cluster->user->id)
                             ->where('entity_id', '=', $thing->id)
-                            ->where(function($query) use($from, $to){
-                                $query->where(function($inner_query) use($from, $to){
-                                    $inner_query->where('from', '>=', $from)
-                                        ->where('from', '<', $to);
-                                })->orwhere(function($inner_query) use($from, $to){
-                                    $inner_query->where('to', '>', $from)
-                                        ->where('to', '<=', $to);
-                                })->orwhere(function($inner_query) use($from, $to){
-                                    $inner_query->where('from', '<=', $from)
-                                        ->where('to', '>=', $to);
-                                });
-                        })->get();
+                            ->where('from', '<', $to)
+                            ->where('to', '>', $from)
+                            ->get();
 
                         if(!empty($reservation)){
                             return $this->_sendErrorMessage(404, "Thing.AlreadyReserved", "The thing is already reserved at that time.");
@@ -341,21 +332,12 @@ class ReservationController extends BaseController
                         $from->setTimezone(new DateTimeZone('UTC'));
                         $to->setTimezone(new DateTimeZone('UTC'));
 
-                          $reservation = DB::table('reservation')
-                              ->where('user_id', '=', $cluster->user->id)
-                              ->where('entity_id', '=', $entity->id)
-                              ->where(function($query) use($from, $to){
-                              $query->where(function($inner_query) use($from, $to){
-                                  $inner_query->where('from', '>=', $from)
-                                      ->where('from', '<', $to);
-                              })->orwhere(function($inner_query) use($from, $to){
-                                  $inner_query->where('to', '>', $from)
-                                      ->where('to', '<=', $to);
-                              })->orwhere(function($inner_query) use($from, $to){
-                                  $inner_query->where('from', '<=', $from)
-                                      ->where('to', '>=', $to);
-                              });
-                          })->get();
+                        $reservation = DB::table('reservation')
+                          ->where('user_id', '=', $cluster->user->id)
+                          ->where('entity_id', '=', $entity->id)
+                          ->where('from', '<', $to)
+                          ->where('to', '>', $from)
+                          ->get();
 
                         if(!empty($reservation)){
                             return $this->_sendErrorMessage(404, "Thing.AlreadyReserved", "The thing is already reserved at that time.");
