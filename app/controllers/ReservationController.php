@@ -41,7 +41,6 @@ class ReservationController extends BaseController
               if ($opening_hour->dayOfWeek == date('N', $from)
                   && $opening_hour->dayOfWeek == date('N', $to)
               ) {
-                  $i=0;
                   $from_t = new DateTime();
                   $from_t->setTimestamp($from);
                   $from_open_t = clone $from_t;
@@ -53,7 +52,8 @@ class ReservationController extends BaseController
 
                   foreach (array_combine($opening_hour->opens, $opening_hour->closes) 
                     as $open => $close) {
-                      
+                      $i=0;
+
                       //we parse hour time
                       $open = explode(':', $open);
                       $open_hours = intval($open[0]);
