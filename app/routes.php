@@ -20,6 +20,100 @@ App::error(function (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
     );
 });
 
+/*
+ * Model bindings
+ *
+ */
+Route::bind('cluster', function($cluster_name, $route)
+{
+    $cluster = $cluster = Cluster::where('clustername', '=', $cluster_name)->first();
+    if (!isset($cluster)) {
+        throw new EntityNotFoundException("Cluster.NotFound");
+    }
+    return $cluster;
+});
+
+/**
+ * AUTH routes
+ */
+Route::group(array('before' => 'auth.basic'), function()
+{
+    /*
+      PUT http://reservation.hostname/{cluster_name}/amenities/{name}
+      create or update an amenity.
+    */
+    Route::put(
+        '/{cluster}/amenities/{name}','EntityController@createAmenity'
+    );
+
+    /*
+      DELETE http://reservation.hostname/{cluster_name}/amenities/{name}
+      delete a certain amenity
+    */
+    Route::delete(
+        '/{cluster}/amenities/{name}',
+        array('uses' => 'EntityController@deleteAmenity')
+    );
+
+    /*
+      POST http://reservation.hostname/{cluster_name}/reservations
+      create a new reservation.
+    */
+    Route::post(
+        '/{cluster}/reservations',
+        array('uses' => 'ReservationController@createReservation')
+    );
+
+    /*
+      POST http://reservation.hostname/{cluster_name}/reservations/{id}
+      update the reservation with
+      id {id}.
+    */
+    Route::post(
+        '/{cluster}/reservations/{id}',
+        array('uses' => 'ReservationController@updateReservation')
+    );
+
+    /*
+       DELETE http://reservation.hostname/{cluster_name}/reservations/{id}
+       cancel the reservation {id}
+    */
+    Route::delete(
+        '/{cluster}/reservations/{id}',
+        array('uses' => 'ReservationController@deleteReservation')
+    );
+
+    /*
+      PUT http://reservation.hostname/{cluster_name}/things/{name}
+      create or update thing that can be reserved.
+    */
+    Route::put(
+        '/{cluster}/things/{name}',
+        array('uses' => 'EntityController@createEntity')
+    );
+
+    /*
+     *  PUT http://reservation.hostname/{cluster_name}/companies/
+     *  creates a new company
+     */
+    Route::put(
+        '/{cluster}/companies/{name}',
+        array('uses' => 'CompanyController@createCompany')
+    );
+
+    /*
+     * DELETE http://reservation.hostname/{cluster_name}/companies/{company_name}
+     * deletes the given company
+     */
+    Route::delete(
+        '/{cluster}/companies/{name}',
+        array('uses' => 'CompanyController@deleteCompany')
+    );
+});
+
+
+
+
 
 /*
   Root url, this is where the API documentation will be display.
@@ -30,154 +124,106 @@ Route::get(
 );
 
 /*
-  GET http://reservation.hostname/{customer_name}
+  GET http://reservation.hostname/{cluster_name}
   return a list of things that can be reserved
 */
 Route::get(
-    '/{customer_name}',
+    '/{cluster}',
     array('uses' => 'EntityController@getEntities')
 );
 
-
 /*
-  GET http://reservation.hostname/{customer_name}/amenities
+  GET http://reservation.hostname/{cluster_name}/amenities
   returns list of amenities/
 */
 Route::get(
-    '/{customer_name}/amenities', 
+    '/{cluster}/amenities',
     array('uses' => 'EntityController@getAmenities')
 );
 
 /*
-  GET http://reservation.hostname/{customer_name}/amenities/{name}
+  GET http://reservation.hostname/{cluster_name}/amenities/{name}
   returns information about a
   certain amenity.
 */
 Route::get(
-    '/{customer_name}/amenities/{name}',
+    '/{cluster}/amenities/{name}',
     array('uses' => 'EntityController@getAmenityByName')
 );
 
 /*
-  PUT http://reservation.hostname/{customer_name}/amenities/{name}
-  create or update an amenity.
-*/
-Route::put(
-    '/{customer_name}/amenities/{name}', 
-    array('before' => 'auth.basic', 'uses' => 'EntityController@createAmenity')
-);
-
-/*
-  DELETE http://reservation.hostname/{customer_name}/amenities/{name}
-  delete a certain amenity
-*/
-Route::delete(
-    '/{customer_name}/amenities/{name}', 
-    array('before' => 'auth.basic', 'uses' => 'EntityController@deleteAmenity')
-);
-
-/*
-  GET http://reservation.hostname/{customer_name}/reservations 
+  GET http://reservation.hostname/{cluster_name}/reservations
   returns list of reservations made for the current day.
   Day can be changed with the GET parameter ?day=2013-10-12
 */
 Route::get(
-    '/{customer_name}/reservations',
+    '/{cluster}/reservations',
     array('uses' => 'ReservationController@getReservations')
 );
 
 /*
-  POST http://reservation.hostname/{customer_name}/reservations
-  create a new reservation.
-*/
-Route::post(
-    '/{customer_name}/reservations', 
-    array(
-      'before' => 'auth.basic',
-      'uses' => 'ReservationController@createReservation'
-    )
-);
-
-/*
-  GET http://reservation.hostname/{customer_name}/reservations/{id}
+  GET http://reservation.hostname/{cluster_name}/reservations/{id}
   return the reservation with
   id {id}.
 */
 Route::get(
-    '/{customer_name}/reservations/{id}', 
+    '/{cluster}/reservations/{id}',
     array('uses' => 'ReservationController@getReservation')
 );
 
 /*
-  POST http://reservation.hostname/{customer_name}/reservations/{id}
-  update the reservation with
-  id {id}.
-*/
-Route::post(
-    '/{customer_name}/reservations/{id}', 
-    array(
-      'before' => 'auth.basic', 
-      'uses' => 'ReservationController@updateReservation'
-    )
-);
-
-/* 
-   DELETE http://reservation.hostname/{customer_name}/reservations/{id}
-   cancel the reservation {id}
-*/
-Route::delete(
-    '/{customer_name}/reservations/{id}', 
-    array(
-      'before' => 'auth.basic',
-      'uses' => 'ReservationController@deleteReservation'
-    )
-);
-
-/*
-  GET http://reservation.hostname/{customer_name}/things
+  GET http://reservation.hostname/{cluster_name}/things
   returns informations about the things 
 */
 Route::get(
-    '/{customer_name}/things',
+    '/{cluster}/things',
     array('uses' => 'EntityController@getEntities')
 );
 
 
 /*
-  GET http://reservation.hostname/{customer_name}/things/{name}
+  GET http://reservation.hostname/{cluster_name}/things/{name}
   returns informations about a certain thing that can be reserved.
 */
 Route::get(
-    '/{customer_name}/things/{name}',
+    '/{cluster}/things/{name}',
     array('uses' => 'EntityController@getEntityByName')
 );
 
-
 /*
-  PUT http://reservation.hostname/{customer_name}/things/{name}
-  create or update thing that can be reserved.
-*/
-Route::put(
-    '/{customer_name}/things/{name}', 
-    array('before' => 'auth.basic', 'uses' => 'EntityController@createEntity')
-);
-
-/*
-  GET http://reservation.hostname/{customer_name}/things/{name}/reservations
+  GET http://reservation.hostname/{cluster_name}/things/{name}/reservations
   returns reservations made on the thing {name} for the current day.
   Day can be changed with the GET parameter ?day=2013-10-12
 */
 Route::get(
-    '/{customer_name}/things/{name}/reservations',
+    '/{cluster}/things/{name}/reservations',
     array('uses' => 'ReservationController@getReservationsByThing')
 );
 
 /*
-  GET http://reservation.hostname/{customer_name}/
+  GET http://reservation.hostname/{cluster_name}/
   returns 3 URIs thing that can be reserved.
 */
 Route::get(
-    '/{customer_name}',
+    '/{cluster}',
     array('uses' => 'CustomerController@getCustomer')
 );
 
+
+/*
+ *  GET http://reservation.hostname/{cluster_name}/companies/
+ *  returns all the companies registered for that cluster
+ */
+Route::get(
+    '/{cluster}/companies',
+    array('uses' => 'CompanyController@getCompanies')
+);
+
+/*
+ *  GET http://reservation.hostname/{cluster_name}/companies/{id}
+ *  returns the company with the specific id if it exists in the cluster
+ */
+Route::get(
+    '/{cluster}/companies/{id}',
+    array('uses' => 'CompanyController@getCompany')
+);

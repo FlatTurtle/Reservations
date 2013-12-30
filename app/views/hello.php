@@ -9,7 +9,7 @@
     <link rel="icon" href="https://img.flatturtle.com/favicon/favicon.ico" data="https://img.flatturtle.com/favicon/favicon.ico" />
     <script src="./assets/application.js"></script>
     <script src="./assets/jquery-2.0.3.min.js"></script>
-    
+
   </head>
   <body class="">
     <div id="header" class="wrap">
@@ -20,8 +20,8 @@
   <div id="api" class="wrap">
     <h3>API</h3>
     <p>
-      Reservations is an API that allows people to reserve things such as meeting rooms, amenities, 
-      buildings or whatever you can imagine. 
+      Reservations is an API that allows people to reserve things such as meeting rooms, amenities,
+      buildings or whatever you can imagine.
     </p>
     <dl>
       <dt id='api-root'>
@@ -98,7 +98,7 @@
                 "validThrough": "2013-09-26T12:00Z"
             }
         ],
-        "description": "DeepBlueislocatednearthestart-upgarage.",
+        "description": "DeepBlue is located neart he start-upgarage.",
         "location": {
             "map": {
                 "img": "http: //foo.bar/map.png",
@@ -110,14 +110,14 @@
         "contact": "http: //foo.bar/vcard.vcf",
         "support": "http: //foo.bar/vcard.vcf",
         "amenities": {
-            "http: //reservation.[hostname]/[clustername]/amenities/wifi": {
+            "http: //reservation.{hostname}/{clustername}/amenities/wifi": {
                 "label": "WiFiDeepBlue"
             },
-            "http: //reservation.[hostname]/[clustername]/amenities/phone": {
+            "http: //reservation.{hostname}/{clustername}/amenities/phone": {
                 "label": "phone",
                 "number": "+32..."
             },
-            "http: //reservation.[hostname]/[clustername]/amenities/whiteboard": {}
+            "http: //reservation.{hostname}/{clustername}/amenities/whiteboard": {}
         }
     }
 }
@@ -273,7 +273,7 @@ are available here http://json-schema.org/.
 </pre>
       </dd>
 
-    <dt id='api-put-amenity'>
+    <dt id='api-delete-amenity'>
         <a href='/messages.json'>DELETE /{clustername}/amenities/{amenity}</a>
         <span class="label">Accept JSON</span>
         <span class="label label-warning">Auth</span>
@@ -285,7 +285,77 @@ are available here http://json-schema.org/.
 200 OK
 </pre>
       </dd>
-      
+
+
+      <dt id='api-get-companies'>
+          <a href='/api/status.json'>GET /{clustername}/companies</a>
+          <span class="label">Accept JSON</span>
+      </dt>
+      <br />
+      <dd>Returns list of companies registered on the specified cluster.</dd>
+      <dd>
+        <pre class='terminal'>
+[
+    {
+    "id": "2",
+    "cluster_id": "1",
+    "name": "company name",
+    "domains": "[\"@domain.tld\"]",
+    "logo_url": "http://domain.tld/logo.png",
+    }
+]
+        </pre>
+      </dd>
+
+
+      <dt id='api-get-company'>
+          <a href='/api/status.json'>GET /{clustername}/companies/{company_name}</a>
+          <span class="label">Accept JSON</span>
+      </dt>
+      <br/>
+      <dd>Returns the company linked to that name if it exists in that cluster.</dd>
+      <dd>
+        <pre class='terminal'>
+[
+    {
+    "id": "2",
+    "cluster_id": "1",
+    "name": "company name",
+    "domains": "[\"@domain.tld\"]",
+    "logo_url": "http://domain.tld/logo.png",
+    }
+]
+        </pre>
+      </dd>
+
+      <dt id='api-put-company'>
+          <a href='/api/status.json'>PUT /{clustername}/companies/{company_name}</a>
+          <span class="label">Accept JSON</span>
+          <span class="label label-warning">Auth</span>
+      </dt>
+      <br/>
+      <dd>Create or update a company. And return it as json.</dd>
+      <dd>
+        <pre class='terminal'>
+{
+  "name" : "new_company2",
+  "logo_url" : "http://bizcolostate.files.wordpress.com/2013/08/starbucks-coffee-logo.gif",
+  "domains" : ["@cbre.com", "@test.com"] //optional
+}
+        </pre>
+      </dd>
+
+      <dt id='api-delete-company'>
+          <a href='/messages.json'>DELETE /{clustername}/companies/{company_name}</a>
+          <span class="label">Accept JSON</span>
+          <span class="label label-warning">Auth</span>
+      </dt>
+      <br />
+      <dd>Remove a company when authenticated as customer.</dd>
+      <dd>
+<pre class='terminal'>
+200 OK
+</pre>
     </dl>
   </div>
 </div>
@@ -301,7 +371,7 @@ are available here http://json-schema.org/.
         </ul>
         <p>© 2013 <a href="https://FlatTurtle.com">FlatTurtle</a>. Some rights reserved.</p>
       </div>
-      
+
     </div>
   </body>
 </html>

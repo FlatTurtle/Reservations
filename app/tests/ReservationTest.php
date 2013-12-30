@@ -154,7 +154,7 @@ class ReservationTest extends TestCase
             ReservationTest::$headers,
             json_encode($this->amenity_payload)
         );
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertNotNull(json_decode($response->getContent()));
         Auth::logout();   
     }
@@ -178,12 +178,13 @@ class ReservationTest extends TestCase
             json_encode($payload)
         );
         $content = $response->getContent();
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
         Auth::logout();        
     }
 
     /**
+     * @expectedException EntityNotFoundException
      *
      * @group amenity
      * @group create
@@ -202,11 +203,13 @@ class ReservationTest extends TestCase
             ReservationTest::$headers,
             json_encode($payload)
         );
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
         Auth::logout();
     }
 
     /**
+     *
+     * @expectedException EntityNotFoundException
      *
      * @group amenity
      * @group create
@@ -225,7 +228,7 @@ class ReservationTest extends TestCase
             ReservationTest::$headers,
             json_encode($payload)
         );
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
         Auth::logout();
     }
 
@@ -247,7 +250,7 @@ class ReservationTest extends TestCase
             ReservationTest::$headers,
             json_encode($this->amenity_payload)
         );
-        $this->assertEquals($response->getStatusCode(), 401);
+        $this->assertEquals(401, $response->getStatusCode());
     }
 
     /**
@@ -272,7 +275,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->amenity_payload;
         $payload['description'] = null;
@@ -286,7 +289,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->amenity_payload;
         $payload['schema'] = null;
@@ -300,7 +303,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         Auth::logout();
     }
 
@@ -325,12 +328,13 @@ class ReservationTest extends TestCase
         );        
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
         $this->assertInternalType('array', $data); 
     }
 
     /**
+     * @expectedException EntityNotFoundException
      *
      * @group amenity
      * @group get
@@ -348,7 +352,7 @@ class ReservationTest extends TestCase
             array(),
             false
         );  
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
     }
 
     /**
@@ -371,7 +375,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertNotNull(json_decode($response->getContent()));
         Auth::logout();
 
@@ -386,12 +390,13 @@ class ReservationTest extends TestCase
         );  
         $content = $response->getContent();
                 $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
         $this->assertInternalType('object', $data);
     }
 
     /**
+     * @expectedException EntityNotFoundException
      *
      * @group amenity
      * @group get
@@ -409,7 +414,7 @@ class ReservationTest extends TestCase
             array(),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
     }
 
     /**
@@ -431,7 +436,7 @@ class ReservationTest extends TestCase
             array(),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
     }
 
 
@@ -458,7 +463,7 @@ class ReservationTest extends TestCase
         $content = $response->getContent();
         $data = json_decode($content);
 
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
 
         $response = $this->call(
@@ -472,11 +477,12 @@ class ReservationTest extends TestCase
         );
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
     }
 
     /**
+     * @expectedException EntityNotFoundException
      *
      * @group amenity
      * @group delete
@@ -495,7 +501,7 @@ class ReservationTest extends TestCase
             array(),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
         Auth::logout();
     }
 
@@ -518,7 +524,7 @@ class ReservationTest extends TestCase
             array(),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
         Auth::logout();
     }
 
@@ -547,7 +553,7 @@ class ReservationTest extends TestCase
         );
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
         Auth::logout();
     }
@@ -575,13 +581,14 @@ class ReservationTest extends TestCase
         );
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
         Auth::logout();
     }
 
 
     /**
+     * @expectedException EntityNotFoundException
      *
      * @group entity
      * @group create
@@ -601,7 +608,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
         Auth::logout();
     }
 
@@ -627,7 +634,7 @@ class ReservationTest extends TestCase
             '{"this" : {"is" : "malformed"}',
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         Auth::logout();
     }
 
@@ -650,7 +657,7 @@ class ReservationTest extends TestCase
             '',
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         Auth::logout();
     }
 
@@ -678,7 +685,7 @@ class ReservationTest extends TestCase
         );
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
 
         $response = $this->call(
@@ -692,7 +699,7 @@ class ReservationTest extends TestCase
         );
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
         Auth::logout();
     }
@@ -723,7 +730,7 @@ class ReservationTest extends TestCase
         );
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
 
 
@@ -736,7 +743,7 @@ class ReservationTest extends TestCase
             '',
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         Auth::logout();
     }
 
@@ -765,7 +772,7 @@ class ReservationTest extends TestCase
         );
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
 
 
@@ -778,7 +785,7 @@ class ReservationTest extends TestCase
             '{"this" : {"is" : "malformed"}',
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         Auth::logout();
     }
     /**
@@ -804,7 +811,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         
         $payload = $this->entity_payload;
         $payload['type'] = null;
@@ -818,7 +825,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body'] = '';
@@ -832,7 +839,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body'] = null;
@@ -846,7 +853,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['type'] = null;
@@ -860,7 +867,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['type'] = '';
@@ -874,7 +881,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['location'] = null;
@@ -888,7 +895,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['price'] = null;
@@ -902,7 +909,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['contact'] = null;
@@ -916,7 +923,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['contact'] = '';
@@ -930,7 +937,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['contact'] = 'not a url';
@@ -944,7 +951,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['support'] = null;
@@ -958,7 +965,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['support'] = '';
@@ -972,7 +979,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['support'] = 'not a url';
@@ -986,7 +993,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['opening_hours'] = null;
@@ -1000,7 +1007,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         unset($payload['body']['price']['daily']);
@@ -1015,7 +1022,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['price']['daily'] = -1;
@@ -1029,7 +1036,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['price']['currency'] = null;
@@ -1043,7 +1050,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['price']['currency'] = '';
@@ -1057,7 +1064,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['price']['currency'] = 'pokethunes';
@@ -1071,7 +1078,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['opening_hours'] = null;
@@ -1085,7 +1092,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
 
         $payload = $this->entity_payload;
@@ -1100,7 +1107,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['location']['map'] = '';
@@ -1114,7 +1121,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['location']['floor'] = null;
@@ -1128,7 +1135,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['location']['floor'] = '';
@@ -1142,7 +1149,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['location']['floor'] = 'not an int';
@@ -1156,7 +1163,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['location']['building_name'] = null;
@@ -1170,7 +1177,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['location']['building_name'] = '';
@@ -1184,7 +1191,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['location']['map']['img'] = null;
@@ -1198,7 +1205,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['location']['map']['img'] = '';
@@ -1212,7 +1219,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['location']['map']['img'] = 'not a url';
@@ -1226,7 +1233,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['location']['map']['reference'] = null;
@@ -1240,7 +1247,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['location']['map']['reference'] = '';
@@ -1254,7 +1261,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->entity_payload;
         $payload['body']['amenities'] = array('unknown amenities');
@@ -1268,7 +1275,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         Auth::logout();
     }
@@ -1297,7 +1304,7 @@ class ReservationTest extends TestCase
         
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
         $this->assertInternalType('array', $data); 
 
@@ -1331,7 +1338,7 @@ class ReservationTest extends TestCase
 
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
         
         Auth::logout();
@@ -1348,11 +1355,12 @@ class ReservationTest extends TestCase
 
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
     }
 
     /**
+     * @expectedException EntityNotFoundException
      *
      * @group entity
      * @group get
@@ -1370,7 +1378,7 @@ class ReservationTest extends TestCase
             array(),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
     }
 
     /** 
@@ -1391,7 +1399,7 @@ class ReservationTest extends TestCase
             array(),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
     }
 
     /**
@@ -1432,7 +1440,7 @@ class ReservationTest extends TestCase
 
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
 
         $payload = $this->reservation_payload;
@@ -1452,7 +1460,7 @@ class ReservationTest extends TestCase
         );        
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
 
         Auth::logout();
@@ -1495,7 +1503,7 @@ class ReservationTest extends TestCase
 
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
 
 
@@ -1516,7 +1524,7 @@ class ReservationTest extends TestCase
         );        
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
 
         Auth::logout();
@@ -1524,6 +1532,7 @@ class ReservationTest extends TestCase
 
 
     /**
+     * @expectedException EntityNotFoundException
      *
      * @group reservation
      * @return null
@@ -1549,7 +1558,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
         Auth::logout();
     }
 
@@ -1571,7 +1580,7 @@ class ReservationTest extends TestCase
             '"{this" : { "is" : "malformed"}',
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         Auth::logout();
     }
 
@@ -1593,7 +1602,7 @@ class ReservationTest extends TestCase
             '',
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         Auth::logout();
     }
     /**
@@ -1619,7 +1628,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);        
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->reservation_payload;
         $payload['thing'] = null;
@@ -1632,7 +1641,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         
 
         $payload = $this->reservation_payload;
@@ -1646,7 +1655,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
            
 
         $payload = $this->reservation_payload;
@@ -1660,7 +1669,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->reservation_payload;
         $payload['customer'] = null;
@@ -1673,7 +1682,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->reservation_payload;
         $payload['customer'] = array();
@@ -1686,7 +1695,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->reservation_payload;
         $payload['customer'] = '';
@@ -1699,7 +1708,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->reservation_payload;
         $payload['customer']['email'] = null;
@@ -1712,7 +1721,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->reservation_payload;
         $payload['customer']['email'] = '';
@@ -1725,7 +1734,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->reservation_payload;
         $payload['customer']['email'] = 'not an email';
@@ -1738,7 +1747,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
 
         $payload = $this->reservation_payload;
@@ -1752,7 +1761,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->reservation_payload;
         $payload['customer']['company'] = '';
@@ -1765,7 +1774,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
 
         $payload = $this->reservation_payload;
@@ -1779,7 +1788,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->reservation_payload;
         $payload['time']['from'] = null;
@@ -1793,7 +1802,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         
         $payload = $this->reservation_payload;
         $payload['time']['from'] = -1;
@@ -1807,7 +1816,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         
         $payload = $this->reservation_payload;
         $payload['time']['from'] = time()-1;
@@ -1821,7 +1830,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         
         $payload = $this->reservation_payload;
         $payload['time']['to'] = null;
@@ -1835,7 +1844,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         
         $payload = $this->reservation_payload;
         $payload['time']['to'] = -1;
@@ -1849,7 +1858,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         
         $payload = $this->reservation_payload;
         $payload['time']['to'] = time()-1;
@@ -1863,7 +1872,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         
         $payload = $this->reservation_payload;
         $payload['time']['to'] = time();
@@ -1878,7 +1887,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->reservation_payload;
         $payload['subject'] = '';
@@ -1893,7 +1902,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
 
         $payload = $this->reservation_payload;
@@ -1908,7 +1917,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         
         $payload = $this->reservation_payload;
         $payload['announce'] = null;
@@ -1923,7 +1932,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         $payload = $this->reservation_payload;
         $payload['announce'] = '';
@@ -1938,7 +1947,7 @@ class ReservationTest extends TestCase
             json_encode($payload),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
 
         Auth::logout();
     }
@@ -1963,7 +1972,7 @@ class ReservationTest extends TestCase
         );
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
 
 
@@ -1979,7 +1988,7 @@ class ReservationTest extends TestCase
         );
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
     }
 
@@ -2022,7 +2031,7 @@ class ReservationTest extends TestCase
 
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
 
 
@@ -2048,7 +2057,7 @@ class ReservationTest extends TestCase
         );        
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         $this->assertJson($content);
 
         /***
@@ -2073,7 +2082,7 @@ class ReservationTest extends TestCase
         );        
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 400);
+        $this->assertEquals(400, $response->getStatusCode());
         $this->assertJson($content);
 
         /***
@@ -2097,7 +2106,7 @@ class ReservationTest extends TestCase
         );        
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
 
 
@@ -2121,7 +2130,7 @@ class ReservationTest extends TestCase
         );        
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
 
 
@@ -2147,7 +2156,7 @@ class ReservationTest extends TestCase
         );        
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 200);
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertJson($content);
 
         
@@ -2171,7 +2180,7 @@ class ReservationTest extends TestCase
         );        
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
         $this->assertJson($content);
 
 
@@ -2195,7 +2204,7 @@ class ReservationTest extends TestCase
         );        
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
         $this->assertJson($content);
 
 
@@ -2219,7 +2228,7 @@ class ReservationTest extends TestCase
         );        
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
         $this->assertJson($content);
 
         /***
@@ -2241,7 +2250,7 @@ class ReservationTest extends TestCase
         );        
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
         $this->assertJson($content);
 
         /***
@@ -2264,7 +2273,7 @@ class ReservationTest extends TestCase
         );        
         $content = $response->getContent();
         $data = json_decode($content);
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
         $this->assertJson($content);
 
         Auth::logout();
@@ -2302,7 +2311,7 @@ class ReservationTest extends TestCase
                 );
                 $content = $response->getContent();
                 $data = json_decode($content);
-                $this->assertEquals($response->getStatusCode(), 200);
+                $this->assertEquals(200, $response->getStatusCode());
                 $this->assertJson($content);
         }
     }
@@ -2342,6 +2351,7 @@ class ReservationTest extends TestCase
 
 
     /**
+     * @expectedException EntityNotFoundException
      *
      * @group reservation
      * @return null
@@ -2358,7 +2368,7 @@ class ReservationTest extends TestCase
             array(),
             false
         );
-        $this->assertEquals($response->getStatusCode(), 404);
+        $this->assertEquals(404, $response->getStatusCode());
     }
 }
 
