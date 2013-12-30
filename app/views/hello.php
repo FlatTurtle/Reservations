@@ -309,11 +309,11 @@ are available here http://json-schema.org/.
 
 
       <dt id='api-get-company'>
-          <a href='/api/status.json'>GET /{clustername}/companies/{company_id}</a>
+          <a href='/api/status.json'>GET /{clustername}/companies/{company_name}</a>
           <span class="label">Accept JSON</span>
       </dt>
       <br/>
-      <dd>Returns the company linked to that id if it exists in that cluster.</dd>
+      <dd>Returns the company linked to that name if it exists in that cluster.</dd>
       <dd>
         <pre class='terminal'>
 [
@@ -345,8 +345,8 @@ are available here http://json-schema.org/.
         </pre>
       </dd>
 
-      <dt id='api-delete-amenity'>
-          <a href='/messages.json'>DELETE /{clustername}/companies/{company_id}</a>
+      <dt id='api-delete-company'>
+          <a href='/messages.json'>DELETE /{clustername}/companies/{company_name}</a>
           <span class="label">Accept JSON</span>
           <span class="label label-warning">Auth</span>
       </dt>
