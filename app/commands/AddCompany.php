@@ -59,7 +59,7 @@ class AddCompany extends Command
         } while(empty($logo_url));
 
 
-        $domains = [];
+        $domains = array();
         // get company domains
         $add_domains = $this->ask("Do you want to add any domains (like: '@flatturtle.com')? [Y]/n") ? 0 : 1;
         while($add_domains){
