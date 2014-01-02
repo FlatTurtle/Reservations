@@ -129,7 +129,33 @@
         <span class="label">Accept JSON</span>
       </dt>
       <br />
-      <dd>Returns list of reservations made for the current day. Day can be changed with the GET parameter ?day=2013-10-12</dd>
+      <dd>Returns list of activated reservations made for the current day. Day can be changed with the GET parameter ?day=2013-10-12</dd>
+      <dd>
+<pre class='terminal'>
+[{
+"thing" : "http://reservation.{hostname}/{clustername}/DB",
+"type": "meetingroom",
+"time" : {
+    "from" : "2013-09-26T12:00Z",
+    "to"      :  "2013-09-26T14:00Z"
+ },
+ "comment" : "Last time I booked a room there was not enough water in the room, can someone please check?",
+ "customer" : {
+    "email" : "user@domain.com", "company" : "companyname"
+  },
+ "subject" : "Board meeting",
+ "announce" : ["Jan Janssens", "Yeri Tiete"], // For on screen announcements
+}]
+</pre>
+      </dd>
+      </dd>
+
+      <dt id='api-get-reservations-thing'>
+          <a href='/api/status.json'>GET /{clustername}/things/{thing_name}/reservations</a>
+          <span class="label">Accept JSON</span>
+      </dt>
+      <br />
+      <dd>Returns list of activated reservations made for the current day for the specified thing. Day can be changed with the GET parameter ?day=2013-10-12</dd>
       <dd>
 <pre class='terminal'>
 [{
@@ -154,7 +180,9 @@
         <span class="label label-warning">Auth</span>
       </dt>
       <br />
-      <dd>Create or update a reservation and return it as JSON. Returns 400 if thing is occupied or not open when POST.</dd>
+      <dd>Create or update a reservation and return it as JSON. Returns 400 if thing is occupied or not open when POST.
+          An activation mail will be sent to the given email address. </dd>
+      <dd>The reservation blocks the availability of that space for 30 minutes. After that the interval gets released again.</dd>
       <dd>
 <pre class='terminal'>
 {
