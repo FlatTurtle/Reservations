@@ -24,12 +24,6 @@ class ReservationController extends BaseController
           $to = strtotime($reservation_time['to']);
           $available = false;
           foreach ($opening_hours as $opening_hour) {
-              if ($from < strtotime($opening_hour->validFrom)) {
-                  return false;
-              }
-              if ($to > strtotime($opening_hour->validThrough)) {
-                  return false;
-              }
 
               /* 
                * We do not support reservation that goes on multiple days,
@@ -41,6 +35,15 @@ class ReservationController extends BaseController
               if ($opening_hour->dayOfWeek == date('N', $from)
                   && $opening_hour->dayOfWeek == date('N', $to)
               ) {
+                  // check validdate after confirming the dayofweek is right
+                  // valid date can differ each opening interval
+                  if ($from < strtotime($opening_hour->validFrom)) {
+                      return false;
+                  }
+                  if ($to > strtotime($opening_hour->validThrough)) {
+                      return false;
+                  }
+
                   $from_t = new DateTime();
                   $from_t->setTimestamp($from);
                   $from_open_t = clone $from_t;
