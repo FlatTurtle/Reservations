@@ -20,12 +20,6 @@ class CreateCompanyTable extends Migration {
                 $table->string('domains');
                 $table->string('logo_url');
                 $table->timestamps();
-
-                //foreign key
-                $table->foreign('cluster_id')
-                    ->references('id')->on('cluster')
-                    ->onDelete('cascade')
-                    ->onUpdate('cascade');
             });
         }else{
             if(!Schema::hasColumn('company', 'name')){
