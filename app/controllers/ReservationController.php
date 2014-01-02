@@ -92,7 +92,7 @@ class ReservationController extends BaseController
     /**
      * Return a list of reservations that the user has made for the current day.
      * Day can be change by providing a 'day' as GET parameter.
-     * This only returns activated reservations
+     * This only returns activated or blocking reservations
      *
      * @param clustername : the cluster's name
      * @return 
@@ -125,7 +125,7 @@ class ReservationController extends BaseController
 
     /**
      * Return a the reservation that has id $id.
-     * This only returns activated reservations
+     * This only returns activated or blocking reservations
      * @param clustername : the cluster's name
      * @param id : the id of the reservation to be returned
      */
@@ -145,7 +145,7 @@ class ReservationController extends BaseController
 
     /**
      * Return a the reservation that has id $id.
-     * This only returns activated reservations
+     * This only returns activated or blocking reservations
      *
      * @param clustername : the user's name
      * @param name : the thing's name

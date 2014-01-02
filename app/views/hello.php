@@ -129,7 +129,7 @@
         <span class="label">Accept JSON</span>
       </dt>
       <br />
-      <dd>Returns list of activated reservations made for the current day. Day can be changed with the GET parameter ?day=2013-10-12</dd>
+      <dd>Returns list of activated or blocking reservations made for the current day. Day can be changed with the GET parameter ?day=2013-10-12</dd>
       <dd>
 <pre class='terminal'>
 [{
@@ -155,7 +155,7 @@
           <span class="label">Accept JSON</span>
       </dt>
       <br />
-      <dd>Returns list of activated reservations made for the current day for the specified thing. Day can be changed with the GET parameter ?day=2013-10-12</dd>
+      <dd>Returns list of activated or blocking reservations made for the current day for the specified thing. Day can be changed with the GET parameter ?day=2013-10-12</dd>
       <dd>
 <pre class='terminal'>
 [{
