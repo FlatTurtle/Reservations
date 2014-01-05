@@ -41,6 +41,3 @@ class UserTableSeeder extends Seeder {
         ));
     }
 }
-
-
-?>

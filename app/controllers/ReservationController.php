@@ -5,7 +5,7 @@
  */
 
 /**
- * This class take care of everything related to reservations 
+ * This class take care of everything related to reservations
  * (create / update / delete).
  */
 class ReservationController extends BaseController
@@ -95,8 +95,8 @@ class ReservationController extends BaseController
      * This only returns activated or blocking reservations
      *
      * @param clustername : the cluster's name
-     * @return 
-     */ 
+     * @return
+     */
     public function getReservations(Cluster $cluster)
     {
         /*  Announce value is json encoded in db so we first retrieve
@@ -186,8 +186,8 @@ class ReservationController extends BaseController
      */
     public function createReservation(Cluster $cluster){
 
-        $content = Request::instance()->getContent(); 
-        if (empty($content)) 
+        $content = Request::instance()->getContent();
+        if (empty($content))
           return $this->_sendErrorMessage(400, "Payload.Null", "Received payload is empty.");
         if (Input::json() == null)
           return $this->_sendErrorMessage(400, "Payload.Invalid", "Received payload is invalid.");
@@ -243,10 +243,13 @@ class ReservationController extends BaseController
                         if(!empty($reservation)){
                             return $this->_sendErrorMessage(404, "Thing.AlreadyReserved", "The thing is already reserved at that time.");
                         }else{
-                            // TODO plug in code to send a confirmation mail
-                            // without the confirmation it will not be activated
 
-                            return Reservation::create(
+                            // Generate an activation code
+                            $pool = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                            $code = substr(str_shuffle(str_repeat($pool, 5)), 0, 16);
+
+                            // All systems go, create reservation
+                            $reservation = Reservation::create(
                                 array(
                                     'from' => $from->getTimestamp(),
                                     'to' => $to->getTimestamp(),
@@ -256,9 +259,29 @@ class ReservationController extends BaseController
                                     'customer' => json_encode(Input::json()->get('customer')),
                                     'entity_id' => $thing->id,
                                     'user_id' => $cluster->user->id,
-                                    'activated' => false
+                                    'activated' => false,
+                                    'code' => $code,
                                 )
                             );
+
+                            // Get customer
+                            $customer = Input::json()->get('customer');
+
+                            // Email data
+                            $data = array(
+                                'reservation' => $reservation,
+                                'customer'    => $customer,
+                                'confirm_url' => $cluster->clustername . '/reservations/confirm/' . $code,
+                            );
+
+                            // Send confirmation email
+                            Mail::send('emails.confirm', $data, function($message) use ($customer)
+                            {
+                                $message->to($customer['email'], $customer['company'])->subject("Confirm your reservation.");
+                            });
+
+                            // Send object back to API
+                            return $reservation;
                         }
                     }else{
                       return $this->_sendErrorMessage(404, "Thing.Unavailable", "The thing is unavailable at that time.");

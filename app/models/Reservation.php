@@ -10,7 +10,7 @@ class Reservation extends Eloquent {
      */
     protected $table = 'reservation';
 
-    protected $fillable = array('id', 'from', 'to', 'subject', 'comment', 'announce', 'customer', 'user_id', 'entity_id','activated');
+    protected $fillable = array('id', 'from', 'to', 'subject', 'comment', 'announce', 'customer', 'user_id', 'entity_id', 'activated', 'code');
 
 
     /**
