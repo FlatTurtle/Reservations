@@ -173,6 +173,16 @@ Route::get(
 );
 
 /*
+  GET http://reservation.hostname/{cluster_name}/reservations/confirm/{code}
+  confirm the reservation
+  id {id}.
+*/
+Route::get(
+    '/{cluster}/reservations/cancel/{code}',
+    array('uses' => 'ReservationController@getCancel')
+);
+
+/*
   GET http://reservation.hostname/{cluster_name}/things
   returns informations about the things
 */

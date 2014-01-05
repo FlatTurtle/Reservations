@@ -272,6 +272,7 @@ class ReservationController extends BaseController
                                 'reservation' => $reservation,
                                 'customer'    => $customer,
                                 'confirm_url' => $cluster->clustername . '/reservations/confirm/' . $code,
+                                'cancel_url'  => $cluster->clustername . '/reservations/cancel/' . $code,
                             );
 
                             // Send confirmation email
@@ -403,7 +404,7 @@ class ReservationController extends BaseController
     }
 
     /**
-     * Confirm the reservation by code.
+     * Confirm a reservation by code.
      * @param  Cluster $cluster
      * @param  string  $code
      */
@@ -418,6 +419,20 @@ class ReservationController extends BaseController
 
         // Show some HTML
         return View::make('confirmed');
+    }
+
+    /**
+     * Cancel a reservation by code.
+     * @param  Cluster $cluster
+     * @param  string  $code
+     */
+    public function getCancel(Cluster $cluster, $code)
+    {
+        // Delete the reservation
+        Reservation::where('code', $code)->delete();
+
+        // Show some HTML
+        return View::make('cancelled');
     }
 
     private function getDayFromInput()
