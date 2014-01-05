@@ -124,15 +124,6 @@ Route::get(
 );
 
 /*
-  GET http://reservation.hostname/{cluster_name}
-  return a list of things that can be reserved
-*/
-Route::get(
-    '/{cluster}',
-    array('uses' => 'EntityController@getEntities')
-);
-
-/*
   GET http://reservation.hostname/{cluster_name}/amenities
   returns list of amenities/
 */
