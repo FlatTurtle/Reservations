@@ -402,6 +402,24 @@ class ReservationController extends BaseController
         }
     }
 
+    /**
+     * Confirm the reservation by code.
+     * @param  Cluster $cluster
+     * @param  string  $code
+     */
+    public function getConfirm(Cluster $cluster, $code)
+    {
+        // Get the reservation object
+        $reservation = Reservation::where('code', $code)->first();
+
+        // Activate the reservation
+        $reservation->activated = true;
+        $reservation->save();
+
+        // Show some HTML
+        return View::make('confirmed');
+    }
+
     private function getDayFromInput()
     {
         if (Input::get('day') != null) {
