@@ -19,13 +19,13 @@ class ClusterTableSeeder extends Seeder {
     {
         if(Schema::hasTable('cluster'))
             DB::table('cluster')->delete();
-        
+
         $passwordHasher = new PasswordHash(8,false);
         if(Schema::hasTable('cluster'))
             DB::table('cluster')->delete();
 
         $test_user = DB::table('user')->where('username', '=', 'test')->first();
-        
+
         DB::table('cluster')->insert(array(
             'clustername' => 'test',
             'password' => $passwordHasher->HashPassword('test'),
@@ -41,6 +41,3 @@ class ClusterTableSeeder extends Seeder {
         ));
     }
 }
-
-
-?>

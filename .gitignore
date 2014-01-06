@@ -6,7 +6,6 @@
 /app/config/local
 /app/config/staging
 /app/config/production
-/app/config/testing
 
 # Basset development collections
 /public/assets/compiled/public

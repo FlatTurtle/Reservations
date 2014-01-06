@@ -28,7 +28,7 @@ $app->redirectIfTrailingSlash();
 
 $env = $app->detectEnvironment(array(
 
-	'local' => array('tsukuyomi','pieter','airnik'),
+	'local' => array('tsukuyomi','pieter','airnik','macbook'),
 
 ));
 

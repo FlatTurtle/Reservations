@@ -81,6 +81,17 @@ return array(
 
 	'reservation_time_span' => 600,
 
+    /*
+	|--------------------------------------------------------------------------
+	| Maximum unactivated blocking time
+	|--------------------------------------------------------------------------
+	|
+	| Maximum time (in minutes) that an inactive reservation gets to block
+    | the timeframe.
+	|
+	*/
+
+    'activation_timeframe' => 30,
 
 	/*
 	|--------------------------------------------------------------------------
