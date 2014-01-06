@@ -15,7 +15,7 @@ class CreateCompanyTable extends Migration {
             Schema::create('company', function($table)
             {
                 $table->increments('id');
-                $table->integer('cluster_id')->unsigned();
+                $table->unsignedInteger('cluster_id');
                 $table->string('name');
                 $table->string('domains');
                 $table->string('logo_url');
