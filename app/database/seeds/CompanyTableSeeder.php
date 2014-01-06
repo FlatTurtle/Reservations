@@ -17,5 +17,3 @@ class CompanyTableSeeder extends Seeder {
 
     }
 }
-
-

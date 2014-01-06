@@ -15,9 +15,6 @@ class EntityTableSeeder extends Seeder {
     {
     	if(Schema::hasTable('entity'))
  			DB::table('entity')->delete();
-        
+
     }
 }
-
-
-?>

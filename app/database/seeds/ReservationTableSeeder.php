@@ -16,9 +16,6 @@ class ReservationTableSeeder extends Seeder {
     {
     	if(Schema::hasTable('reservation'))
 	 		DB::table('reservation')->delete();
-        
+
     }
 }
-
-
-?>
