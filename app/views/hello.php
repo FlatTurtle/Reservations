@@ -26,7 +26,7 @@
     <dl>
       <dt id='api-root'>
         <a href='/'>GET /{clustername}/things</a>
-        <span class="label">Accept JSON</span>
+        <span class="label label-default">Accept JSON</span>
       </dt>
       <br />
       <dd>Returns a list of links to things that can be reserved.</dd>
@@ -36,7 +36,7 @@
     "type" : "room",
     "body" : {
       "name": "Deep Blue",
-      "price": {"hourly" : "5", "daily": 50, "currency" : "EUR"}, 
+      "price": {"hourly" : "5", "daily": 50, "currency" : "EUR"},
       "type": "room"
       "opening_hours": [
           {
@@ -44,7 +44,7 @@
               "closes" : ["12:00", "17:00"],
               "dayOfWeek" : 1,
               "validFrom" : "2013-09-26T12:00Z",
-              "validThrough" : "2013-09-26T12:00Z" 
+              "validThrough" : "2013-09-26T12:00Z"
           }
       ],
       "description" : "Deep Blue is located near the start-up garage.",
@@ -61,12 +61,12 @@
       "amenities" : {
           "http://reservation.{hostname}/{clustername}/amenities/wifi" : {
               "label" : "WiFi Deep Blue"
-          }, 
+          },
           "http://reservation.{hostname}/{clustername}/amenities/phone": {
               "label": "phone",
               "number" : "+32 ..."
           },
-          "http://reservation.{hostname}/{clustername}/amenities/whiteboard" : { 
+          "http://reservation.{hostname}/{clustername}/amenities/whiteboard" : {
           }
       }
   }
@@ -76,7 +76,7 @@
 
       <dt id='api-put-entity'>
         <a href='/'>PUT /{clustername}/things/{thing_name}</a>
-        <span class="label">Accept JSON</span>
+        <span class="label label-default">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>
       <br />
@@ -126,7 +126,7 @@
 
       <dt id='api-get-reservations'>
         <a href='/api/status.json'>GET /{clustername}/reservations</a>
-        <span class="label">Accept JSON</span>
+        <span class="label label-default">Accept JSON</span>
       </dt>
       <br />
       <dd>Returns list of activated or blocking reservations made for the current day. Day can be changed with the GET parameter ?day=2013-10-12</dd>
@@ -152,7 +152,7 @@
 
       <dt id='api-get-reservations-thing'>
           <a href='/api/status.json'>GET /{clustername}/things/{thing_name}/reservations</a>
-          <span class="label">Accept JSON</span>
+          <span class="label label-default">Accept JSON</span>
       </dt>
       <br />
       <dd>Returns list of activated or blocking reservations made for the current day for the specified thing. Day can be changed with the GET parameter ?day=2013-10-12</dd>
@@ -176,7 +176,7 @@
       </dd>
       <dt id='api-post-reservation'>
         <a href='/'>POST /{clustername}/reservations</a>
-        <span class="label">Accept JSON</span>
+        <span class="label label-default">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>
       <br />
@@ -203,7 +203,7 @@
       </dd>
       <dt id='api-delete-reservation'>
         <a href='/api/last-message.json'>DELETE /{clustername}/reservations/{id}</a>
-        <span class="label">Accept JSON</span>
+        <span class="label label-default">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>
       <br />
@@ -215,20 +215,20 @@
       </dd>
       <dt id='api-get-amenities'>
         <a href='/api/messages.json'>GET /{clustername}/amenities</a>
-        <span class="label">Accept JSON</span>
+        <span class="label label-default">Accept JSON</span>
       </dt>
       <br />
       <dd>Returns list of available amenities.</dd>
       <dd>
 <pre class='terminal'>
 [
-    { 
+    {
         "name" : "wifi",
         "essid" : "deep blue",
         "password" : "passwd",
         "encryption" : "WPA2"
     },
-    { 
+    {
         "name" : "red_phone",
         "number" : "+32 ..."
     }
@@ -239,14 +239,14 @@
 
       <dt id='api-get-amenity'>
         <a href='/messages.json'>GET /{clustername}/amenities/{amenity}</a>
-        <span class="label">Accept JSON</span>
+        <span class="label label-default">Accept JSON</span>
       </dt>
       <br />
       <dd>Returns information about a certain amenity.</dd>
       <dd>
 <pre class='terminal'>
 [
-    { 
+    {
         "description" : "Broadband wireless access point",
         "schema" : {
           "$schema" : http://json-schema.org/draft-04/schema#",
@@ -256,7 +256,7 @@
             "essid" : {
               "description" : "The essid of your wifi access point",
               "type" : "string"
-            }, 
+            },
             ...
           ]
 
@@ -269,7 +269,7 @@
 
       <dt id='api-put-amenity'>
         <a href='/messages.json'>PUT /{clustername}/amenities/{amenity}</a>
-        <span class="label">Accept JSON</span>
+        <span class="label label-default">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>
       <br />
@@ -277,7 +277,7 @@
       <dd>
 <pre class='terminal'>
 [
-    { 
+    {
         "description" : "Broadband wireless access point",
         "schema" : {
           "$schema" : http://json-schema.org/draft-04/schema#",
@@ -287,7 +287,7 @@
             "essid" : {
               "description" : "The essid of your wifi access point",
               "type" : "string"
-            }, 
+            },
             ...
           ]
 
@@ -303,7 +303,7 @@ are available here http://json-schema.org/.
 
     <dt id='api-delete-amenity'>
         <a href='/messages.json'>DELETE /{clustername}/amenities/{amenity}</a>
-        <span class="label">Accept JSON</span>
+        <span class="label label-default">Accept JSON</span>
         <span class="label label-warning">Auth</span>
       </dt>
       <br />
@@ -317,7 +317,7 @@ are available here http://json-schema.org/.
 
       <dt id='api-get-companies'>
           <a href='/api/status.json'>GET /{clustername}/companies</a>
-          <span class="label">Accept JSON</span>
+          <span class="label label-default">Accept JSON</span>
       </dt>
       <br />
       <dd>Returns list of companies registered on the specified cluster.</dd>
@@ -338,7 +338,7 @@ are available here http://json-schema.org/.
 
       <dt id='api-get-company'>
           <a href='/api/status.json'>GET /{clustername}/companies/{company_name}</a>
-          <span class="label">Accept JSON</span>
+          <span class="label label-default">Accept JSON</span>
       </dt>
       <br/>
       <dd>Returns the company linked to that name if it exists in that cluster.</dd>
@@ -358,7 +358,7 @@ are available here http://json-schema.org/.
 
       <dt id='api-put-company'>
           <a href='/api/status.json'>PUT /{clustername}/companies/{company_name}</a>
-          <span class="label">Accept JSON</span>
+          <span class="label label-default">Accept JSON</span>
           <span class="label label-warning">Auth</span>
       </dt>
       <br/>
@@ -375,7 +375,7 @@ are available here http://json-schema.org/.
 
       <dt id='api-delete-company'>
           <a href='/messages.json'>DELETE /{clustername}/companies/{company_name}</a>
-          <span class="label">Accept JSON</span>
+          <span class="label label-default">Accept JSON</span>
           <span class="label label-warning">Auth</span>
       </dt>
       <br />
