@@ -25,7 +25,7 @@
 		</style>
 	</head>
 	<body>
-		<h1>You have successfully confirmed your reservation.</h1>
+		<h1>You have successfully <strong>confirmed</strong> your reservation.</h1>
 		<h2>You can now close this window.</h2>
 	</body>
 </html>
