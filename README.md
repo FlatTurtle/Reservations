@@ -63,6 +63,6 @@ For more questions, consult the wiki on github.
 
 ## Copyright and license
 
-2013 - FlatTurtle
+2013-2014 - FlatTurtle
 
 Code is licensed under AGPLv3
