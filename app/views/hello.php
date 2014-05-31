@@ -397,7 +397,7 @@ are available here http://json-schema.org/.
           <li><a href="https://FlatTurtle.com/#contact">Contact</a></li>
           <li><a href="/api">API</a></li>
         </ul>
-        <p>© 2013 <a href="https://FlatTurtle.com">FlatTurtle</a>. Some rights reserved.</p>
+        <p>© 2013-2014 <a href="https://FlatTurtle.com">FlatTurtle</a>. Some rights reserved.</p>
       </div>
 
     </div>
