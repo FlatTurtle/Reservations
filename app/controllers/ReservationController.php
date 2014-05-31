@@ -412,6 +412,8 @@ class ReservationController extends BaseController
     {
         // Get the reservation object
         $reservation = Reservation::where('code', $code)->first();
+        if($reservation == null)
+            return View::make('invalid');
 
         // Activate the reservation
         $reservation->activated = true;
@@ -428,6 +430,11 @@ class ReservationController extends BaseController
      */
     public function getCancel(Cluster $cluster, $code)
     {
+        // Get the reservation object
+        $reservation = Reservation::where('code', $code)->first();
+        if($reservation == null)if($reservation == null)
+            return View::make('cancelled');
+
         // Delete the reservation
         Reservation::where('code', $code)->delete();
 
