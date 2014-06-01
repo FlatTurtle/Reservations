@@ -268,7 +268,13 @@ class ReservationController extends BaseController
                             $customer = Input::json()->get('customer');
 
                             // Email data
+                            $from = new DateTime($reservation->from);
+                            $to   = new DateTime($reservation->to);
+                            
                             $data = array(
+                                'thing_name'  => $thing_name,
+                                'from'        => $from->format('d-m-Y H:i'),
+                                'to'          => $to->format('d-m-Y H:i'),
                                 'reservation' => $reservation,
                                 'customer'    => $customer,
                                 'confirm_url' => $cluster->clustername . '/reservations/confirm/' . $code,

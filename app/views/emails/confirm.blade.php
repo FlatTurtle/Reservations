@@ -7,6 +7,8 @@
 		<h2>Confirm your reservation</h2>
 
 		<div>
+            You receive this email because you made a reservation for "{{ $thing_name }}" from {{ $from }} to {{ $to }}.
+            <br>
 			Please confirm your reservation by clicking this link:
 			<br><br>
 			<a href="{{ URL::to($confirm_url) }}">{{ URL::to($confirm_url) }}</a>
