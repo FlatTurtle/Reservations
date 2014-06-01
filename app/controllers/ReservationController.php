@@ -278,7 +278,7 @@ class ReservationController extends BaseController
                             // Send confirmation email
                             Mail::send('emails.confirm', $data, function($message) use ($customer)
                             {
-                                $message->to($customer['email'], $customer['company'])->subject("Confirm your reservation.");
+                                $message->to($customer['email'], $customer['email'])->subject("Confirm your reservation.");
                             });
 
                             // Send object back to API
