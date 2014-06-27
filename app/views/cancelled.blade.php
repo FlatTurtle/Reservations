@@ -12,6 +12,9 @@
 		strong {
 			font-family: "Soho Gothic W01 Regular","Helvetica Neue",Helvetica,Arial,sans-serif;
 		}
+		img {
+			margin-top: 50px;
+		}
 		h1 {
 			font-family: inherit;
 			font-weight: 300;
@@ -22,10 +25,18 @@
 			font-weight: 300;
 			color: #999;
 		}
+		p {
+			margin-top: 20px;
+			font-weight: 100;
+			color: #999;
+		}
 		</style>
 	</head>
 	<body>
+		<img alt="FlatTurtle" border="0" src="https://img.flatturtle.com/flatturtle/logo/Turtle_signature.png" />
 		<h1>You have successfully <strong>cancelled</strong> your reservation.</h1>
 		<h2>You can now close this window.</h2>
+		<p><br /><br /></p>
+		<p>&copy; <a href="http://FlatTurtle.com/">FlatTurtle</a></p>
 	</body>
 </html>
