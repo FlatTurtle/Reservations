@@ -20,7 +20,8 @@
 			<br />
 			<br />
 			<br />
-			<p>help@FlatTurtle.com <br />
+			<p>-- <br />
+			help@FlatTurtle.com <br />
 			&copy; <a href="http://FlatTurtle.com/">FlatTurtle</a></p>
 		</div>
 	</body>
