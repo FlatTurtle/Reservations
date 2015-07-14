@@ -55,7 +55,7 @@ class Cluster extends Eloquent implements UserInterface {
     {
         return $this->password;
     }
-    
+
     public function isAdmin() {
         return $this->user()->first()->isAdmin();
     }
@@ -75,4 +75,3 @@ class Cluster extends Eloquent implements UserInterface {
         return 'remember_token';
     }
 }
-
