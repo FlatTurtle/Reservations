@@ -27,7 +27,7 @@ class User extends Eloquent implements UserInterface {
     public function entities() {
         return $this->hasMany('Entity');
     }
-	
+
     /**
      * Get the unique identifier for the user.
      *
@@ -71,6 +71,5 @@ class User extends Eloquent implements UserInterface {
     public function getRememberTokenName()
     {
         return 'remember_token';
-    }    
+    }
 }
-
