@@ -6,7 +6,7 @@
 	"require": {
 		"laravel/framework": "4.0.*",	
 		"rmccue/requests": ">=1.0",
-	 	"hautelook/phpass": "dev-master"
+	 	"hautelook/phpass": "0.3.4"
     	},
 	"autoload": {
 		"classmap": [
