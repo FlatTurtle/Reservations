@@ -7,11 +7,13 @@
 		<h2>Confirm your meeting room reservation.</h2>
 
 		<div>
-            You receive this email because you made a reservation: <br />
+            You receive this email because you made a reservation on:<br />
             <br />
 			Meeting room: {{ $thing_name }} <br />
 			Date: {{ $from }} => {{ $to }} <br />
 			<br />
+      To complete the reservation please click the confirmation link below. Otherwise the reservation will not be validated.
+      <br />
 			<strong>Confirm</strong> booking / Confirmez reservation / Bevestigen boeking: <br />
 			<a href="{{ URL::to($confirm_url) }}">{{ URL::to($confirm_url) }}</a><br />
  			<br />
