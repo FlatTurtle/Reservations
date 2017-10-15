@@ -157,8 +157,40 @@ class ReservationController extends BaseController
 
             $from = $this->getDayFromInput();
             $to = clone $from;
-            // add one day to $from
+            // add X days to $from
             $to->add(new DateInterval('P1D'));
+
+            $_reservations = Reservation::activatedOrBlocking()
+                ->where('user_id', '=', $cluster->user->id)
+                ->where('entity_id', '=', $thing->id)
+                ->where('from', '>=', $from)
+                ->where('to', '<=', $to)
+                ->get();
+
+            $reservations = array();
+            foreach($_reservations as $reservation){
+                $reservation->announce = json_decode($reservation->announce);
+                $reservation->customer = json_decode($reservation->customer);
+                array_push($reservations, $reservation->toArray());
+            }
+            return $reservations;
+        } else{
+            return $this->_sendErrorMessage(404, "Thing.NotFound", "Thing not found");
+        }
+    }
+
+    /** 
+     * Return the reservations for the next X days.
+     */
+    public function getReservationsPerXDays (Cluster $cluster, $name, $nb_days) 
+    {
+        $thing = Entity::where('user_id', '=', $cluster->user->id)->where('name', '=', $name)->first();
+        if (isset($thing)) {
+
+            $from = $this->getDayFromInput();
+            $to = clone $from;
+            // add X days to $from
+            $to->add(new DateInterval('P' + $nb_days + 'D'));
 
             $_reservations = Reservation::activatedOrBlocking()
                 ->where('user_id', '=', $cluster->user->id)
