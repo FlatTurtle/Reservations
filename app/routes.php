@@ -212,6 +212,14 @@ Route::get(
 );
 
 /*
+  GET https://reservation.hostname/{cluster_name}/things/{name}/all-reservations/{nb_days}
+*/
+Route::get(
+    '/{cluster}/things/{name}/all-reservations/{nb_days}',
+    array('uses' => 'ReservationController@getReservationsPerXDays')
+);
+
+/*
   GET http://reservation.hostname/{cluster_name}/
   returns 3 URIs thing that can be reserved.
 */
