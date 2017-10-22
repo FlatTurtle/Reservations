@@ -184,13 +184,17 @@ class ReservationController extends BaseController
      */
     public function getReservationsPerXDays (Cluster $cluster, $name, $nb_days) 
     {
+        if (!is_numeric($nb_days)) {
+            return $this->_sendErrorMessage(400, "Payload.Invalid", "NB_days is not an integer");
+        }
+
         $thing = Entity::where('user_id', '=', $cluster->user->id)->where('name', '=', $name)->first();
         if (isset($thing)) {
-
+            $nb_days_as_int = intval($nb_days);
             $from = $this->getDayFromInput();
             $to = clone $from;
             // add X days to $from
-            $to->add(new DateInterval('P' + $nb_days + 'D'));
+            $to->add(new DateInterval('P' + $nb_days_as_int + 'D'));
 
             $_reservations = Reservation::activatedOrBlocking()
                 ->where('user_id', '=', $cluster->user->id)
