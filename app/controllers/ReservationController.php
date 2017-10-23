@@ -182,15 +182,13 @@ class ReservationController extends BaseController
     /** 
      * Return the reservations for the next X days.
      */
-    public function getReservationsPerXDays (Cluster $cluster, $name, $nb_days) 
+    public function getReservationsInRange (Cluster $cluster, $name, $start_date, $end_date) 
     {
         $thing = Entity::where('user_id', '=', $cluster->user->id)->where('name', '=', $name)->first();
         if (isset($thing)) {
-            $from = $this->getDayFromInput();
-            $to = clone $from;
-            // add X days to $from
-            $to->add(new DateInterval('P' . $nb_days . 'D'));
-
+            $from = $this->stringToUTCDate ($start_date);
+            $to = $this->stringToUTCDate ($end_date);
+            
             $_reservations = Reservation::activatedOrBlocking()
                 ->where('user_id', '=', $cluster->user->id)
                 ->where('entity_id', '=', $thing->id)
@@ -482,13 +480,19 @@ class ReservationController extends BaseController
     private function getDayFromInput()
     {
         if (Input::get('day') != null) {
-            $from = new DateTime(Input::get('day'));
+            $from = stringToUTCDate (Input::get('day'));
         } else {
             $from = new DateTime();
             $from->setTime(0, 0);
+            $from->setTimezone (new DateTimeZone('UTC'));
         }
-        $from->setTimezone(new DateTimeZone('UTC'));
         return $from;
+    }
+
+    private function stringToUTCDate($input) {
+        $as_date = new DateTime($input);
+        $as_date->setTimezone (new DateTimeZone('UTC'));
+        return $as_date;
     }
 }
 

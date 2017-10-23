@@ -215,8 +215,8 @@ Route::get(
   GET https://reservation.hostname/{cluster_name}/things/{name}/all-reservations/{nb_days}
 */
 Route::get(
-    '/{cluster}/things/{name}/all-reservations/{nb_days}',
-    array('uses' => 'ReservationController@getReservationsPerXDays')
+    '/{cluster}/things/{name}/reservationsInRange/{start_date}/{end_date}',
+    array('uses' => 'ReservationController@getReservationsInRange')
 );
 
 /*
