@@ -182,7 +182,7 @@ class ReservationController extends BaseController
     /** 
      * Return the reservations for the next X days.
      */
-    public function getReservationsInRange (Cluster $cluster, $name, $start_date, $end_date) 
+    public function getReservationsInRange (Cluster $cluster, $name) 
     {
         $thing = Entity::where('user_id', '=', $cluster->user->id)->where('name', '=', $name)->first();
         if (isset($thing)) {
