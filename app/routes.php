@@ -212,7 +212,7 @@ Route::get(
 );
 
 /*
-  GET https://reservation.hostname/{cluster_name}/things/{name}/all-reservations/{nb_days}
+  GET https://reservation.hostname/{cluster_name}/things/{name}/reservationsInRange/
 */
 Route::get(
     '/{cluster}/things/{name}/reservationsInRange',

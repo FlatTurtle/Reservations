@@ -102,7 +102,7 @@ class ReservationController extends BaseController
         /*  Announce value is json encoded in db so we first retrieve
             reservations from db, decode announce json and return
             reservations to the user */
-        $from = $this->getDayFromInput('day');
+        $from = $this->getDateFromInput('day');
         $to = clone $from;
         // add one day to $from
         $to->add(new DateInterval('P1D'));
@@ -155,7 +155,7 @@ class ReservationController extends BaseController
         $thing = Entity::where('user_id', '=', $cluster->user->id)->where('name', '=', $name)->first();
         if (isset($thing)) {
 
-            $from = $this->getDayFromInput('day');
+            $from = $this->getDateFromInput('day');
             $to = clone $from;
             // add X days to $from
             $to->add(new DateInterval('P1D'));
@@ -186,8 +186,8 @@ class ReservationController extends BaseController
     {
         $thing = Entity::where('user_id', '=', $cluster->user->id)->where('name', '=', $name)->first();
         if (isset($thing)) {
-            $from = $this->stringToUTCDate ('start');
-            $to = $this->stringToUTCDate ('end');
+            $from = $this->getDateFromInput ('start');
+            $to = $this->getDateFromInput ('end');
             
             $_reservations = Reservation::activatedOrBlocking()
                 ->where('user_id', '=', $cluster->user->id)
@@ -478,7 +478,7 @@ class ReservationController extends BaseController
         return View::make('cancelled');
     }
 
-    private function getDayFromInput($input_param_name)
+    private function getDateFromInput($input_param_name)
     {
         if (Input::get($input_param_name) != null) {
             $from = stringToUTCDate (Input::get($input_param_name));
