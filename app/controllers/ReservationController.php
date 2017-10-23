@@ -481,7 +481,7 @@ class ReservationController extends BaseController
     private function getDateFromInput($input_param_name)
     {
         if (Input::get($input_param_name) != null) {
-            $from = stringToUTCDate (Input::get($input_param_name));
+            $from = $this->stringToUTCDate (Input::get($input_param_name));
         } else {
             $from = new DateTime();
             $from->setTime(0, 0);
