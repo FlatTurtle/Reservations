@@ -194,6 +194,7 @@ class ReservationController extends BaseController
                 ->where('entity_id', '=', $thing->id)
                 ->where('from', '>=', $from)
                 ->where('to', '<=', $to)
+                ->orderBy('from', 'asc')
                 ->get();
 
             $reservations = array();
